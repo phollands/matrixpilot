@@ -19,15 +19,64 @@
 // along with MatrixPilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "defines.h"
-
+#include "options.h"
+#include "oscillator.h"
+#include "mavlink_options.h"
 
 // This file should generate no code.
 // It's just meant for precompiler tests, to catch problems and inconsistencies
 // with the user's configuration settings.
+//#define COLON :
+#define _SELECTED_VALUE(l,v) l ": " #v
+#define SELECTED_VALUE(macro) _SELECTED_VALUE(#macro, macro)
+
+#if defined(__C30__)
+#pragma message "__C30__"
+#endif
+#if defined(__XC16__)
+#pragma message "__XC16__"
+#endif
+#if defined(__dsPIC33F__)
+#pragma message "__dsPIC33F__"
+#endif
+#if defined(__dsPIC33E__)
+#pragma message "__dsPIC33E__"
+#endif
+
+#if (BOARD_TYPE == UDB4_BOARD)
+#pragma message "BOARD_TYPE: UDB4_BOARD"
+#elif (BOARD_TYPE == UDB5_BOARD)
+#pragma message "BOARD_TYPE: UDB5_BOARD"
+#elif (BOARD_TYPE == AUAV3_BOARD)
+#pragma message "BOARD_TYPE: AUAV3_BOARD"
+#endif
+
+#pragma message (SELECTED_VALUE(MIPS))
+
+#if (GPS_TYPE == GPS_STD)
+#pragma message "GPS_TYPE: GPS_STD"
+#elif (GPS_TYPE == GPS_UBX_2HZ)
+#pragma message "GPS_TYPE: GPS_UBX_2HZ"
+#elif (GPS_TYPE == GPS_UBX_4HZ)
+#pragma message "GPS_TYPE: GPS_UBX_4HZ"
+#elif (GPS_TYPE == GPS_MTEK)
+#pragma message "GPS_TYPE: GPS_MTEK"
+#elif (GPS_TYPE == GPS_NMEA)
+#pragma message "GPS_TYPE: GPS_MTEK"
+#elif (GPS_TYPE == GPS_NONE)
+#pragma message "GPS_TYPE: GPS_NONE"
+#else
+#error "invalid GPS_TYPE"
+#endif
+
+#pragma message (SELECTED_VALUE(MAVLINK_BAUD))
 
 
 // Check RC Inputs
 // UDB4
+#pragma message (SELECTED_VALUE(USE_PPM_INPUT))
+#pragma message (SELECTED_VALUE(NUM_INPUTS))
+
 #if (USE_PPM_INPUT == 0 && NUM_INPUTS > 8)
 	#error("NUM_INPUTS can't be more than 8 without using PPM Input.")
 #elif (USE_PPM_INPUT != 0 && NUM_INPUTS > 9)
@@ -86,6 +135,8 @@
 
 // Check RC Outputs
 // UDB4
+#pragma message (SELECTED_VALUE(NUM_OUTPUTS))
+
 #if (NUM_OUTPUTS > 10)
 	#error("NUM_OUTPUTS can't be more than 10.")
 #endif
@@ -141,37 +192,40 @@
 
 
 // Check HILSIM Settings
+#pragma message (SELECTED_VALUE(HILSIM))
+
 #if (HILSIM == 1 && GPS_TYPE != GPS_UBX_4HZ)
 	#error("When using HILSIM, GPS_TYPE must be set to GPS_UBX_4HZ.")
 #endif
 
 
 // UDB4
-#if ((NUM_ANALOG_INPUTS > 4) && (BOARD_TYPE != AUAV3_BOARD))
-	#error("Only 4 extra Analog Inputs are available the UDB.")
+#pragma message (SELECTED_VALUE(NUM_ANALOG_INPUTS))
+#if (NUM_ANALOG_INPUTS > 4)
+	#error("Only 4 extra Analog Inputs are available the UDB4.")
 #endif
 
 // Check Analog Inputs
 #if (ANALOG_CURRENT_INPUT_CHANNEL > NUM_ANALOG_INPUTS)
-//	#error("ANALOG_CURRENT_INPUT_CHANNEL > NUM_ANALOG_INPUTS.")
+	#error("ANALOG_CURRENT_INPUT_CHANNEL > NUM_ANALOG_INPUTS.")
 #endif
 
 #if (ANALOG_VOLTAGE_INPUT_CHANNEL > NUM_ANALOG_INPUTS)
-//	#error("ANALOG_VOLTAGE_INPUT_CHANNEL > NUM_ANALOG_INPUTS.")
+	#error("ANALOG_VOLTAGE_INPUT_CHANNEL > NUM_ANALOG_INPUTS.")
 #endif
 
 #if (ANALOG_RSSI_INPUT_CHANNEL > NUM_ANALOG_INPUTS)
-//	#error("ANALOG_RSSI_INPUT_CHANNEL > NUM_ANALOG_INPUTS.")
+	#error("ANALOG_RSSI_INPUT_CHANNEL > NUM_ANALOG_INPUTS.")
 #endif
 
-#if (GPS_TYPE != GPS_STD && GPS_TYPE != GPS_UBX_2HZ && \
-     GPS_TYPE != GPS_UBX_4HZ && GPS_TYPE != GPS_MTEK && \
-     GPS_TYPE != GPS_NMEA && GPS_TYPE != GPS_NONE && \
-     GPS_TYPE != GPS_ALL)
+#if (GPS_TYPE != GPS_STD && GPS_TYPE != GPS_UBX_2HZ && GPS_TYPE != GPS_UBX_4HZ && GPS_TYPE != GPS_MTEK)
 	#error No valid GPS_TYPE specified.
 #endif
 
 // Check Magnetometer Options
+#pragma message (SELECTED_VALUE(MAG_YAW_DRIFT))
+#pragma message (SELECTED_VALUE(SERIAL_OUTPUT_FORMAT))
+
 #if (MAG_YAW_DRIFT == 1)
 #ifdef MAG_DIRECT
 #if (BOARD_ORIENTATION != ORIENTATION_FORWARDS)
@@ -185,6 +239,8 @@
 #endif
 
 // Check flexifunction options
+#pragma message (SELECTED_VALUE(USE_FLEXIFUNCTION_MIXING))
+
 #if ((USE_FLEXIFUNCTION_MIXING == 1) && (USE_NV_MEMORY == 0))
 	#error("Must use NV memory with flexifunction mixing on UDB4+ only")
 #endif
@@ -194,6 +250,9 @@
 #endif
 
 // Check that I2C1 drivers are active when using NV memory drivers
+#pragma message (SELECTED_VALUE(USE_NV_MEMORY))
+#pragma message (SELECTED_VALUE(USE_I2C1_DRIVER))
+
 #if ((USE_NV_MEMORY == 1) && (USE_I2C1_DRIVER == 0))
 	#error("NV memory must use I2C1 driver with USE_I2C1_DRIVER = 1")
 #endif
@@ -212,25 +271,38 @@
 	#error "max of 8 servo outputs currently supported for AUAV3"
 #endif
 
-#if ((CONSOLE_UART > 2) && (BOARD_TYPE != AUAV3_BOARD) && (SILSIM == 0))
+#pragma message (SELECTED_VALUE(CONSOLE_UART))
+#pragma message (SELECTED_VALUE(USE_MCU_IDLE))
+
+#if ((CONSOLE_UART > 2) && (BOARD_TYPE != AUAV3_BOARD))
 	#error("Console UART's greater than 2 only supported on AUAV3 board"
 #endif
+
+#pragma message (SELECTED_VALUE(USE_TELELOG))
 
 #if ((USE_TELELOG == 1) && (BOARD_TYPE != AUAV3_BOARD))
 	#error("USE_TELELOG only supported on AUAV3 board"
 #endif
 
+#pragma message (SELECTED_VALUE(USE_CONFIGFILE))
+
 #if ((USE_CONFIGFILE == 1) && (BOARD_TYPE != AUAV3_BOARD))
 	#error("USE_CONFIGFILE only supported on AUAV3 board"
 #endif
+
+#pragma message (SELECTED_VALUE(USE_USB))
 
 #if ((USE_USB == 1) && (BOARD_TYPE != AUAV3_BOARD))
 	#error("USE_USB only supported on AUAV3 board"
 #endif
 
+#pragma message (SELECTED_VALUE(USE_MSD))
+
 #if ((USE_MSD == 1) && (BOARD_TYPE != AUAV3_BOARD))
 	#error("USE_MSD only supported on AUAV3 board"
 #endif
+
+#pragma message (SELECTED_VALUE(HILSIM_USB))
 
 #if ((HILSIM_USB == 1) && (BOARD_TYPE != AUAV3_BOARD))
 	#error("HILSIM_USB only supported on AUAV3 board"

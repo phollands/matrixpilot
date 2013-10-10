@@ -19,7 +19,6 @@
 // along with MatrixPilot.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#include "defines.h"
 #include "../libUDB/libUDB.h"
 #include "../libUDB/interrupt.h"
 #include "../libDCM/estAltitude.h"
@@ -60,10 +59,8 @@ void cmd_ver(void)
 
 void cmd_format(void)
 {
-#if (BOARD_TYPE == AUAV3_BOARD)
 	printf("formatting dataflash\r\n");
 	AT45D_FormatFS();
-#endif // BOARD_TYPE
 }
 
 void cmd_start(void)
@@ -92,7 +89,11 @@ void cmd_off(void)
 
 void cmd_cpuload(void)
 {
+#if (USE_MCU_IDLE == 0)
 	printf("CPU Load %u%%\r\n", udb_cpu_load());
+#else
+	printf("CPU Load %5.2f%%\r\n", udb_cpu_ratio()/100.0);
+#endif
 }
 
 void cmd_crash(void)
@@ -180,26 +181,26 @@ void printbin16(int a)
 
 const char *byte_to_binary(int x)
 {
-	static char b[9];
-	int z;
+    static char b[9];
+    int z;
 
-	b[0] = '\0';
-	for (z = 128; z > 0; z >>= 1) {
-		strcat(b, ((x & z) == z) ? "1" : "0");
-	}
-	return b;
+    b[0] = '\0';
+    for (z = 128; z > 0; z >>= 1) {
+        strcat(b, ((x & z) == z) ? "1" : "0");
+    }
+    return b;
 }
 
 const char *word_to_binary(int x)
 {
-	static char b[17];
-	unsigned int z;
+    static char b[17];
+    unsigned int z;
 
-	b[0] = '\0';
-	for (z = 0x8000; z > 0; z >>= 1) {
-		strcat(b, ((x & z) == z) ? "1" : "0");
-	}
-	return b;
+    b[0] = '\0';
+    for (z = 0x8000; z > 0; z >>= 1) {
+        strcat(b, ((x & z) == z) ? "1" : "0");
+    }
+    return b;
 }
 
 void gentrap(void);
@@ -334,10 +335,10 @@ void console(void)
 			cmdstr[cmdlen] = ch;
 			if ((ch == '\r') || (ch == '\n')) {
 				cmdstr[cmdlen] = '\0';
-				cmdlen = 0;
 				if (strlen(cmdstr) > 0) {
 					putch('\r');
 					command(cmdstr);
+					cmdlen = 0;
 				}
 			} else {
 				putch(ch);

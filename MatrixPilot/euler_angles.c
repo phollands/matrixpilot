@@ -23,15 +23,13 @@
 
 
 #include "defines.h"
-#include "euler_angles.h"
-#include "../libDCM/mathlibNAV.h"
 
 /**
  * Returns the aircraft heading angle (a.k.a., yaw angle) in degrees relative
  * to geographic north.
  * Values returned range from 0 - 360 degrees, positive clockwise.
  */
-uint16_t get_geo_heading_angle(void)
+uint16_t get_geo_heading_angle()
 {
 	struct relative2D matrix_accum;
 	matrix_accum.x = rmat[4];

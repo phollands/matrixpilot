@@ -20,8 +20,12 @@
 
 
 #include "defines.h"
-#include "../libDCM/gpsParseCommon.h"
-#include "config.h"
+
+#ifdef USE_MAVLINK_DBGIO
+#include "mavlink_types.h"
+int16_t mavlink_serial_send(mavlink_channel_t chan, uint8_t buf[], uint16_t len);
+uint8_t dbg_buff[50];
+#endif
 
 #if (USE_TELELOG == 1)
 #include "telemetry_log.h"
@@ -31,10 +35,11 @@
 #include "preflight.h"
 #endif
 
-#if (CONSOLE_UART != 0)
-#include "console.h"
+#if (USE_CONFIGFILE == 1)
+#include "config.h"
 #endif
 
+//	main program for testing the IMU.
 
 #if (SILSIM == 1)
 int mp_argc;
@@ -53,35 +58,25 @@ int main(void)
 	log_init();
 #endif
 #if (USE_USB == 1)
-	preflight();    // perhaps this would be better called usb_init()
+	preflight();
 #endif
-	gps_init();     // this sets function pointers so i'm calling it early for now
 	udb_init();
 	dcm_init();
-	init_config();  // this will need to be moved up in order to support runtime hardware options
+#if (USE_CONFIGFILE == 1)
+	init_config();
+#endif
 	init_servoPrepare();
 	init_states();
 	init_behavior();
 	init_serial();
 
-	if (setjmp())
-	{
-		// a processor exception occurred and we're resuming execution here 
-		DPRINT("longjmp'd\r\n");
-	}
+#ifdef USE_MAVLINK_DBGIO
+	int len = snprintf((char*) dbg_buff, 50, "\r\n\r\n\r\nMatrixPilot v4.1, " __TIME__ " " __DATE__ "\r\n");
+	mavlink_serial_send(0, dbg_buff, len);
+#endif
 
-	while (1)
-	{
-#if (USE_TELELOG == 1)
-		telemetry_log();
-#endif
-#if (USE_USB == 1)
-		USBPollingService();
-#endif
-#if (CONSOLE_UART != 0 && SILSIM == 0)
-		console();
-#endif
-		udb_run();
-	}
+	udb_run();
+	// This never returns.
+
 	return 0;
 }

@@ -29,7 +29,12 @@
 // UXBRG = ((32000000/2)/(16*9600))-1
 // UXBRG = 103
 
-#define UDB_BAUD(x) ((int16_t)((FREQOSC / CLK_PHASES) / ((int32_t)4 * x) - 1))
+#define UDB_BAUD(x) ((int16_t)(FCY / ((int32_t)4 * x) - 1))
+
+// to be used with OpenLog for software flow control
+// Warning: imcompatible with mavlink binary uplink
+boolean pauseSerial = false;
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -84,9 +89,7 @@ void udb_init_GPS(void)
 
 void udb_gps_set_rate(int32_t rate)
 {
-#if (CONSOLE_UART != 1)
 	U1BRG = UDB_BAUD(rate);
-#endif
 }
 
 boolean udb_gps_check_rate(int32_t rate)
@@ -200,6 +203,7 @@ void udb_serial_start_sending_data(void)
 	_U2TXIF = 1; // fire the tx interrupt
 }
 
+#ifndef USE_RING_BUFFER
 void __attribute__((__interrupt__, __no_auto_psv__)) _U2TXInterrupt(void)
 {
 	_U2TXIF = 0; // clear the interrupt
@@ -213,6 +217,24 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U2TXInterrupt(void)
 	}
 	interrupt_restore_corcon;
 }
+#else
+
+void __attribute__((__interrupt__, __no_auto_psv__)) _U2TXInterrupt(void)
+{
+	_U2TXIF = 0; // clear the interrupt
+	indicate_loading_inter;
+	interrupt_save_set_corcon;
+
+	char txchar;
+	boolean status = udb_serial_callback_get_binary_to_send(&txchar);
+
+	if (status)
+		U2TXREG = (unsigned char) txchar;
+
+	interrupt_restore_corcon;
+	return;
+}
+#endif
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _U2RXInterrupt(void)
 {

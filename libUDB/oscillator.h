@@ -22,8 +22,11 @@
 #ifndef OSCILLATOR_H
 #define OSCILLATOR_H
 
-
-#define MIPS                    16
+#if (BOARD_TYPE == AUAV3_BOARD)
+#define MIPS                    70
+#else
+#define MIPS                    40
+#endif
 
 // clock-frequecy in Hz with suffix LL (64-bit-long), eg. 32000000LL for 32MHz
 #if (MIPS == 16)
@@ -40,16 +43,14 @@
 #error Invalid MIPS setting, must be 16, 32, 40, 64 or 70
 #endif // MIPS
 
-#define FOSC                    FREQOSC
 #define CLK_PHASES              2
-#define FCY                     (FOSC/CLK_PHASES)   // MCU is running at FCY MIPS
+#define FCY                     (FREQOSC/CLK_PHASES)   // MCU is running at FCY MIPS
 
-// Define the clock macros expected by the Microchip Application Libraries
-#define GetSystemClock()        (FCY)
+#define GetSystemClock()        (FCY)   // FIXME: what is this?
 #define GetInstructionClock()   (FCY)   // Normally GetSystemClock()/2 for PIC24/dsPIC
-#define GetPeripheralClock()    (FCY)
+#define GetPeripheralClock()    (FCY)   // FIXME: what is this?
 
-#define delay_us(x) __delay32(((((long long)x)*FCY)/1000000L))  // delays x us
+#define delay_us(x) __delay32(((((long long)x)*FCY)/1000000L)) // delays x us
 #define delay_ms(x) __delay32(((((long long)x)*FCY)/1000L))     // delays x ms
 
 void __delay32(unsigned long cycles);

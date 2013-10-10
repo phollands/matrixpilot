@@ -22,45 +22,84 @@
 #include "defines.h"
 #include "airspeedCntrl.h"
 
-int16_t minimum_groundspeed;
-int16_t minimum_airspeed;
-int16_t maximum_airspeed;
-int16_t cruise_airspeed;
+#if (ALTITUDE_GAINS_VARIABLE != 1)
 
-int16_t airspeed_pitch_adjust_rate;
-int16_t airspeed_pitch_ki_limit;
-fractional airspeed_pitch_ki;
-int16_t airspeed_pitch_min_aspd;
-int16_t airspeed_pitch_max_aspd;
+// If mavlink is being used but the gains are not variable
+// implement the malink parameter variables for airspeed here
+#if (SERIAL_OUTPUT_FORMAT == SERIAL_MAVLINK)
+#include "airspeedCntrl.h"
 
-void init_airspeedCntrl(void)
-{
-	minimum_groundspeed = MINIMUM_GROUNDSPEED * 100;
-	minimum_airspeed    = MINIMUM_AIRSPEED    * 100;
-	maximum_airspeed    = MAXIMUM_AIRSPEED    * 100;
-	cruise_airspeed     = CRUISE_AIRSPEED     * 100;
+int16_t minimum_groundspeed = MINIMUM_GROUNDSPEED * 100;
+int16_t minimum_airspeed    = MINIMUM_AIRSPEED    * 100;
+int16_t maximum_airspeed    = MAXIMUM_AIRSPEED    * 100;
+int16_t cruise_airspeed     = CRUISE_AIRSPEED     * 100;
 
-	airspeed_pitch_adjust_rate = (AIRSPEED_PITCH_ADJ_RATE * (RMAX/(57.3 * 40.0)));
-	airspeed_pitch_ki_limit    = (AIRSPEED_PITCH_KI_MAX   * (RMAX/57.3));
-	airspeed_pitch_ki          = (AIRSPEED_PITCH_KI       * (RMAX));
-	airspeed_pitch_min_aspd    = (AIRSPEED_PITCH_MIN_ASPD * (RMAX/57.3));
-	airspeed_pitch_max_aspd    = (AIRSPEED_PITCH_MAX_ASPD * (RMAX/57.3));
-}
+int16_t airspeed_pitch_adjust_rate = (AIRSPEED_PITCH_ADJ_RATE * (RMAX/(57.3 * 40.0)));
+int16_t airspeed_pitch_ki_limit    = (AIRSPEED_PITCH_KI_MAX   * (RMAX/57.3));
+fractional airspeed_pitch_ki       = (AIRSPEED_PITCH_KI       * (RMAX));
+int16_t airspeed_pitch_min_aspd    = (AIRSPEED_PITCH_MIN_ASPD * (RMAX/57.3));
+int16_t airspeed_pitch_max_aspd    = (AIRSPEED_PITCH_MAX_ASPD * (RMAX/57.3));
+#endif // SERIAL_MAVLINK
 
-#if (ALTITUDE_GAINS_VARIABLE == 1)
+
+#else // ALTITUDE_GAINS_VARIABLE == 1
+
+
+#include "airspeedCntrl.h"
+
+// Calculate the airspeed.
+extern int16_t calc_airspeed(void);
+
+// Calculate the groundspeed.
+extern int16_t calc_groundspeed(void);
+
+// Calculate the target airspeed in cm/s from desiredSpd in dm/s
+extern int16_t calc_target_airspeed(int16_t desiredSpd);
+
+// Calculate the airspeed error vs target airspeed including filtering
+extern int16_t calc_airspeed_error(void);
+
+// Calculate the airspeed error integral term with filtering and limits
+extern int32_t calc_airspeed_int_error(int16_t aspdError, int32_t aspd_integral);
 
 int16_t airspeed            = 0;
 int16_t groundspeed         = 0;
 int16_t airspeedError       = 0;
 int16_t target_airspeed     = 0;
-fractional last_aspd_pitch_adj       = 0;   // Remember last adjustment to limit rate of adjustment.
-union longww airspeed_error_integral = {0}; // Integral of airspeed error. lower word is underflow. upper word is output in degrees.
 
+int16_t minimum_groundspeed = MINIMUM_GROUNDSPEED * 100;
+int16_t minimum_airspeed    = MINIMUM_AIRSPEED    * 100;
+int16_t maximum_airspeed    = MAXIMUM_AIRSPEED    * 100;
+int16_t cruise_airspeed     = CRUISE_AIRSPEED     * 100;
+
+int16_t airspeed_pitch_adjust_rate = (AIRSPEED_PITCH_ADJ_RATE*(RMAX/(57.3 * 40.0)));
+
+// Remember last adjustment to limit rate of adjustment.
+fractional last_aspd_pitch_adj  = 0;
+
+// Integral of airspeed error
+// lower word is underflow.  Upper word is output in degrees.
+union longww airspeed_error_integral = {0};
+
+int16_t airspeed_pitch_ki_limit = (AIRSPEED_PITCH_KI_MAX*(RMAX/57.3));
+fractional airspeed_pitch_ki    = (AIRSPEED_PITCH_KI * RMAX);
+
+int16_t airspeed_pitch_min_aspd = (AIRSPEED_PITCH_MIN_ASPD*(RMAX/57.3));
+int16_t airspeed_pitch_max_aspd = (AIRSPEED_PITCH_MAX_ASPD*(RMAX/57.3));
+
+void airspeedCntrl(void)
+{
+	airspeed                    = calc_airspeed();
+	groundspeed                 = calc_groundspeed();
+	target_airspeed             = calc_target_airspeed(desiredSpeed);
+	airspeedError               = calc_airspeed_error();
+	airspeed_error_integral.WW  = calc_airspeed_int_error(airspeedError, airspeed_error_integral.WW);
+}
 
 // Calculate the airspeed.
 // Note that this airspeed is a magnitude regardless of direction.
 // It is not a calculation of forward airspeed.
-static int16_t calc_airspeed(void)
+int16_t calc_airspeed(void)
 {
 	int16_t speed_component;
 	int32_t fwdaspd2;
@@ -80,7 +119,7 @@ static int16_t calc_airspeed(void)
 }
 
 // Calculate the groundspeed in cm/s
-static int16_t calc_groundspeed(void) // computes (1/2gravity)*(actual_speed^2 - desired_speed^2)
+int16_t calc_groundspeed(void) // computes (1/2gravity)*(actual_speed^2 - desired_speed^2)
 {
 	int32_t gndspd2;
 	gndspd2  = __builtin_mulss(IMUvelocityx._.W1, IMUvelocityx._.W1);
@@ -91,7 +130,7 @@ static int16_t calc_groundspeed(void) // computes (1/2gravity)*(actual_speed^2 -
 }
 
 // Calculate the required airspeed in cm/s.  desiredSpeed is in dm/s
-static int16_t calc_target_airspeed(int16_t desiredSpd)
+int16_t calc_target_airspeed(int16_t desiredSpd)
 {
 	union longww accum;
 	int16_t target;
@@ -112,7 +151,7 @@ static int16_t calc_target_airspeed(int16_t desiredSpd)
 }
 
 // Calculate the airspeed error vs target airspeed including filtering
-static int16_t calc_airspeed_error(void)
+int16_t calc_airspeed_error(void)
 {
 	//Some airspeed error filtering
 	airspeedError  = airspeedError >> 1;
@@ -122,7 +161,7 @@ static int16_t calc_airspeed_error(void)
 }
 
 // Calculate the airspeed error integral term with filtering and limits
-static int32_t calc_airspeed_int_error(int16_t aspdError, int32_t aspd_integral)
+int32_t calc_airspeed_int_error(int16_t aspdError, int32_t aspd_integral)
 {
 	union longww airspeed_int = {aspd_integral};
 	airspeed_int.WW += __builtin_mulss(airspeed_pitch_ki, airspeedError) << 2;
@@ -136,7 +175,7 @@ static int32_t calc_airspeed_int_error(int16_t aspdError, int32_t aspd_integral)
 }
 
 //Calculate and return pitch target adjustment for target airspeed
-static fractional gliding_airspeed_pitch_adjust(void)
+fractional gliding_airspeed_pitch_adjust(void)
 {
 	union longww accum;
 
@@ -192,15 +231,6 @@ static fractional gliding_airspeed_pitch_adjust(void)
 	last_aspd_pitch_adj = aspd_pitch_adj;
 
 	return aspd_pitch_adj;
-}
-
-void airspeedCntrl(void)
-{
-	airspeed                   = calc_airspeed();
-	groundspeed                = calc_groundspeed();
-	target_airspeed            = calc_target_airspeed(desiredSpeed);
-	airspeedError              = calc_airspeed_error();
-	airspeed_error_integral.WW = calc_airspeed_int_error(airspeedError, airspeed_error_integral.WW);
 }
 
 #endif // (ALTITUDE_GAINS_VARIABLE == 1)

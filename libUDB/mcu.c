@@ -31,21 +31,21 @@
 #if (BOARD_TYPE == UDB4_BOARD || BOARD_TYPE == UDB5_BOARD)
 _FOSCSEL(FNOSC_PRIPLL); // pri plus PLL (primary osc  w/ PLL)
 _FOSC(FCKSM_CSDCMD &
-      OSCIOFNC_OFF &
-      POSCMD_XT);
+	  OSCIOFNC_OFF &
+	  POSCMD_XT); 
 // Clock switching on startup is enabled, starts with fast RC.
 // Clock switching after startup is disabled.
 // Fail-Safe Clock Monitor is disabled.
 // OSC2 pin has clock out function.
 // Primary Oscillator XT mode.
-_FWDT(FWDTEN_OFF &
-      WINDIS_OFF);
-_FGS(GSS_OFF &
-     GCP_OFF &
-     GWRP_OFF);
-_FPOR(FPWRT_PWR1);
-_FICD(JTAGEN_OFF &
-      ICS_PGD2);
+_FWDT(	FWDTEN_OFF &
+		WINDIS_OFF);
+_FGS(	GSS_OFF &
+		GCP_OFF &
+		GWRP_OFF);
+_FPOR(	FPWRT_PWR1);
+_FICD(	JTAGEN_OFF &
+		ICS_PGD2);
 
 #elif (BOARD_TYPE == AUAV3_BOARD)
 
@@ -115,9 +115,9 @@ _FPOR(ALTI2C1_ON & ALTI2C2_ON);
 
 int16_t defaultCorcon = 0;
 
-volatile uint16_t trap_flags __attribute__ ((persistent, near));
-volatile uint32_t trap_source __attribute__ ((persistent, near));
-volatile uint16_t osc_fail_count __attribute__ ((persistent, near));
+volatile int16_t trap_flags __attribute__ ((persistent, near));
+volatile int32_t trap_source __attribute__ ((persistent, near));
+volatile int16_t osc_fail_count __attribute__ ((persistent, near));
 
 uint16_t get_reset_flags(void)
 {
@@ -131,7 +131,7 @@ uint16_t get_reset_flags(void)
 
 #if (BOARD_TYPE == AUAV3_BOARD)
 // This method assigns all PPS registers
-void configurePPS(void)
+void configurePPS(void) 
 {
 	// Unlock Registers
 	__builtin_write_OSCCONL(OSCCON & ~(1 << 6));
@@ -207,78 +207,67 @@ void configurePPS(void)
 	__builtin_write_OSCCONL(OSCCON | (1 << 6));
 }
 
-#define INPUT_PIN  1
-#define OUTPUT_PIN 0
-
 // This method configures TRISx for the digital IOs
-void configureDigitalIO(void)   // AUAV3 board
+void configureDigitalIO(void)	// AUAV3 board
 {
 	// TRIS registers have no effect on pins mapped to peripherals
 	// TRIS assignments are made in the initialization methods for each function
 
 	// port A
-	TRISAbits.TRISA6  = INPUT_PIN;  // DIG2
-	TRISAbits.TRISA7  = INPUT_PIN;  // DIG1
-	TRISAbits.TRISA15 = INPUT_PIN;  // I4
-	TRISAbits.TRISA14 = INPUT_PIN;  // I5
-	TRISAbits.TRISA5  = INPUT_PIN;  // I6
-	TRISAbits.TRISA4  = INPUT_PIN;  // I7
+	TRISAbits.TRISA6 = 1;   // DIG2
+	TRISAbits.TRISA7 = 1;   // DIG1
+	TRISAbits.TRISA15 = 1;  // I4
+	TRISAbits.TRISA14 = 1;  // I5
+	TRISAbits.TRISA5 = 1;   // I6
+	TRISAbits.TRISA4 = 1;   // I7
 
 	// port B
-	TRISBbits.TRISB2  = OUTPUT_PIN; // LED1
-	TRISBbits.TRISB3  = OUTPUT_PIN; // LED2
-	TRISBbits.TRISB4  = OUTPUT_PIN; // LED3
-	TRISBbits.TRISB5  = OUTPUT_PIN; // LED4
+	TRISBbits.TRISB2 = 0;   // LED1
+	TRISBbits.TRISB3 = 0;   // LED2
+	TRISBbits.TRISB4 = 0;   // LED3
+	TRISBbits.TRISB5 = 0;   // LED4
 
 	// port D
-	TRISDbits.TRISD0  = INPUT_PIN;  // I1
-	TRISDbits.TRISD11 = INPUT_PIN;  // I2
-	TRISDbits.TRISD2  = OUTPUT_PIN; // SS3
-	TRISDbits.TRISD7  = OUTPUT_PIN; // O4
-	TRISDbits.TRISD8  = INPUT_PIN;  // I3
+	TRISDbits.TRISD0 = 1;   // I1
+	TRISDbits.TRISD11 = 1;  // I2
+	TRISDbits.TRISD2 = 0;   // SS3
+	TRISDbits.TRISD7 = 0;   // O4
+	TRISDbits.TRISD8 = 1;   // I3
 
 	// port E
-	TRISEbits.TRISE0  = INPUT_PIN;  // O2
-	TRISEbits.TRISE1  = INPUT_PIN;  // DIG0
-	TRISEbits.TRISE2  = OUTPUT_PIN; // SD01 (MPU6000)
-	TRISEbits.TRISE3  = INPUT_PIN;  // SDI1 (MPU6000)
-	TRISEbits.TRISE4  = OUTPUT_PIN; // SS1  (MPU6000)
-	TRISEbits.TRISE5  = OUTPUT_PIN; // GPS_TX
-	TRISEbits.TRISE6  = INPUT_PIN;  // GPS_RX
-	TRISEbits.TRISE7  = OUTPUT_PIN; // SS2  (AT45)
+	TRISEbits.TRISE0 = 1;   // O2
+	TRISEbits.TRISE1 = 1;   // DIG0
+	TRISEbits.TRISE2 = 0;   // SD01 (MPU6000)
+	TRISEbits.TRISE3 = 1;   // SDI1 (MPU6000)
+	TRISEbits.TRISE4 = 0;   // SS1  (MPU6000)
+	TRISEbits.TRISE5 = 0;   // GPS_TX
+	TRISEbits.TRISE6 = 1;   // GPS_RX
+	TRISEbits.TRISE7 = 0;   // SS2  (AT45)
 
 	// port F
-	TRISFbits.TRISF0  = INPUT_PIN;  // CAN_RX
-	TRISFbits.TRISF1  = OUTPUT_PIN; // CAN_TX
+	TRISFbits.TRISF0 = 1;   // CAN_RX
+	TRISFbits.TRISF1 = 0;   // CAN_TX
 
-	TRISFbits.TRISF2  = INPUT_PIN;  // U3_RX
-	TRISFbits.TRISF3  = OUTPUT_PIN; // U3_TX
+	TRISFbits.TRISF2 = 1;   // U3_RX
+	TRISFbits.TRISF3 = 0;   // U3_TX
 
-	TRISFbits.TRISF4  = INPUT_PIN;  // U2_RX
-	TRISFbits.TRISF5  = OUTPUT_PIN; // U2_TX
+	TRISFbits.TRISF4 = 1;   // U2_RX
+	TRISFbits.TRISF5 = 0;   // U2_TX
 
-	TRISFbits.TRISF8  = INPUT_PIN;  // I8
-	TRISFbits.TRISF13 = OUTPUT_PIN; // O7
-	TRISFbits.TRISF12 = OUTPUT_PIN; // O8
+	TRISFbits.TRISF8 = 1;   // I8
+	TRISFbits.TRISF13 = 0;  // O7
+	TRISFbits.TRISF12 = 0;  // O8
 
 	// port G
-	TRISGbits.TRISG0  = OUTPUT_PIN; // O1
-	TRISGbits.TRISG13 = OUTPUT_PIN; // O3
-	TRISGbits.TRISG14 = OUTPUT_PIN; // O5
-	TRISGbits.TRISG1  = OUTPUT_PIN; // O6
+	TRISGbits.TRISG0 = 0;   // O1
+	TRISGbits.TRISG13 = 0;  // O3
+	TRISGbits.TRISG14 = 0;  // O5
+	TRISGbits.TRISG1 = 0;   // O6
 
 // Configure the DIGx pins as outputs for scope tracing
-//	TRISAbits.TRISA6  = OUTPUT_PIN; // DIG2
-	TRISAbits.TRISA7  = OUTPUT_PIN; // DIG1
-	TRISEbits.TRISE1  = OUTPUT_PIN; // DIG0
-
-	// any pin configured as an input which is not permanantly connected
-	// to a device should have an internal pullup or pulldown enabled
-
-	// CNPU bits enable input pin weak pull up resistors
-	CNPUAbits.CNPUA6  = 1;          // DIG2
-	CNPUAbits.CNPUA7  = 1;          // DIG1
-	CNPUEbits.CNPUE1  = 1;          // DIG0
+	TRISAbits.TRISA6 = 0;   // DIG2
+	TRISAbits.TRISA7 = 0;   // DIG1
+	TRISEbits.TRISE1 = 0;   // DIG0
 }
 #else
 void configureDigitalIO(void) // UDB4 and UDB5 boards
@@ -289,7 +278,7 @@ void configureDigitalIO(void) // UDB4 and UDB5 boards
 #endif
 	TRISF = 0b1111111111101100;
 }
-#endif // BOARD_TYPE
+#endif
 
 void init_leds(void)
 {
@@ -301,13 +290,13 @@ void init_leds(void)
 	_TRISE1 = 0; _TRISE2 = 0; _TRISE3 = 0; _TRISE4 = 0;
 #else
 #error Invalid BOARD_TYPE
-#endif // BOARD_TYPE
+#endif
 }
 
 void mcu_init(void)
 {
 	defaultCorcon = CORCON;
-
+	
 	if (_SWR == 0)
 	{
 		// if there was not a software reset (trap error) clear the trap data
@@ -318,44 +307,60 @@ void mcu_init(void)
 
 #if (BOARD_TYPE == UDB4_BOARD || BOARD_TYPE == UDB5_BOARD)
 #if (MIPS == 16)
-#warning 16 MIPS selected
-	CLKDIVbits.PLLPRE = 0;  // PLL prescaler: N1 = 2 (default)
-	CLKDIVbits.PLLPOST = 1; // PLL postscaler: N2 = 4 (default)
+	CLKDIVbits.PLLPRE = 0;	// PLL prescaler: N1 = 2 (default)
+	CLKDIVbits.PLLPOST = 1;	// PLL postscaler: N2 = 4 (default)
 	PLLFBDbits.PLLDIV = 30; // FOSC = 32 MHz (XTAL=8MHz, N1=2, N2=4, M = 32)
 #elif (MIPS == 32)
-#warning 32 MIPS selected
-	CLKDIVbits.PLLPRE = 0;  // PLL prescaler: N1 = 2 (default)
-	CLKDIVbits.PLLPOST = 0; // PLL postscaler: N2 = 2
+	CLKDIVbits.PLLPRE = 0;	// PLL prescaler: N1 = 2 (default)
+	CLKDIVbits.PLLPOST = 0;	// PLL postscaler: N2 = 2
 	PLLFBDbits.PLLDIV = 30; // FOSC = 64 MHz (XTAL=8MHz, N1=2, N2=2, M = 32)
 #elif (MIPS == 40)
-#warning 40 MIPS selected
-	CLKDIVbits.PLLPRE = 0;  // PLL prescaler: N1 = 2 (default)
-	CLKDIVbits.PLLPOST = 0; // PLL postscaler: N2 = 2
+	CLKDIVbits.PLLPRE = 0;	// PLL prescaler: N1 = 2 (default)
+	CLKDIVbits.PLLPOST = 0;	// PLL postscaler: N2 = 2
 	PLLFBDbits.PLLDIV = 38; // FOSC = 80 MHz (XTAL=8MHz, N1=2, N2=2, M = 40)
 #else
 #error "invalid MIPS Configuration"
-#endif // MIPS
-#endif // BOARD_TYPE
+#endif
+#endif
 
 #if (BOARD_TYPE == AUAV3_BOARD)
 #if (MIPS == 70)
-#warning 70 MIPS selected
-	// Configure the device PLL to obtain 70 MIPS operation. The crystal
+	// Configure the device PLL to obtain 64 MIPS operation. The crystal
 	// frequency is 8MHz. Divide 8MHz by 2, multiply by 70 and divide by
 	// 2. This results in Fosc of 140MHz. The CPU clock frequency is
-	// Fcy = Fosc/2 = 70MHz.
+	// Fcy = Fosc/2 = 70MHz. Wait for the Primary PLL to lock and then
+	// configure the auxilliary PLL to provide 48MHz needed for USB
+	// Operation.
 	PLLFBD = 68;                // M  = 70
 #elif (MIPS == 64)
-#warning 64 MIPS selected
+	// Configure the device PLL to obtain 64 MIPS operation. The crystal
+	// frequency is 8MHz. Divide 8MHz by 2, multiply by 64 and divide by
+	// 2. This results in Fosc of 128MHz. The CPU clock frequency is
+	// Fcy = Fosc/2 = 64MHz. Wait for the Primary PLL to lock and then
+	// configure the auxilliary PLL to provide 48MHz needed for USB
+	// Operation.
 	PLLFBD = 62;                // M  = 64
 #elif (MIPS == 40)
-#warning 40 MIPS selected
+	// Configure the device PLL to obtain 40 MIPS operation.
+	// Wait for the Primary PLL to lock and then
+	// configure the auxilliary PLL to provide 48MHz needed for USB
+	// Operation.
 	PLLFBD = 38;                // M  = 40
 #elif (MIPS == 32)
-#warning 32 MIPS selected
+	// Configure the device PLL to obtain 32 MIPS operation. The crystal
+	// frequency is 8MHz. Divide 8MHz by 2, multiply by 32 and divide by
+	// 2. This results in Fosc of 64MHz. The CPU clock frequency is
+	// Fcy = Fosc/2 = 32MHz. Wait for the Primary PLL to lock and then
+	// configure the auxilliary PLL to provide 48MHz needed for USB
+	// Operation.
 	PLLFBD = 30;                // M  = 32
 #elif (MIPS == 16)
-#warning 16 MIPS selected
+	// Configure the device PLL to obtain 16 MIPS operation. The crystal
+	// frequency is 8MHz. Divide 8MHz by 2, multiply by 64 and divide by
+	// 2. This results in Fosc of 32MHz. The CPU clock frequency is
+	// Fcy = Fosc/2 = 16MHz. Wait for the Primary PLL to lock and then
+	// configure the auxilliary PLL to provide 48MHz needed for USB 
+	// Operation.
 	PLLFBD = 14;                // M  = 16
 #else
 #error Invalid MIPS Configuration
@@ -367,9 +372,9 @@ void mcu_init(void)
 	// Initiate Clock Switch to Primary Oscillator with PLL (NOSC= 0x3)
 	__builtin_write_OSCCONH(0x03);
 	__builtin_write_OSCCONL(0x01);
-	while (OSCCONbits.COSC != 0x3);     // Wait for the Primary PLL to lock
+	while (OSCCONbits.COSC != 0x3);
 
-	// disable all analog inputs
+	// new RobD
 	ANSELA = 0x0000;
 	ANSELB = 0x0000;
 	ANSELC = 0x0000;
@@ -378,15 +383,16 @@ void mcu_init(void)
 	ANSELG = 0x0000;
 
 #if (USE_USB == 1)
-	// Configuring the auxiliary PLL.
-	// Since the primary oscillator provides the source clock to the
-	// auxiliary PLL, the auxiliary oscillator is disabled.
-	// Note that the AUX PLL is enabled. The input 8MHz clock is divided
-	// by 2, multiplied by 24 and then divided by 2.
+	// Configuring the auxiliary PLL, since the primary
+	// oscillator provides the source clock to the auxiliary
+	// PLL, the auxiliary oscillator is disabled. Note that
+	// the AUX PLL is enabled. The input 8MHz clock is divided
+	// by 2, multiplied by 24 and then divided by 2. Wait till 
+	// the AUX PLL locks.
 	ACLKCON3 = 0x24C1;
 	ACLKDIV3 = 0x7;
 	ACLKCON3bits.ENAPLL = 1;
-	while (ACLKCON3bits.APLLCK != 1);   // Wait till the AUX PLL locks.
+	while (ACLKCON3bits.APLLCK != 1);
 #endif // USE_USB
 	configurePPS();
 #endif // BOARD_TYPE

@@ -21,7 +21,7 @@
 
 #include "../../libUDB/libUDB.h"
 #include "../../libUDB/heartbeat.h"
-#include "../../libUDB/osd.h"
+//#include "../../libUDB/osd.h"
 #include "font_data.h"
 
 
@@ -113,10 +113,8 @@ int main(void)
 	mcu_init();
 	udb_init();
 
-	while (1)
-	{
-		udb_run();
-	}
+	udb_run();
+
 	return 0;
 }
 
@@ -132,24 +130,36 @@ void udb_callback_read_sensors(void) {}
 void udb_callback_radio_did_turn_off( void ) {}
 
 
-void init_analogs(void) {}void init_events(void) {}void udb_init_capture(void) {}void MPU6000_init16(void) {}
+#if (BOARD_TYPE == UDB5_BOARD)
+
+// Faked out parts of libUDB
+void init_analogs(void) {}
+void init_events(void) {}
+void udb_init_capture(void) {}
 
 int16_t failSafePulses = 0;
 int16_t noisePulses = 0;
-int16_t vref_adj;
+
 void init_gps(void) {}
 void udb_init_ADC(void) {}
-void calculate_analog_sensor_values(void) {}
 
+void start_pwm_outputs(void) {}
+void udb_init_pwm(void) {}
+
+void udb_init_GPS(void) {}
+void udb_init_USART(void) {}
+void udb_eeprom_init(void) {}
+
+int16_t udb_pwIn[NUM_INPUTS+1];     // pulse widths of radio inputs
+int16_t udb_pwTrim[NUM_INPUTS+1];   // initial pulse widths for trimming
+
+void MPU6000_init16(void) {}
 struct ADchannel udb_xaccel;
 struct ADchannel udb_yaccel;
 struct ADchannel udb_zaccel;
 struct ADchannel udb_xrate;
 struct ADchannel udb_yrate;
 struct ADchannel udb_zrate;
+int16_t vref_adj;
 
-void start_pwm_outputs(void) {}void udb_init_pwm(void) {}
-
-void udb_init_GPS(void) {}
-void udb_init_USART(void) {}void udb_eeprom_init(void) {}
-
+#endif // BOARD_TYPE

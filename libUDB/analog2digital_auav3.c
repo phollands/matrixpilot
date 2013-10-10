@@ -32,10 +32,6 @@
 //#if (((FCY / ADC_HZ) - 1) > 255)
 //#error Invalid ADC_HZ configuration
 //#endif
-#if (NUM_ANALOG_INPUTS <= 0)
-#undef NUM_ANALOG_INPUTS
-#define NUM_ANALOG_INPUTS                   4
-#endif
 
 //	Variables.
 #if (NUM_ANALOG_INPUTS >= 1)
@@ -69,8 +65,7 @@ uint16_t maxstack = 0;
 
 // desired adc clock is 1.1MHz and conversion rate is 25KHz
 // (1.1MHz is the lowest rate achievable at FCY = 70MHz
-//#define DES_ADC_CLK (1100000LL)
-#define DES_ADC_CLK (FCY / (63 + 1))
+#define DES_ADC_CLK (1100000LL)
 #define DES_ADC_RATE (25000LL)
 
 // calculate adc clock prescaler setting
@@ -92,8 +87,7 @@ const uint32_t adc_clk = ADC_CLK;
 #define ADC_RATE (ADC_CLK / (ADSAMP_TIME_N + 14))
 const uint32_t adc_rate = ADC_RATE;
 
-//#define ALMOST_ENOUGH_SAMPLES ((ADC_RATE / (NUM_AD_CHAN * HEARTBEAT_HZ)) - 2)
-#define ALMOST_ENOUGH_SAMPLES 20
+#define ALMOST_ENOUGH_SAMPLES ((ADC_RATE / (NUM_AD_CHAN * HEARTBEAT_HZ)) - 2)
 const uint32_t almost_enough = ALMOST_ENOUGH_SAMPLES;
 
 //#define _SELECTED_VALUE(l,v) #l#v
@@ -105,23 +99,9 @@ const uint32_t almost_enough = ALMOST_ENOUGH_SAMPLES;
 
 void udb_init_ADC(void)
 {
-	DPRINT("ADCLK_DIV_N_MINUS_1 = %li\r\n", (int32_t)ADCLK_DIV_N_MINUS_1);
-	DPRINT("ADC_CLK = %li\r\n", (int32_t)ADC_CLK);
-	DPRINT("ADC_RATE = %li\r\n", (int32_t)ADC_RATE);
-	DPRINT("ADSAMP_TIME_N = %li\r\n", (int32_t)ADSAMP_TIME_N);
-	DPRINT("ALMOST_ENOUGH_SAMPLES = %li\r\n", (int32_t)ALMOST_ENOUGH_SAMPLES);
-/*
-MatrixPilot 10:37:23 Aug 17 2013 @ 16 mips
-ADCLK_DIV_N_MINUS_1 = 13
-ADC_CLK = 1142857
-ADC_RATE = 25396
-ADSAMP_TIME_N = 31
-ALMOST_ENOUGH_SAMPLES = 88
- */
 	sample_count = 0;
 
 	AD1CON1bits.FORM  = 3;      // Data Output Format: Signed Fraction (Q15 format)
-//	AD1CON1bits.FORM  = 0;      // Data Output Format: Integer
 	AD1CON1bits.SSRC  = 7;      // Sample Clock Source: Auto-conversion
 	AD1CON1bits.ASAM  = 1;      // ADC Sample Control: Sampling begins immediately after conversion
 	AD1CON1bits.AD12B = 1;      // 12-bit ADC operation
@@ -129,7 +109,7 @@ ALMOST_ENOUGH_SAMPLES = 88
 	AD1CON2bits.CHPS  = 0;      // Converts CH0
 	AD1CON3bits.ADRC  = 0;      // ADC Clock is derived from System Clock
 
-	AD1CON3bits.ADCS = ADCLK_DIV_N_MINUS_1; // TAD = (15+1)/FCY = 0.4usec at 40mips
+	AD1CON3bits.ADCS = ADCLK_DIV_N_MINUS_1;		// TAD = (15+1)/FCY = 0.4usec at 40mips
 //	AD1CON3bits.ADCS    = ((FCY / ADC_HZ) - 1);
 //	AD1CON3bits.ADCS    = 11;   // ADC Conversion Clock Tad=Tcy*(ADCS+1)= (1/40M)*12 = 0.3us (3333.3Khz)
 //	                            // ADC Conversion Time for 12-bit Tc=14*Tad = 4.2us
@@ -197,10 +177,8 @@ ALMOST_ENOUGH_SAMPLES = 88
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _DMA0Interrupt(void)
 {
-	DIG2 = 1;
 	indicate_loading_inter;
 	interrupt_save_set_corcon;
-
 
 #if (RECORD_FREE_STACK_SPACE == 1)
 	uint16_t stack = SP_current();
@@ -210,56 +188,102 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _DMA0Interrupt(void)
 	}
 #endif
 
-	int i;
-
 #if (HILSIM != 1)
 	__eds__ int16_t *CurBuffer = (DmaBuffer == 0) ? BufferA : BufferB;
-	for (i = 0; i < NUM_ANALOG_INPUTS; i++)
-	{
-		udb_analogInputs[i].input = CurBuffer[i];
-	}
+	udb_vcc.input  = CurBuffer[A_VCC_BUFF-1];
+	udb_5v.input   = CurBuffer[A_5V_BUFF-1];
+	udb_rssi.input = CurBuffer[A_RSSI_BUFF-1];
+	
+#if (NUM_ANALOG_INPUTS >= 1)
+	udb_analogInputs[0].input = CurBuffer[analogInput1BUFF-1];
+#endif
+#if (NUM_ANALOG_INPUTS >= 2)
+	udb_analogInputs[1].input = CurBuffer[analogInput2BUFF-1];
+#endif
+#if (NUM_ANALOG_INPUTS >= 3)
+	udb_analogInputs[2].input = CurBuffer[analogInput3BUFF-1];
+#endif
+#if (NUM_ANALOG_INPUTS >= 4)
+	udb_analogInputs[3].input = CurBuffer[analogInput4BUFF-1];
+#endif
+
 #endif // HILSIM
 
 	DmaBuffer ^= 1;             // Switch buffers
-#if (BOARD_TYPE == AUAV3_BOARD)
 	_DMA0IF = 0;                // Clear the DMA Interrupt Flag
-#endif // (BOARD_TYPE == AUAV3_BOARD)
 
 	if (udb_flags._.a2d_read == 1) // prepare for the next reading
 	{
 		udb_flags._.a2d_read = 0;
-		for (i = 0; i < NUM_ANALOG_INPUTS; i++)
-		{
-			udb_analogInputs[i].sum = 0;
-		}
-//
+//		udb_xrate.sum = udb_yrate.sum = udb_zrate.sum = 0;
+//		udb_xaccel.sum = udb_yaccel.sum = udb_zaccel.sum = 0;
+#ifdef VREF
+//		udb_vref.sum = 0;
+#endif
+		udb_vcc.sum  = 0;
+		udb_5v.sum   = 0;
+		udb_rssi.sum = 0;
+#if (NUM_ANALOG_INPUTS >= 1)
+		udb_analogInputs[0].sum = 0;
+#endif
+#if (NUM_ANALOG_INPUTS >= 2)
+		udb_analogInputs[1].sum = 0;
+#endif
+#if (NUM_ANALOG_INPUTS >= 3)
+		udb_analogInputs[2].sum = 0;
+#endif
+#if (NUM_ANALOG_INPUTS >= 4)
+		udb_analogInputs[3].sum = 0;
+#endif
 //		static int i = 0;
 //		if (i++ > HEARTBEAT_HZ) {
 //			i = 0;
 //			printf("sc %u\r\n", sample_count);
 //		}
-//
 		sample_count = 0;
 	}
 
 	// perform the integration:
-	for (i = 0; i < NUM_ANALOG_INPUTS; i++)
-	{
-		udb_analogInputs[i].sum += udb_analogInputs[i].input;
-	}
+	udb_vcc.sum  += udb_vcc.input;
+	udb_5v.sum   += udb_5v.input;
+	udb_rssi.sum += udb_rssi.input;
+
+#if (NUM_ANALOG_INPUTS >= 1)
+	udb_analogInputs[0].sum += udb_analogInputs[0].input;
+#endif
+#if (NUM_ANALOG_INPUTS >= 2)
+	udb_analogInputs[1].sum += udb_analogInputs[1].input;
+#endif
+#if (NUM_ANALOG_INPUTS >= 3)
+	udb_analogInputs[2].sum += udb_analogInputs[2].input;
+#endif
+#if (NUM_ANALOG_INPUTS >= 4)
+	udb_analogInputs[3].sum += udb_analogInputs[3].input;
+#endif
 	sample_count++;
 
 	// When there is a chance that data will be read soon,
 	// have the new average values ready.
 	if (sample_count > ALMOST_ENOUGH_SAMPLES)
 	{
-		for (i = 0; i < NUM_ANALOG_INPUTS; i++)
-		{
-			udb_analogInputs[i].value = __builtin_divsd(udb_analogInputs[i].sum, sample_count);
-		}
+		udb_vcc.value  = __builtin_divsd(udb_vcc.sum, sample_count);
+		udb_5v.value   = __builtin_divsd(udb_5v.sum, sample_count);
+		udb_rssi.value = __builtin_divsd(udb_rssi.sum, sample_count);
+#if (NUM_ANALOG_INPUTS >= 1)
+		udb_analogInputs[0].value = __builtin_divsd(udb_analogInputs[0].sum, sample_count);
+#endif
+#if (NUM_ANALOG_INPUTS >= 2)
+		udb_analogInputs[1].value = __builtin_divsd(udb_analogInputs[1].sum, sample_count);
+#endif
+#if (NUM_ANALOG_INPUTS >= 3)
+		udb_analogInputs[2].value = __builtin_divsd(udb_analogInputs[2].sum, sample_count);
+#endif
+#if (NUM_ANALOG_INPUTS >= 4)
+		udb_analogInputs[3].value = __builtin_divsd(udb_analogInputs[3].sum, sample_count);
+#endif
 	}
+
 	interrupt_restore_corcon;
-	DIG2 = 0;
 }
 
 #endif // BOARD_TYPE

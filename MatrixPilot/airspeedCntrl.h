@@ -39,14 +39,12 @@ extern int16_t cruise_airspeed;
 extern int16_t airspeed_pitch_min_aspd;
 extern int16_t airspeed_pitch_max_aspd;
 
-void init_airspeedCntrl(void);
-
 // Run all airspeed control calculations and filters
-void airspeedCntrl(void);
+extern void airspeedCntrl(void);
 
 //Calculate and return pitch target adjustment for target airspeed
 // return value is in dcm scale angle 
-fractional gliding_airspeed_pitch_adjust(void);
+extern fractional gliding_airspeed_pitch_adjust(void);
 
 
 #endif // AIRSPEEDCNTRL_H

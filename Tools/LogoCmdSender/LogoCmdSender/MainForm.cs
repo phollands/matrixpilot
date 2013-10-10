@@ -179,12 +179,6 @@ namespace LogoCmdSender
         private SerialPort serialPort = new SerialPort();
         private ClientTCP clientTCP = null;
         public StringBuilder debug = new StringBuilder("");
-        private StringBuilder RxResponse = new StringBuilder("");
-        private Boolean RxResponseIsNew = false;
-        private int commTab = -1;
-        private bool enhancedMode = false;
-        private const int COMM_TAB_SERIAL = 0;
-        private const int COMM_TAB_TCP = 1;
 
         public class logoInstructionDef
         {
@@ -202,15 +196,8 @@ namespace LogoCmdSender
                 subcmd = 0;
                 arg = 0;
             }
-            public logoInstructionDef(logoInstructionDef that)
-            {
-                this.cmd = that.cmd;
-                this.do_fly = that.do_fly;
-                this.use_param = that.use_param;
-                this.subcmd = that.subcmd;
-                this.arg = that.arg;
-            }
         }
+
 
         public MainForm()
         {
@@ -222,14 +209,6 @@ namespace LogoCmdSender
             this.Text += "  v" + Application.ProductVersion;
             Cmd_comboBox.SelectedIndex = 0;
 
-            foreach (String str in Enum.GetNames(typeof(DataMsg.DataMsgCmd)))
-            {
-                if (str.Contains("Response"))
-                    DataMsgCmd_comboBox.Items.Add("RESERVED");
-                else
-                    DataMsgCmd_comboBox.Items.Add(str.Replace("_", " "));
-            }
-            
             clientTCP = new ClientTCP(this);
 
             DiscoverSerialPorts();
@@ -237,9 +216,6 @@ namespace LogoCmdSender
 
             if ((CommSerialPort_comboBox.Items.Count > 0) && (CommSerialPort_comboBox.SelectedIndex == -1))
                 CommSerialPort_comboBox.SelectedIndex = 0;
-
-            DataMsgType_AdvancedIP_radioButton_CheckedChanged(null, null); // set labels enabled
-            Cmd_comboBox_SelectedIndexChanged(null, null);
 
             Housekeeping1sec_timer.Enabled = true;
         }
@@ -276,21 +252,11 @@ namespace LogoCmdSender
                 Application.UserAppDataRegistry.SetValue("UseParam", UseParam_checkBox.Checked);
                 Application.UserAppDataRegistry.SetValue("Arg", Arg_numericUpDown.Value);
 
+                Application.UserAppDataRegistry.SetValue("CommTypeTCP", CommTypeTCP_radioButton.Checked);
+                Application.UserAppDataRegistry.SetValue("CommTypeSerial", CommTypeSerial_radioButton.Checked);
                 Application.UserAppDataRegistry.SetValue("CommSerialPort", CommSerialPort_comboBox.SelectedIndex);
                 Application.UserAppDataRegistry.SetValue("CommSerialBaud", CommSerialBaud_comboBox.SelectedIndex);
 
-                Application.UserAppDataRegistry.SetValue("DataMsgIP", DataMsgType_EnhancedLogo_radioButton.Checked);
-                Application.UserAppDataRegistry.SetValue("DataMsgLegacy", DataMsgType_Legacy_radioButton.Checked);
-                Application.UserAppDataRegistry.SetValue("DataMsgAutoIncCmd", AutoIncCmdIndex_checkBox.Checked);
-                Application.UserAppDataRegistry.SetValue("DataMsgIndexMission", DataMsgType_IndexMission_numericUpDown.Value);
-                Application.UserAppDataRegistry.SetValue("DataMsgIndexCmd", DataMsgType_IndexCmd_numericUpDown.Value);
-                Application.UserAppDataRegistry.SetValue("DataMsgCmd", DataMsgCmd_comboBox.SelectedIndex);
-
-                Application.UserAppDataRegistry.SetValue("TextWindowTab", TextWindow_tabControl.SelectedIndex);
-                Application.UserAppDataRegistry.SetValue("ConnectionTab", ConnectionTab_tabControl.SelectedIndex);
-                Application.UserAppDataRegistry.SetValue("ClearOnNewRx", AutoclearOnNewResponse_checkBox.Checked);
-                Application.UserAppDataRegistry.SetValue("JumpToDebugOnNewMsg", JumpHereOnNewMsg_checkBox.Checked);
-                
             }
             else
             {
@@ -310,17 +276,8 @@ namespace LogoCmdSender
                 if (comIndex < CommSerialPort_comboBox.Items.Count)
                     CommSerialPort_comboBox.SelectedIndex = comIndex;
                 
-                DataMsgType_EnhancedLogo_radioButton.Checked = Convert.ToBoolean(Application.UserAppDataRegistry.GetValue("DataMsgIP", false));
-                DataMsgType_Legacy_radioButton.Checked = Convert.ToBoolean(Application.UserAppDataRegistry.GetValue("DataMsgLegacy", true));
-                AutoIncCmdIndex_checkBox.Checked = Convert.ToBoolean(Application.UserAppDataRegistry.GetValue("DataMsgAutoIncCmd", false));
-                DataMsgType_IndexMission_numericUpDown.Value = Convert.ToInt32(Application.UserAppDataRegistry.GetValue("DataMsgIndexMission", 0));
-                DataMsgType_IndexCmd_numericUpDown.Value = Convert.ToInt32(Application.UserAppDataRegistry.GetValue("DataMsgIndexCmd", 0));
-                DataMsgCmd_comboBox.SelectedIndex = Convert.ToInt32(Application.UserAppDataRegistry.GetValue("DataMsgCmd", 0));
-
-                AutoclearOnNewResponse_checkBox.Checked = Convert.ToBoolean(Application.UserAppDataRegistry.GetValue("ClearOnNewRx", false));
-                JumpHereOnNewMsg_checkBox.Checked = Convert.ToBoolean(Application.UserAppDataRegistry.GetValue("JumpToDebugOnNewMsg", true));
-                ConnectionTab_tabControl.SelectedIndex = Convert.ToInt32(Application.UserAppDataRegistry.GetValue("ConnectionTab", 0));
-                TextWindow_tabControl.SelectedIndex = Convert.ToInt32(Application.UserAppDataRegistry.GetValue("TextWindowTab", 0));
+                CommTypeTCP_radioButton.Checked = Convert.ToBoolean(Application.UserAppDataRegistry.GetValue("CommTypeTCP", true));
+                CommTypeSerial_radioButton.Checked = Convert.ToBoolean(Application.UserAppDataRegistry.GetValue("CommTypeSerial", false));
 
                 // always do this one last
                 Connect_checkBox.Checked = Convert.ToBoolean(Application.UserAppDataRegistry.GetValue("AutoConnect", false));
@@ -359,25 +316,21 @@ namespace LogoCmdSender
                 ClientDisconnect_button_Click(null, null);
                 return;
             }
-            if (ConnectionTab_tabControl.SelectedIndex == COMM_TAB_SERIAL)
+            if (CommTypeSerial_radioButton.Checked)
             {
                 SerialConnect();
             }
-            else if (ConnectionTab_tabControl.SelectedIndex == COMM_TAB_TCP)
+            else if (CommTypeTCP_radioButton.Checked)
             {
                 ushort port = Convert.ToUInt16(Port_numericUpDown.Value);
                 clientTCP.Connect(ClientIP_textBox.Text, port);
             }
-            else
-            {
-                debug.Append("\r\nWhat the heck, how did you connect without selecting Serial ro TCP?");
-            }
         }
         private void UpdateIsConnected()
         {
-            if ((ConnectionTab_tabControl.SelectedIndex == COMM_TAB_SERIAL) && (serialPort != null))
+            if (CommTypeSerial_radioButton.Checked && (serialPort != null))
                 IsConnected_radioButton.Checked = serialPort.IsOpen;
-            else if ((ConnectionTab_tabControl.SelectedIndex == COMM_TAB_TCP) && (clientTCP != null))
+            else if (CommTypeTCP_radioButton.Checked && (clientTCP != null))
                 IsConnected_radioButton.Checked = clientTCP.isConnected();
             else
                 IsConnected_radioButton.Checked = false;
@@ -428,48 +381,21 @@ namespace LogoCmdSender
         {
             UpdateIsConnected();
         }
-
-        public void ParseRxPacket(byte[] packet)
+        public void ParseRxPacket(byte[] packet, int len)
         {
-            if ((packet.Length >= 4) && // header length
-                (packet[0] < Enum.GetNames(typeof(DataMsg.DataMsgCmd)).Length) && // Validate command
-                (enhancedMode == true)) // eLogo expected
-            {
-                // appears to be a valid binary Logo command
-                DataMsg.DataMsgCmd cmdType = (DataMsg.DataMsgCmd)packet[0];
-                byte missionIndex = packet[1];
-                byte cmdIndex = packet[2];
-                byte instCount = packet[3];
-
-                if ((cmdType == DataMsg.DataMsgCmd.Read_Mission_Response) ||
-                    (cmdType == DataMsg.DataMsgCmd.Read_Cmd_Response))
-                {
-                    RxResponseIsNew = true;
-                    for (int i = 0; i < instCount; i++)
-                    {
-                        logoInstructionDef instr = DataMsg.ConvertPacktToInst(packet, 4 + i*6);
-                        String str = RxLogoParser.ConvertInstrToString(instr);
-                        RxResponse.Append(str);
-                    }
-                }
-            }
-            else
-            {
-                // Just assume ascii and dump to the screen
-                ASCIIEncoding encoder = new ASCIIEncoding();
-                RxResponse.Append(encoder.GetString(packet, 0, packet.Length));
-            }
+            ASCIIEncoding encoder = new ASCIIEncoding();
+            debug.Append(encoder.GetString(packet, 0, len));
         }
 
         private void Send_button_Click(object sender, EventArgs e)
         {
-            byte[] packet;
             // If we're not already connected, make it so.
             Connect_checkBox.Checked = true;
 
-            if ((ConnectionTab_tabControl.SelectedIndex == COMM_TAB_SERIAL))
+            byte[] packet = System.Text.Encoding.ASCII.GetBytes(CommandMessage_textBox.Text);
+
+            if (CommTypeSerial_radioButton.Checked)
             {
-                packet = System.Text.Encoding.ASCII.GetBytes(CommandMessage_textBox.Text);
                 if (serialPort.IsOpen)
                 {
                     try
@@ -478,27 +404,13 @@ namespace LogoCmdSender
                     }
                     catch
                     {
-                        debug.Append("error while trying to write to ther serial port");
                         //ClientDisconnect_button_Click(null, null);
                     }
                 }
             }
-            else if (ConnectionTab_tabControl.SelectedIndex == COMM_TAB_TCP)
+            else if (CommTypeTCP_radioButton.Checked)
             {
-                if (DataMsgType_EnhancedLogo_radioButton.Checked)
-                    packet = generateDataMsgPacket();
-                else
-                    packet = System.Text.Encoding.ASCII.GetBytes(CommandMessage_textBox.Text);
-
-                bool success = clientTCP.Send(packet);
-                if (success && AutoIncCmdIndex_checkBox.Checked)
-                {
-                    DataMsgType_IndexCmd_numericUpDown.Value++;
-                }
-            }
-            else
-            {
-                debug.Append("\r\nHow the heck did you try to send while not in Serial or TCP mode?");
+                clientTCP.Send(packet);
             }
         }
         private void HandleMsgChange(bool setLabels)
@@ -508,15 +420,7 @@ namespace LogoCmdSender
             {
                 SetLabels(msg);
             }
-            if ((ConnectionTab_tabControl.SelectedIndex == COMM_TAB_TCP) &&
-                (DataMsgType_EnhancedLogo_radioButton.Checked == true))
-            {
-                CommandMessage_textBox.Text = "";
-            }
-            else
-            {
-                CommandMessage_textBox.Text = ConvertMsgToString(msg);
-            }
+            CommandMessage_textBox.Text = ConvertMsgToString(msg);
         }
         private void Cmd_comboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -541,6 +445,7 @@ namespace LogoCmdSender
 
         private logoInstructionDef CreateMsgData()
         {
+            
             logoInstructionDef msg = new logoInstructionDef();
 
             msg.subcmd = Convert.ToByte(SubCmd_numericUpDown.Value);
@@ -1172,76 +1077,6 @@ namespace LogoCmdSender
         {
             UpdateIsConnected();
         }
-
-        private void DataMsgType_AdvancedIP_radioButton_CheckedChanged(object sender, EventArgs e)
-        {
-            bool enabled = DataMsgType_EnhancedLogo_radioButton.Checked;
-            DataMsgType_IndexMission_numericUpDown.Enabled = enabled;
-            DataMsgType_IndexCmd_numericUpDown.Enabled = enabled;
-            DataMsgCmd_comboBox.Enabled = enabled;
-            enhancedMode = enabled;
-
-            label8.Enabled = enabled;
-            label10.Enabled = enabled;
-        }
-
-        private byte[] generateDataMsgPacket()
-        {
-            // only 1 command is supported right now by this
-            // app, but you can send up to logoInstructionDef[x]
-            logoInstructionDef[] inst = new logoInstructionDef[1];
-
-            inst[0] = new logoInstructionDef(CreateMsgData());
-
-            DataMsg dataMsg = new DataMsg(DataMsgCmd_comboBox.SelectedIndex, 
-                (byte)DataMsgType_IndexMission_numericUpDown.Value,
-                (byte)DataMsgType_IndexCmd_numericUpDown.Value);
-
-            return DataMsg.generatepacket(dataMsg, inst);
-        }
-
-        private void Housekeeping100ms_timer_Tick(object sender, EventArgs e)
-        {
-            if (debug.Length > 0)
-            {
-                debug_textBox.AppendText(debug.ToString());
-                debug.Length = 0; // google says ".Length=0" is 25% faster than "new StringBuilder()"
-                if (JumpHereOnNewMsg_checkBox.Checked)
-                    TextWindow_tabControl.SelectedIndex = 1; // debug
-            }
-            if (RxResponse.Length > 0)
-            {
-                if (AutoclearOnNewResponse_checkBox.Checked && RxResponseIsNew)
-                {
-                    RxResponseIsNew = false;
-                    RxResponse_textBox.Text = RxResponse.ToString();
-                }
-                else
-                {
-                    RxResponse_textBox.AppendText(RxResponse.ToString());
-                }
-
-                RxResponse.Length = 0;
-            }
-        }
-
-        private void ClearDebug_button_Click(object sender, EventArgs e)
-        {
-            debug_textBox.Text = "";
-        }
-
-        private void ClearRxResponse_button_Click(object sender, EventArgs e)
-        {
-            RxResponse_textBox.Text = "";
-        }
-
-        private void ConnectionTab_tabControl_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            commTab = ConnectionTab_tabControl.SelectedIndex;
-            Cmd_comboBox_SelectedIndexChanged(null, null);
-        }
-
-
 
     } // class
 } // namespace

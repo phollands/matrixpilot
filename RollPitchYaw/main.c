@@ -26,7 +26,7 @@
 #include "../libUDB/heartbeat.h"
 
 // Used for serial debug output
-#include <stdio.h>
+#include "stdio.h"
 
 char debug_buffer[128];
 int db_index = 0;
@@ -40,15 +40,14 @@ int main (void)
 	udb_init();
 	dcm_init();
 
-	udb_serial_set_rate(19200);
+	udb_serial_set_rate(115200);
+	sprintf( debug_buffer, "   tick lat long alt gspd temp rmat0 rmat1 rmat2 rmat3 rmat4 rmat5 rmat6 rmat7 rmat8 \r\n");
+	udb_serial_start_sending_data();
 
 	LED_GREEN = LED_OFF;
 
 	// Start it up!
-	while (1)
-	{
-		udb_run();
-	}
+	udb_run();  // This never returns.
 
 	return 0;
 }
@@ -64,7 +63,7 @@ void udb_background_callback_periodic(void)
 	if (!dcm_flags._.calib_finished)
 	{
 		// If still calibrating, blink RED
-		if (++count > 20) {
+		if (++count > HEARTBEAT_HZ/2) {
 			count = 0;
 			udb_led_toggle(LED_RED);
 		}
@@ -105,9 +104,9 @@ void dcm_servo_callback_prepare_outputs(void)
 		accum.WW = __builtin_mulss(rmat[4], 4000);
 		udb_pwOut[YAW_OUTPUT_CHANNEL] = udb_servo_pulsesat(3000 + accum._.W1);
 	}
-
-	// Serial output at 2Hz  (40Hz / 20)
-	if (udb_heartbeat_counter % 20 == 0)
+	
+	// Serial output at 10Hz
+	if ((udb_heartbeat_counter % (HEARTBEAT_HZ/10)) == 0)
 	{
 		if (dcm_flags._.calib_finished)
 		{
@@ -116,15 +115,22 @@ void dcm_servo_callback_prepare_outputs(void)
 	}
 }
 
+extern struct ADchannel mpu_temp;
 // Prepare a line of serial output and start it sending
 void send_debug_line(void)
 {
 	db_index = 0;
-	sprintf(debug_buffer, "lat: %li, long: %li, alt: %li\r\nrmat: %i, %i, %i, %i, %i, %i, %i, %i, %i\r\n", 
-		lat_gps.WW, lon_gps.WW, alt_sl_gps.WW, 
-		rmat[0], rmat[1], rmat[2], 
-		rmat[3], rmat[4], rmat[5], 
-		rmat[6], rmat[7], rmat[8]);
+#if (BOARD_TYPE != UDB4_BOARD)
+        float temp = 35 + (mpu_temp.value + 521.0) / 340.0;
+#else
+        float temp = 0;
+#endif
+	sprintf( debug_buffer, "%5u %li %li %li %5i %5.2f %5i %5i %5i %5i %5i %5i %5i %5i %5i\r\n",
+                udb_heartbeat_counter,
+		lat_gps.WW, long_gps.WW, alt_sl_gps.WW, ground_velocity_magnitudeXY, (double)temp,
+		rmat[0], rmat[1], rmat[2],
+		rmat[3], rmat[4], rmat[5],
+		rmat[6], rmat[7], rmat[8]  ) ;
 	udb_serial_start_sending_data();
 }
 
@@ -145,9 +151,5 @@ void udb_serial_callback_received_byte(uint8_t rxchar)
 }
 
 void udb_callback_radio_did_turn_off(void)
-{
-}
-
-void udb_init_osd(void)
 {
 }

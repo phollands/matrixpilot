@@ -24,17 +24,16 @@
 
 
 // Types
-//struct bb { uint8_t B0; uint8_t B1; };
-//struct bbbb { uint8_t B0; uint8_t B1; uint8_t B2; uint8_t B3; };
-//struct ww { int16_t W0; int16_t W1; };
-//struct wwww { int16_t W0; int16_t W1; int16_t W2; int16_t W3; };
-//struct LL { int32_t L0; int32_t L1; };
+struct bb { uint8_t B0; uint8_t B1; };
+struct bbbb { uint8_t B0; uint8_t B1; uint8_t B2; uint8_t B3; };
+struct ww { int16_t W0; int16_t W1; }; // ww._.W1 is the high word, ww._.W0 is the low word
+struct wwww { int16_t W0; int16_t W1; int16_t W2; int16_t W3; };
+struct LL { int32_t L0; int32_t L1; };
 
-//union intbb { int16_t BB; struct bb _; };
-//union longbbbb { int32_t WW; struct ww _; struct bbbb __; };
-//union longww { int32_t  WW; struct ww _; };
-//union longlongLL { int64_t LL; struct LL _; struct wwww __; };
-#include "udbTypes.h"
+union intbb { int16_t BB; struct bb _; };
+union longbbbb { int32_t WW; struct ww _; struct bbbb __; };
+union longww { int32_t  WW; struct ww _; };
+union longlongLL { int64_t LL; struct LL _; struct wwww __; };
 
 #if SILSIM
 #define NUM_POINTERS_IN(x)      (sizeof(x)/sizeof(char*))
@@ -49,31 +48,48 @@
 #define RUSTYS_BOARD            4   // Red board with Rusty's IXZ-500_RAD2a patch board (deprecated)
 #define UDB4_BOARD              5   // board with dsPIC33 and integrally mounted 500 degree/second Invensense gyros
 #define CAN_INTERFACE           6
-#define AUAV2_BOARD             7   // Nick Arsov's AUAV2 with dsPIC33 and MPU6000
 #define UDB5_BOARD              8   // board with dsPIC33 and MPU6000
 #define AUAV3_BOARD             9   // Nick Arsov's AUAV3 with dsPIC33EP and MPU6000
-#define AUAV4_BOARD             10  // AUAV4 with PIC32MX
 
-#if (SILSIM == 0)
+#if (SILSIM != 1)
+// Device header file
+#if defined(__XC16__)
+#include <xc.h>
+#elif defined(__C30__)
+#if defined(__dsPIC33E__)
+#include <p33Exxxx.h>
+#elif defined(__dsPIC33F__)
+#include <p33Fxxxx.h>
+#endif // __XC16__
+#endif // SILSIM
 
 // Include the necessary files for the current board type
 #if (BOARD_TYPE == UDB4_BOARD)
 #include "ConfigUDB4.h"
+
 #elif (BOARD_TYPE == UDB5_BOARD)
 #include "ConfigUDB5.h"
+
 #elif (BOARD_TYPE == AUAV3_BOARD)
 #include "ConfigAUAV3.h"
+
 #elif (BOARD_TYPE == CAN_INTERFACE)
 #include "../CANInterface/ConfigCANInterface.h"
 #else
 #error "unsupported value for BOARD_TYPE"
-#endif // BOARD_TYPE
+#endif
 
-#endif // SILSIM
+#endif // (SILSIM != 1)
+
+#if (SILSIM == 1)
+#undef HILSIM
+#define HILSIM 1
+#endif
 
 #if (HILSIM == 1)
 #include "ConfigHILSIM.h"
 #endif
+
 
 #if (USE_PPM_INPUT == 1 && BOARD_TYPE != AUAV3_BOARD)
 #undef MAX_INPUTS
@@ -129,9 +145,9 @@
 
 
 // Types
-//#ifndef SIL_WINDOWS_INCS
+#ifndef SIL_WINDOWS_INCS
 typedef uint8_t boolean;
-//#endif
+#endif
 #define true                    1
 #define false                   0
 
@@ -176,13 +192,19 @@ struct udb_flag_bits {
 
 
 // Constants
-#define RMAX                    16384//0b0100000000000000       // 1.0 in 2.14 fractional format
-#define GRAVITY                 ((int32_t)(5280.0/SCALEACCEL))  // gravity in AtoD/2 units
+#define RMAX   16384//0b0100000000000000        // 1.0 in 2.14 fractional format
+#define GRAVITY ((int32_t)(5280.0/SCALEACCEL))  // gravity in AtoD/2 units
 
-#define SERVOCENTER             3000
-#define SERVORANGE              ((int16_t)(SERVOSAT*1000))
-#define SERVOMAX                (SERVOCENTER + SERVORANGE)
-#define SERVOMIN                (SERVOCENTER - SERVORANGE)
+#define SERVOCENTER 3000
+#define SERVORANGE ((int16_t)(SERVOSAT*1000))
+#define SERVOMAX SERVOCENTER + SERVORANGE
+#define SERVOMIN SERVOCENTER - SERVORANGE
+
+#define MAX_CURRENT             900 // 90.0 Amps max for the sensor from SparkFun (in tenths of Amps)
+#define CURRENT_SENSOR_OFFSET   10  // Add 1.0 Amp to whatever value we sense
+
+#define MAX_VOLTAGE             543 // 54.3 Volts max for the sensor from SparkFun (in tenths of Volts)
+#define VOLTAGE_SENSOR_OFFSET   0   // Add 0.0 Volts to whatever value we sense
 
 extern int16_t magMessage;
 extern int16_t vref_adj;

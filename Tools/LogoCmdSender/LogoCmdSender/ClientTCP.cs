@@ -45,9 +45,8 @@ namespace LogoCmdSender
             }
         }
 
-        public bool Send(byte[] buffer)
+        public void Send(byte[] buffer)
         {
-            bool success = false;
             try
             {
                 if ((server != null) && server.Connected)
@@ -55,14 +54,12 @@ namespace LogoCmdSender
                     NetworkStream stream = server.GetStream();
                     stream.Write(buffer, 0, buffer.Length);
                     stream.Flush();
-                    success = true;
                 }
             }
             catch (SystemException ex)
             {
                 my_owner.debug.Append("\r\nCrash in ClientTCP Send:\r\n" + ex.ToString());
             }
-            return success;
         }
        
         private void ServerThread()
@@ -73,11 +70,9 @@ namespace LogoCmdSender
                 {
                     if (!server.Connected)
                         server = new TcpClient(m_ip, m_port);
-                    byte[] rawMessage = new byte[4096];
-                    int rxCount = server.Client.Receive(rawMessage);
-                    byte[] message = new byte[rxCount];
-                    message = rawMessage;
-                    my_owner.ParseRxPacket(message);
+                    byte[] message = new byte[4096];
+                    int rxCount = server.Client.Receive(message);
+                    my_owner.ParseRxPacket(message, rxCount);
                 }
             }
             catch //(SystemException ex)

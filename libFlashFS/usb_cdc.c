@@ -18,10 +18,9 @@
 // You should have received a copy of the GNU General Public License
 // along with MatrixPilot.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "options.h"
+//#include "options.h"
 #include "USB/usb.h"
 #include "USB/usb_function_cdc.h"
-#include "usb_cdc.h"
 
 void BlinkUSBStatus(void);
 

@@ -29,10 +29,10 @@
 #define USE_BMP085_ON_I2C 2
 
 // BMP085 oversampling can be set from 0 thru 3
-#define OSS 3
+//#define OSS 3
 //#define OSS 2
 //#define OSS 1
-//#define OSS 0
+#define OSS 0
 
 typedef union
 {
@@ -239,8 +239,7 @@ void ReadBarTemp_callback(boolean I2CtrxOK)
 	if (I2CtrxOK == true)
 	{
 //		byteswaparray((unsigned char*)&barData, 2);
-//		ut = ((unsigned int) (unsigned int)barData[0] << 8 | (unsigned int)barData[1]);
-		ut = (barData[0] << 8 | barData[1]);
+		ut = ((unsigned int) (unsigned int)barData[0] << 8 | (unsigned int)barData[1]);
 #ifdef TEST_WITH_DATASHEET_VALUES
 		ut = 27898;
 #endif

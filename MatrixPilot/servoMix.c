@@ -21,15 +21,15 @@
 
 #include "defines.h"
 
-// Perform control based on the airframe type.
-// Use the radio to determine the baseline pulse widths if the radio is on.
-// Otherwise, use the trim pulse width measured during power up.
+//	Perform control based on the airframe type.
+//	Use the radio to determine the baseline pulse widths if the radio is on.
+//	Otherwise, use the trim pulse width measured during power up.
 //
-// Mix computed roll and pitch controls into the output channels for the compiled airframe type.
+//	Mix computed roll and pitch controls into the output channels for the compiled airframe type.
 
-const int16_t aileronbgain  = (int16_t)(8.0*AILERON_BOOST);
+const int16_t aileronbgain = (int16_t)(8.0*AILERON_BOOST);
 const int16_t elevatorbgain = (int16_t)(8.0*ELEVATOR_BOOST);
-const int16_t rudderbgain   = (int16_t)(8.0*RUDDER_BOOST);
+const int16_t rudderbgain = (int16_t)(8.0*RUDDER_BOOST);
 
 void servoMix(void)
 {
@@ -38,12 +38,10 @@ void servoMix(void)
 
 	// If radio is off, use udb_pwTrim values instead of the udb_pwIn values
 	for (temp = 0; temp <= NUM_INPUTS; temp++)
-	{
 		if (udb_flags._.radio_on)
 			pwManual[temp] = udb_pwIn[temp];
 		else
 			pwManual[temp] = udb_pwTrim[temp];
-	}
 
 	// Apply boosts if in a stabilized mode
 	if (udb_flags._.radio_on && flags._.pitch_feedback)
@@ -127,8 +125,7 @@ void servoMix(void)
 			REVERSE_IF_NEEDED(ELEVATOR_CHANNEL_REVERSED, delta_roll_control + pitch_control + waggle);
 		udb_pwOut[ELEVATOR_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
 
-		temp = pwManual[RUDDER_INPUT_CHANNEL] +
-		    REVERSE_IF_NEEDED(RUDDER_CHANNEL_REVERSED, yaw_control);
+		temp = pwManual[RUDDER_INPUT_CHANNEL] + REVERSE_IF_NEEDED(RUDDER_CHANNEL_REVERSED, yaw_control);
 		udb_pwOut[RUDDER_OUTPUT_CHANNEL] =  udb_servo_pulsesat(temp);
 		
 		if (pwManual[THROTTLE_INPUT_CHANNEL] == 0)
@@ -151,8 +148,7 @@ void servoMix(void)
 			REVERSE_IF_NEEDED(AILERON_CHANNEL_REVERSED, roll_control/2 + pitch_control/2);
 		udb_pwOut[AILERON_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
 
-		temp = pwManual[ELEVATOR_INPUT_CHANNEL] +
-		    REVERSE_IF_NEEDED(ELEVATOR_CHANNEL_REVERSED, pitch_control);
+		temp = pwManual[ELEVATOR_INPUT_CHANNEL] + REVERSE_IF_NEEDED(ELEVATOR_CHANNEL_REVERSED, pitch_control);
 		udb_pwOut[ELEVATOR_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
 
 		temp = pwManual[AILERON_SECONDARY_OUTPUT_CHANNEL] + 
@@ -193,13 +189,13 @@ void cameraServoMix(void)
 			pwManual[temp] = udb_pwTrim[temp];
 	}
 
-	temp = (pwManual[CAMERA_PITCH_INPUT_CHANNEL] - 3000) 
-	     + REVERSE_IF_NEEDED(CAMERA_PITCH_CHANNEL_REVERSED, cam_pitch_servo_pwm_delta);
+	temp = (pwManual[CAMERA_PITCH_INPUT_CHANNEL] - 3000) + REVERSE_IF_NEEDED(CAMERA_PITCH_CHANNEL_REVERSED, 
+		cam_pitch_servo_pwm_delta);
 	temp = cam_pitchServoLimit(temp);
 	udb_pwOut[CAMERA_PITCH_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp + 3000);
 
-	temp = (pwManual[CAMERA_YAW_INPUT_CHANNEL] - 3000) 
-	     + REVERSE_IF_NEEDED(CAMERA_YAW_CHANNEL_REVERSED, cam_yaw_servo_pwm_delta);
+	temp = (pwManual[CAMERA_YAW_INPUT_CHANNEL] - 3000) + REVERSE_IF_NEEDED(CAMERA_YAW_CHANNEL_REVERSED, 
+		cam_yaw_servo_pwm_delta);
 	temp = cam_yawServoLimit(temp);
 	udb_pwOut[CAMERA_YAW_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp + 3000);
 }

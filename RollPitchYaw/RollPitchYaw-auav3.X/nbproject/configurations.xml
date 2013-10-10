@@ -10,10 +10,8 @@
         <itemPath>../../libDCM/libDCM_internal.h</itemPath>
         <itemPath>../../libDCM/estAltitude.h</itemPath>
         <itemPath>../../libDCM/rmat.h</itemPath>
-        <itemPath>../../libDCM/gpsParseCommon.h</itemPath>
       </logicalFolder>
       <logicalFolder name="libUDB" displayName="libUDB" projectFiles="true">
-        <itemPath>../../libUDB/magnetometerOptions.h</itemPath>
         <itemPath>../../libUDB/libUDB.h</itemPath>
         <itemPath>../../libUDB/libUDB_internal.h</itemPath>
         <itemPath>../../libUDB/libUDB_defines.h</itemPath>
@@ -21,13 +19,8 @@
         <itemPath>../../libUDB/boardRotation_defines.h</itemPath>
         <itemPath>../../libUDB/ConfigAUAV3.h</itemPath>
         <itemPath>../../libUDB/mpu6000.h</itemPath>
+        <itemPath>../../libUDB/spiUtils.h</itemPath>
         <itemPath>../../libUDB/ConfigUDB5.h</itemPath>
-        <itemPath>../../libUDB/analogs.h</itemPath>
-        <itemPath>../../libUDB/heartbeat.h</itemPath>
-        <itemPath>../../libUDB/interrupt.h</itemPath>
-        <itemPath>../../libUDB/magnetometer.h</itemPath>
-        <itemPath>../../libUDB/oscillator.h</itemPath>
-        <itemPath>../../libUDB/mpu_spi.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="libVectorMatrix" projectFiles="true">
         <itemPath>../../libVectorMatrix/dspcommon.inc</itemPath>
@@ -56,9 +49,7 @@
         <itemPath>../../libDCM/libDCM.c</itemPath>
         <itemPath>../../libDCM/deadReckoning.c</itemPath>
         <itemPath>../../libDCM/estAltitude.c</itemPath>
-        <itemPath>../../libDCM/fbcl.s</itemPath>
         <itemPath>../../libDCM/gpsParseMTEK.c</itemPath>
-        <itemPath>../../libDCM/gpsParseNMEA.c</itemPath>
       </logicalFolder>
       <logicalFolder name="libUDB" displayName="libUDB" projectFiles="true">
         <itemPath>../../libUDB/background.c</itemPath>
@@ -68,34 +59,12 @@
         <itemPath>../../libUDB/analog2digital_udb5.c</itemPath>
         <itemPath>../../libUDB/servoOut.c</itemPath>
         <itemPath>../../libUDB/mpu6000.c</itemPath>
+        <itemPath>../../libUDB/spiUtils.c</itemPath>
         <itemPath>../../libUDB/traps_asm.s</itemPath>
         <itemPath>../../libUDB/magnetometer.c</itemPath>
         <itemPath>../../libUDB/mcu.c</itemPath>
         <itemPath>../../libUDB/radioIn.c</itemPath>
         <itemPath>../../libUDB/serialIO.c</itemPath>
-        <itemPath>../../libUDB/analogs.c</itemPath>
-        <itemPath>../../libUDB/traps.c</itemPath>
-        <itemPath>../../libUDB/mpu_spi.c</itemPath>
-      </logicalFolder>
-      <logicalFolder name="f1" displayName="libVectorMatrix" projectFiles="true">
-        <itemPath>../../libVectorMatrix/madd.s</itemPath>
-        <itemPath>../../libVectorMatrix/mmul.s</itemPath>
-        <itemPath>../../libVectorMatrix/mscl.s</itemPath>
-        <itemPath>../../libVectorMatrix/msub.s</itemPath>
-        <itemPath>../../libVectorMatrix/mtrp.s</itemPath>
-        <itemPath>../../libVectorMatrix/vadd.s</itemPath>
-        <itemPath>../../libVectorMatrix/vcon.s</itemPath>
-        <itemPath>../../libVectorMatrix/vcopy.s</itemPath>
-        <itemPath>../../libVectorMatrix/vcor.s</itemPath>
-        <itemPath>../../libVectorMatrix/vdot.s</itemPath>
-        <itemPath>../../libVectorMatrix/vmax.s</itemPath>
-        <itemPath>../../libVectorMatrix/vmin.s</itemPath>
-        <itemPath>../../libVectorMatrix/vmul.s</itemPath>
-        <itemPath>../../libVectorMatrix/vneg.s</itemPath>
-        <itemPath>../../libVectorMatrix/vpow.s</itemPath>
-        <itemPath>../../libVectorMatrix/vscl.s</itemPath>
-        <itemPath>../../libVectorMatrix/vsub.s</itemPath>
-        <itemPath>../../libVectorMatrix/vzpad.s</itemPath>
       </logicalFolder>
       <logicalFolder name="RollPitchYaw"
                      displayName="RollPitchYaw"
@@ -108,6 +77,7 @@
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
+    <itemPath>projectStatus.txt</itemPath>
   </logicalFolder>
   <sourceRootList>
     <Elem>../</Elem>
@@ -125,11 +95,12 @@
         <platformTool>PICkit3PlatformTool</platformTool>
         <languageToolchain>XC16</languageToolchain>
         <languageToolchainVersion>1.10</languageToolchainVersion>
-        <platform>3</platform>
+        <platform>2</platform>
       </toolsSet>
       <compileType>
         <linkerTool>
           <linkerLibItems>
+            <linkerLibFileItem>../../MatrixPilot/VectorMatrix.X/dist/AUAV3/production/VectorMatrix.X.a</linkerLibFileItem>
           </linkerLibItems>
         </linkerTool>
         <loading>
@@ -250,6 +221,7 @@
         <property key="legacy-libc" value="true"/>
         <property key="oXC16glb-macros" value=""/>
         <property key="output-file-format" value="elf"/>
+        <property key="save-temps" value="false"/>
       </C30Global>
       <PICkit3PlatformTool>
         <property key="tracecontrol.disablemacros" value="true"/>

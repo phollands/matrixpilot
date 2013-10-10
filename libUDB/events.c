@@ -28,12 +28,12 @@
 #define _EVENTL_TRIGGERIP _C2IP
 #define _EVENTL_TRIGGERIF _C2IF
 #define _EVENTL_TRIGGERIE _C2IE
-#define _EVENTL_INTERUPT  _C2Interrupt
+#define _EVENTL_INTERUPT _C2Interrupt
 
 #define _EVENTM_TRIGGERIP _C1IP
 #define _EVENTM_TRIGGERIF _C1IF
 #define _EVENTM_TRIGGERIE _C1IE
-#define _EVENTM_INTERUPT  _C1Interrupt
+#define _EVENTM_INTERUPT _C1Interrupt
 
 #define MAX_EVENTS 16
 
@@ -134,7 +134,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _EVENTL_INTERUPT(void)
 	interrupt_restore_corcon;
 }
 
-void __attribute__((__interrupt__, __no_auto_psv__)) _EVENTM_INTERUPT(void)
+void __attribute__((__interrupt__, __no_auto_psv__)) _EVENTM_INTERUPT(void) 
 {
 	_EVENTM_TRIGGERIF = 0;      // clear the interrupt
 	indicate_loading_inter;

@@ -25,14 +25,21 @@
 #include "libUDB_internal.h"
 #include "oscillator.h"
 #include "interrupt.h"
-#include "heartbeat.h"
-#include "mpu_spi.h"
+#include "spiUtils.h"
 #include "mpu6000.h"
 #include "../libDCM/libDCM_internal.h"
 
-#if (BOARD_TYPE != UDB4_BOARD)
+#ifdef USE_MAVLINK_DBGIO
+#include "mavlink_types.h"
+int16_t mavlink_serial_send(mavlink_channel_t chan, uint8_t buf[], uint16_t len);
+extern uint8_t dbg_buff[50];
+#endif
 
+#if (BOARD_TYPE == UDB5_BOARD || BOARD_TYPE == AUAV3_BOARD)
+
+#include "oscillator.h"
 #include <stdbool.h>
+#include <stdio.h>
 #include <spi.h>
 
 //Sensor variables
@@ -48,16 +55,16 @@ int16_t vref_adj;
 
 void MPU6000_init16(void)
 {
+	MPUSPI_SS = 1;      // deassert MPU SS
+	MPUSPI_TRIS = 0;    // make MPU SS  an output
+
 // MPU-6000 maximum SPI clock is specified as 1 MHz for all registers
 //    however the datasheet states that the sensor and interrupt registers
 //    may be read using an SPI clock of 20 Mhz
-//    NOTE!!: the SPI limit on the dsPIC is 9 Mhz
+// Warning: the SPI limit on the dsPIC is 10 Mhz
 
 // Primary prescaler options   1:1/4/16/64
 // Secondary prescaler options 1:1 to 1:8
-
-// As these register accesses are one time only during initial setup lets be
-//    conservative and only run the SPI bus at half the maximum specified speed
 
 #if (MIPS == 70)
 	// set prescaler for FCY/112 = 625 kHz at 70MIPS
@@ -97,8 +104,8 @@ void MPU6000_init16(void)
 	// scaling & DLPF
 	writeMPUSPIreg16(MPUREG_CONFIG, BITS_DLPF_CFG_42HZ);
 
-//	writeMPUSPIreg16(MPUREG_GYRO_CONFIG, BITS_FS_2000DPS);  // Gyro scale 2000บ/s
-	writeMPUSPIreg16(MPUREG_GYRO_CONFIG, BITS_FS_500DPS); // Gyro scale 500บ/s
+//	writeMPUSPIreg16(MPUREG_GYRO_CONFIG, BITS_FS_2000DPS);  // Gyro scale 2000ยบ/s
+	writeMPUSPIreg16(MPUREG_GYRO_CONFIG, BITS_FS_500DPS); // Gyro scale 500ยบ/s
 
 #if (ACCEL_RANGE == 2)
 	writeMPUSPIreg16(MPUREG_ACCEL_CONFIG, BITS_FS_2G); // Accel scele 2g, g = 8192
@@ -118,7 +125,7 @@ void MPU6000_init16(void)
 	// no DLPF, gyro sample rate 8KHz
 	writeMPUSPIreg16(MPUREG_CONFIG, BITS_DLPF_CFG_256HZ_NOLPF2);
 
-	writeMPUSPIreg16(MPUREG_GYRO_CONFIG, BITS_FS_500DPS); // Gyro scale 500บ/s
+	writeMPUSPIreg16(MPUREG_GYRO_CONFIG, BITS_FS_500DPS); // Gyro scale 500ยบ/s
 
 //	writeMPUSPIreg16(MPUREG_ACCEL_CONFIG, BITS_FS_2G); // Accel scele 2g, g = 16384
 	writeMPUSPIreg16(MPUREG_ACCEL_CONFIG, BITS_FS_4G); // Accel scale g = 8192
@@ -130,23 +137,28 @@ void MPU6000_init16(void)
 	writeMPUSPIreg16(MPUREG_INT_ENABLE, BIT_DATA_RDY_EN); // INT: Raw data ready
 
 // Bump the SPI clock up towards 20 MHz for ongoing sensor and interrupt register reads
-// 20 MHz is the maximum specified for the MPU-6000
-// however 9 MHz is the maximum specified for the dsPIC33EP
+// Warning: the SPI limit on the dsPIC is 10 Mhz
+
 // Primary prescaler options   1:1/4/16/64
 // Secondary prescaler options 1:1 to 1:8
+
 #if (MIPS == 70)
 	// set prescaler for FCY/32 = 2.2 MHz at 70MIPS
 	initMPUSPI_master16(SEC_PRESCAL_2_1, PRI_PRESCAL_16_1);
 #elif (MIPS == 64)
-	// set prescaler for FCY/8 = 8 MHz at 64 MIPS
-	initMPUSPI_master16(SEC_PRESCAL_2_1, PRI_PRESCAL_4_1);
+	// set prescaler for FCY/32 = 2 MHz at 64 MIPS
+	initMPUSPI_master16(SEC_PRESCAL_2_1, PRI_PRESCAL_16_1);
 #elif (MIPS == 40)
 	// UDB5 only
 	// set prescaler for FCY/5 = 8 MHz at 40MIPS
 	initMPUSPI_master16(SEC_PRESCAL_5_1, PRI_PRESCAL_1_1);
 #elif (MIPS == 32)
-	// set prescaler for FCY/4 = 8 MHz at 32 MIPS
-	initMPUSPI_master16(SEC_PRESCAL_1_1, PRI_PRESCAL_4_1);
+	// leave the clock at register write speed: doesn't work at all
+	// this works, at least for a while
+	// set prescaler for FCY/128 = 250KHz at 32 MIPS
+//	initMPUSPI_master16(SEC_PRESCAL_8_1, PRI_PRESCAL_16_1);
+	// set prescaler for FCY/16 = 2MHz at 32 MIPS
+	initMPUSPI_master16(SEC_PRESCAL_1_1, PRI_PRESCAL_16_1);
 #elif (MIPS == 16)
 	// set prescaler for FCY/2 = 8 MHz at 16 MIPS
 	initMPUSPI_master16(SEC_PRESCAL_2_1, PRI_PRESCAL_1_1);
@@ -160,18 +172,19 @@ void MPU6000_init16(void)
 	_INT1EP = 1; // Setup INT1 pin to interrupt on falling edge
 	_INT1IP = INT_PRI_INT1;
 	_INT1IF = 0; // Reset INT1 interrupt flag
-	_INT1IE = 1; // Enable INT1 Interrupt Service Routine 
+	_INT1IE = 1; // Enable INT1 Interrupt Service Routine
 #elif (MPU_SPI == 2)
 	_INT3EP = 1; // Setup INT3 pin to interrupt on falling edge
 	_INT3IP = INT_PRI_INT3;
 	_INT3IF = 0; // Reset INT3 interrupt flag
-	_INT3IE = 1; // Enable INT3 Interrupt Service Routine 
+	_INT3IE = 1; // Enable INT3 Interrupt Service Routine
 #endif
 }
 
 void process_MPU_data(void)
 {
 	mpuDAV = true;
+	//LED_BLUE = LED_OFF;
 
 	udb_xaccel.value = mpu_data[xaccel_MPU_channel];
 	udb_yaccel.value = mpu_data[yaccel_MPU_channel];
@@ -183,31 +196,23 @@ void process_MPU_data(void)
 	udb_yrate.value = mpu_data[yrate_MPU_channel];
 	udb_zrate.value = mpu_data[zrate_MPU_channel];
 
-//{
-//	static int i = 0;
-//	if (i++ > 10) {
-//		i = 0;
-//		printf("%u %u %u\r\n", udb_xaccel.value, udb_yaccel.value, udb_zaccel.value);
-//	}
-//}
-
-//  Initial version of the MPU interface writes and reads gyro and accelerometer values asynchronously.
-//  This was the fastest way to revise the software.
-//  MPU data was being read at 200 Hz, IMU and control loop ran at 40 Hz.
-//  4 out of 5 samples were being ignored. IMU got the most recent set of samples.
-
-//  Now, we want to run write-read synchronously, and run the IMU at 200 Hz, using every sample.
-//  to run the IMU at 200 Hz, turn the following back on
-
-/*
-	if (dcm_flags._.calib_finished) {
-		dcm_run_imu_step();
+	/*
+	{
+		static int i = 0;
+		if (i++ > 200)
+		{
+			i = 0;
+			int len = snprintf((char*) dbg_buff, 50, "%d %d %d\r\n", udb_xaccel.value, udb_yaccel.value, udb_zaccel.value);
+			//		int cur_ipl;
+			//		SET_AND_SAVE_CPU_IPL(cur_ipl, 6);
+			mavlink_serial_send(0, dbg_buff, len);
+			//		RESTORE_CPU_IPL(cur_ipl);
+		}
 	}
- */
-#if (BOARD_TYPE != UDB4_BOARD && HEARTBEAT_HZ == 200)
+	*/
+
 	//  trigger synchronous processing of sensor data
 	_T1IF = 1;              // trigger the heartbeat interrupt
-#endif // (BOARD_TYPE != UDB4_BOARD && HEARTBEAT_HZ == 200)
 }
 
 void MPU6000_read(void)
@@ -227,6 +232,7 @@ void __attribute__((interrupt, no_auto_psv)) _INT1Interrupt(void)
 	MPU6000_read();
 	interrupt_restore_corcon;
 }
+
 #elif (MPU_SPI == 2)
 void __attribute__((interrupt, no_auto_psv)) _INT3Interrupt(void)
 {
@@ -246,4 +252,4 @@ void MPU6000_print(void) {
 	       mpu_data[0], mpu_data[1], mpu_data[2], mpu_data[4], mpu_data[5], mpu_data[6], mpu_data[3]);
 }
 
-#endif // (BOARD_TYPE != UDB4_BOARD)
+#endif // BOARD_TYPE

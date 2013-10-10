@@ -20,20 +20,18 @@
 
 
 #include "libDCM_internal.h"
-#include "gpsParseCommon.h"
 #include "../libUDB/heartbeat.h"
 #include "../libUDB/magnetometer.h"
 #include "../libUDB/barometer.h"
 #include "estAltitude.h"
-#include "mathlibNAV.h"
 #include "rmat.h"
 
 
 union dcm_fbts_word dcm_flags;
 
 // Calibrate for 10 seconds before moving servos
-#define CALIB_COUNT  400    // 10 seconds at 40 Hz
-#define GPS_COUNT    1000   // 25 seconds at 40 Hz
+#define CALIB_COUNT  (int)(10 * HEARTBEAT_HZ)    // 10 seconds
+#define GPS_COUNT    (int)(25 * HEARTBEAT_HZ)    // 25 seconds
 
 #if (HILSIM == 1)
 #if (USE_VARIABLE_HILSIM_CHANNELS != 1)
@@ -82,7 +80,8 @@ void dcm_run_init_step(void)
 
 	if (udb_heartbeat_counter <= GPS_COUNT)
 	{
-		gps_startup_sequence(GPS_COUNT - udb_heartbeat_counter); // Counts down from GPS_COUNT to 0
+		gps_startup_sequence(GPS_COUNT-udb_heartbeat_counter); // Counts down from GPS_COUNT to 0
+
 		if (udb_heartbeat_counter == GPS_COUNT)
 		{
 			dcm_flags._.init_finished = 1;
@@ -104,8 +103,7 @@ void do_I2C_stuff(void)
 
 	if (toggle) {
 		if (counter++ > 0) {
-//#if (MAG_YAW_DRIFT == 1 && HILSIM != 1)
-#if (MAG_YAW_DRIFT == 1)
+#if (MAG_YAW_DRIFT == 1 && HILSIM != 1)
 //			printf("rxMag %u\r\n", udb_heartbeat_counter);
 			rxMagnetometer(udb_magnetometer_callback);
 #endif
@@ -128,10 +126,8 @@ void udb_servo_callback_prepare_outputs(void)
 #if (BAROMETER_ALTITUDE == 1)
 	do_I2C_stuff();
 #else
-//#if (MAG_YAW_DRIFT == 1 && HILSIM != 1)
-#if (MAG_YAW_DRIFT == 1)
-	// This is a simple counter to do stuff at 4hz
-//	if (udb_heartbeat_counter % 10 == 0)
+#if (MAG_YAW_DRIFT == 1 && HILSIM != 1)
+	// 4Hz
 	if (udb_heartbeat_counter % (HEARTBEAT_HZ / 4) == 0)
 	{
 		rxMagnetometer(udb_magnetometer_callback);
@@ -139,7 +135,7 @@ void udb_servo_callback_prepare_outputs(void)
 #endif
 #endif // BAROMETER_ALTITUDE
 
-//  when we move the IMU step to the MPU call back, to run at 200 Hz, remove this
+	//  run IMU code
 	if (dcm_flags._.calib_finished)
 	{
 		dcm_run_imu_step();
@@ -153,13 +149,17 @@ void udb_servo_callback_prepare_outputs(void)
 	}
 
 #if (HILSIM == 1)
-	send_HILSIM_outputs();
+	// 40 Hz
+	if (udb_heartbeat_counter % (HEARTBEAT_HZ / 40) == 0)
+	{
+		send_HILSIM_outputs();
+	}
 #endif
 }
 
 // dcm_calibrate is called twice during the startup sequence.
-// Firstly 10 seconds after startup, then immediately before the first waggle, which is 10 seconds after getting radio link.  
-// This makes sure we get initialized when there's no radio, or when bench testing, 
+// Firstly 10 seconds after startup, then immediately before the first waggle, which is 10 seconds after getting radio link.
+// This makes sure we get initialized when there's no radio, or when bench testing,
 // and 2nd time is at a time the user knows to keep the plane steady before a flight.
 void dcm_calibrate(void)
 {
@@ -170,21 +170,19 @@ void dcm_calibrate(void)
 	}
 }
 
-void dcm_set_origin_location(int32_t o_lon, int32_t o_lat, int32_t o_alt)
+void dcm_set_origin_location(int32_t o_long, int32_t o_lat, int32_t o_alt)
 {
 	union longbbbb accum_nav;
 
 	lat_origin.WW = o_lat;
-	lon_origin.WW = o_lon;
+	long_origin.WW = o_long;
 	alt_origin.WW = o_alt;
 
 	// scale the latitude from GPS units to gentleNAV units
 	accum_nav.WW = __builtin_mulss(LONGDEG_2_BYTECIR, lat_origin._.W1);
-
-	unsigned char lat_cir;
 	lat_cir = accum_nav.__.B2;
 	// estimate the cosine of the latitude, which is used later computing desired course
-	cos_lat = cosine(lat_cir);
+	cos_lat = cosine (lat_cir);
 }
 
 struct relative3D dcm_absolute_to_relative(struct waypoint3D absolute)
@@ -193,21 +191,9 @@ struct relative3D dcm_absolute_to_relative(struct waypoint3D absolute)
 
 	rel.z = absolute.z;
 	rel.y = (absolute.y - lat_origin.WW)/90; // in meters
-	rel.x = long_scale((absolute.x - lon_origin.WW)/90, cos_lat);
+	rel.x = long_scale((absolute.x - long_origin.WW)/90, cos_lat);
 	return rel;
 }
-
-#ifdef USE_EXTENDED_NAV
-struct relative3D_32 dcm_absolute_to_relative_32(struct waypoint3D absolute)
-{
-	struct relative3D_32 rel;
-
-	rel.z = absolute.z;
-	rel.y = (absolute.y - lat_origin.WW) / 90; // in meters
-	rel.x = long_scale((absolute.x - lon_origin.WW) / 90, cos_lat);
-	return rel;
-}
-#endif // USE_EXTENDED_NAV
 
 #if (HILSIM == 1)
 

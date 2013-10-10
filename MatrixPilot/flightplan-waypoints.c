@@ -20,32 +20,25 @@
 
 
 #include "defines.h"
-#include <stdlib.h>
 
 #if (FLIGHT_PLAN_TYPE == FP_WAYPOINTS)
 
 
-#ifdef USE_EXTENDED_NAV
-struct relWaypointDef { struct relative3D_32 loc; int16_t flags; struct relative3D viewpoint; };
-#else
 struct relWaypointDef { struct relative3D loc; int16_t flags; struct relative3D viewpoint; };
-#endif // USE_EXTENDED_NAV
 struct waypointDef { struct waypoint3D loc; int16_t flags; struct waypoint3D viewpoint; };
 
 #include "waypoints.h"
 
+#if (SERIAL_OUTPUT_FORMAT == SERIAL_MAVLINK)
+uint16_t  number_of_waypoints = ((sizeof waypoints) / sizeof (struct waypointDef));
+#endif
 #define NUMBER_POINTS ((sizeof waypoints) / sizeof (struct waypointDef))
 #define NUMBER_RTL_POINTS ((sizeof rtlWaypoints) / sizeof (struct waypointDef))
 
-struct waypointDef *currentWaypointSet = (struct waypointDef*)waypoints;
-int16_t numPointsInCurrentSet = NUMBER_POINTS;
-uint16_t number_of_waypoints = NUMBER_POINTS;
-
 int16_t waypointIndex = 0;
 
-extern int8_t extended_range;
-struct relWaypointDef current_waypoint;
-
+struct waypointDef *currentWaypointSet = (struct waypointDef*)waypoints;
+int16_t numPointsInCurrentSet = NUMBER_POINTS;
 
 struct waypointDef wp_inject;
 uint8_t wp_inject_pos = 0;
@@ -59,15 +52,12 @@ const uint8_t wp_inject_byte_order[] = {3, 2, 1, 0, 7, 6, 5, 4, 9, 8, 11, 10, 15
 struct relWaypointDef wp_to_relative(struct waypointDef wp)
 {
 	struct relWaypointDef rel;
-
+	
 	if (wp.flags & F_ABSOLUTE)
 	{
-#ifdef USE_EXTENDED_NAV
-		rel.loc = dcm_absolute_to_relative_32(wp.loc);
-#else
 		rel.loc = dcm_absolute_to_relative(wp.loc);
-#endif // USE_EXTENDED_NAV
 		rel.viewpoint = dcm_absolute_to_relative(wp.viewpoint);
+		
 		rel.flags = wp.flags - F_ABSOLUTE;
 	}
 	else
@@ -75,9 +65,11 @@ struct relWaypointDef wp_to_relative(struct waypointDef wp)
 		rel.loc.x = wp.loc.x;
 		rel.loc.y = wp.loc.y;
 		rel.loc.z = wp.loc.z;
+		
 		rel.viewpoint.x = wp.viewpoint.x;
 		rel.viewpoint.y = wp.viewpoint.y;
 		rel.viewpoint.z = wp.viewpoint.z;
+		
 		rel.flags = wp.flags;
 	}
 	return rel;
@@ -86,24 +78,26 @@ struct relWaypointDef wp_to_relative(struct waypointDef wp)
 
 // In the future, we could include more than 2 waypoint sets...
 // flightplanNum is 0 for main waypoints, and 1 for RTL waypoints
-void init_flightplan(int16_t flightplanNum)
+void init_flightplan (int16_t flightplanNum)
 {
-	if (flightplanNum == 1)         // RTL waypoint set
+	if (flightplanNum == 1) // RTL waypoint set
 	{
 		currentWaypointSet = (struct waypointDef*)rtlWaypoints;
 		numPointsInCurrentSet = NUMBER_RTL_POINTS;
 	}
-	else if (flightplanNum == 0)    // Main waypoint set
+	else if (flightplanNum == 0) // Main waypoint set
 	{
 		currentWaypointSet = (struct waypointDef*)waypoints;
 		numPointsInCurrentSet = NUMBER_POINTS;
 	}
+	
 	waypointIndex = 0;
-	current_waypoint = wp_to_relative(currentWaypointSet[0]);
-	set_goal(GPSlocation, current_waypoint.loc);
+	struct relWaypointDef current_waypoint = wp_to_relative(currentWaypointSet[0]);
+	set_goal(GPSlocation , current_waypoint.loc);
 	set_camera_view(current_waypoint.viewpoint);
 	setBehavior(current_waypoint.flags);
-	// udb_background_trigger();    // trigger navigation immediately
+	
+	// udb_background_trigger();			// trigger navigation immediately
 }
 
 boolean use_fixed_origin(void)
@@ -118,55 +112,48 @@ boolean use_fixed_origin(void)
 struct absolute3D get_fixed_origin(void)
 {
 	struct fixedOrigin3D origin = FIXED_ORIGIN_LOCATION;
-
+	
 	struct absolute3D standardizedOrigin;
 	standardizedOrigin.x = origin.x;
 	standardizedOrigin.y = origin.y;
 	standardizedOrigin.z = (int32_t)(origin.z * 100);
+	
 	return standardizedOrigin;
 }
 
-static void next_waypoint(void)
+void next_waypoint (void) 
 {
-	if (extended_range == 0)
+	waypointIndex++;
+	
+	if (waypointIndex >= numPointsInCurrentSet) waypointIndex = 0;
+	
+	if (waypointIndex == 0)
 	{
-		waypointIndex++;
-		if (waypointIndex >= numPointsInCurrentSet) waypointIndex = 0;
-
-		DPRINT("next_waypoint() waypointIndex %u\r\n", waypointIndex);
-
-		if (waypointIndex == 0)
+		if (numPointsInCurrentSet > 1)
 		{
-			if (numPointsInCurrentSet > 1)
-			{
-				struct relWaypointDef previous_waypoint = wp_to_relative(currentWaypointSet[numPointsInCurrentSet-1]);
-				current_waypoint  = wp_to_relative(currentWaypointSet[0]);
-				set_goal(previous_waypoint.loc, current_waypoint.loc);
-				set_camera_view(current_waypoint.viewpoint);
-			}
-			else
-			{
-				current_waypoint = wp_to_relative(currentWaypointSet[0]);
-				set_goal(GPSlocation, current_waypoint.loc);
-				set_camera_view(current_waypoint.viewpoint);
-			}
-			setBehavior(currentWaypointSet[0].flags);
+			struct relWaypointDef previous_waypoint = wp_to_relative(currentWaypointSet[numPointsInCurrentSet-1]);
+			struct relWaypointDef current_waypoint  = wp_to_relative(currentWaypointSet[0]);
+			set_goal(previous_waypoint.loc, current_waypoint.loc);
+			set_camera_view(current_waypoint.viewpoint);
 		}
 		else
 		{
-			struct relWaypointDef previous_waypoint = wp_to_relative(currentWaypointSet[waypointIndex-1]);
-			current_waypoint = wp_to_relative(currentWaypointSet[waypointIndex]);
-			set_goal(previous_waypoint.loc, current_waypoint.loc);
+			struct relWaypointDef current_waypoint = wp_to_relative(currentWaypointSet[0]);
+			set_goal(GPSlocation, current_waypoint.loc);
 			set_camera_view(current_waypoint.viewpoint);
-			setBehavior(current_waypoint.flags);
 		}
+		setBehavior(currentWaypointSet[0].flags);
 	}
 	else
 	{
-		set_goal(GPSlocation, current_waypoint.loc);
+		struct relWaypointDef previous_waypoint = wp_to_relative(currentWaypointSet[waypointIndex-1]);
+		struct relWaypointDef current_waypoint = wp_to_relative(currentWaypointSet[waypointIndex]);
+		set_goal(previous_waypoint.loc, current_waypoint.loc);
+		set_camera_view(current_waypoint.viewpoint);
+		setBehavior(current_waypoint.flags);
 	}
-#if (DEADRECKONING == 0)
-#error DEADRECKONING is now always enabled
+	
+#if	(DEADRECKONING == 0)
 	compute_bearing_to_goal();
 #endif
 }
@@ -176,42 +163,35 @@ void run_flightplan(void)
 	// first run any injected wp from the serial port
 	if (wp_inject_pos == WP_INJECT_READY)
 	{
-		current_waypoint = wp_to_relative(wp_inject);
+		struct relWaypointDef current_waypoint = wp_to_relative(wp_inject);
 		set_goal(GPSlocation, current_waypoint.loc);
 		set_camera_view(current_waypoint.viewpoint);
 		setBehavior(current_waypoint.flags);
 		compute_bearing_to_goal();
 		wp_inject_pos = 0;
-		return;
 	}
-
+	
 	// steering is based on cross track error.
-	// waypoint arrival is detected computing distance to the "finish line".
-
+ 	// waypoint arrival is detected computing distance to the "finish line".
+	
 	// note: locations are measured in meters
-	//       velocities are in centimeters per second
-
+	//		 velocities are in centimeters per second
+	
 	// locations have a range of +-32000 meters (20 miles) from origin
 	
 	if (desired_behavior._.altitude)
 	{
 		if (abs(IMUheight - goal.height) < ((int16_t) HEIGHT_MARGIN))
-		{
 			next_waypoint();
-		}
 	}
 	else
 	{
 		if (tofinish_line < WAYPOINT_RADIUS) // crossed the finish line
 		{
 			if (desired_behavior._.loiter)
-			{
 				set_goal(GPSlocation, wp_to_relative(currentWaypointSet[waypointIndex]).loc);
-			}
 			else
-			{
 				next_waypoint();
-			}
 		}
 	}
 }
@@ -245,4 +225,4 @@ void flightplan_live_commit(void)
 	}
 }
 
-#endif // FLIGHT_PLAN_TYPE
+#endif

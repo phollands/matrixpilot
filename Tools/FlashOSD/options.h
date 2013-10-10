@@ -22,15 +22,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 // options.h
 // Bill Premerlani's UAV Dev Board
-//
+// 
 // This file includes all of the user-configuration for this firmware,
-//
+// 
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Set Up Board Type
 // See the MatrixPilot wiki for more details on different board types.
-/*
 #ifdef UDB4
 #define BOARD_TYPE                          UDB4_BOARD
 #endif
@@ -44,7 +43,7 @@
 #ifndef BOARD_TYPE
 #define BOARD_TYPE                          UDB5_BOARD
 #endif
- */
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -52,7 +51,7 @@
 // receiver. (Totally autonomous.)  This is just meant for debugging.  It is not recommended that
 // you actually use this since there is no automatic landing code yet, and you'd have no manual
 // control to fall back on if things go wrong.  It may not even be legal in your area.
-#define NORADIO                             1
+#define NORADIO								1
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -74,7 +73,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // On Screen Display
 // USE_OSD enables the OSD system.  Customize the OSD Layout in the osd_layout.h file.
-//#define USE_OSD                             1
+#define USE_OSD                             1
 
 // NUM_ANALOG_INPUTS:
 // For classic boards: Set to 0, 1, or 2

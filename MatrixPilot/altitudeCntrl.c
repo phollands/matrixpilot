@@ -20,10 +20,6 @@
 
 
 #include "defines.h"
-#if (USE_CONFIGFILE == 1)
-#include "config.h"
-#include "redef.h"
-#endif // USE_CONFIGFILE
 
 #if (ALTITUDE_GAINS_VARIABLE != 1)
 
@@ -45,44 +41,38 @@ union longww throttleFiltered = { 0 };
 
 #define HEIGHTTHROTTLEGAIN  ((1.5*(HEIGHT_TARGET_MAX-HEIGHT_TARGET_MIN)* 1024.0) / (SERVORANGE*SERVOSAT))
 
-static void normalAltitudeCntrl(void);
-static void manualThrottle(int16_t throttleIn);
-static void hoverAltitudeCntrl(void);
-
 int32_t speed_height = 0;
 int16_t pitchAltitudeAdjust = 0;
 boolean filterManual = false;
+
 int16_t desiredHeight;
 
-// Variables required for mavlink.  Used in AltitudeCntrlVariable and airspeedCntrl
-int16_t height_target_min;
-int16_t height_target_max;
-int16_t height_margin;
-fractional alt_hold_throttle_min;
-fractional alt_hold_throttle_max;
-int16_t alt_hold_pitch_min;
-int16_t alt_hold_pitch_max;
-int16_t alt_hold_pitch_high;
-int16_t rtl_pitch_down;
-int16_t desiredSpeed;
+void normalAltitudeCntrl(void);
+void manualThrottle(int16_t throttleIn);
+void hoverAltitudeCntrl(void);
 
-void init_altitudeCntrl(void)
-{
-	height_target_min     = HEIGHT_TARGET_MIN;
-	height_target_max     = HEIGHT_TARGET_MAX;
-	height_margin         = HEIGHT_MARGIN;
-	alt_hold_throttle_min = ALT_HOLD_THROTTLE_MIN * RMAX;
-	alt_hold_throttle_max = ALT_HOLD_THROTTLE_MAX * RMAX;
-	alt_hold_pitch_min    = ALT_HOLD_PITCH_MIN;
-	alt_hold_pitch_max    = ALT_HOLD_PITCH_MAX;
-	alt_hold_pitch_high   = ALT_HOLD_PITCH_HIGH;
-	rtl_pitch_down        = RTL_PITCH_DOWN;
-	desiredSpeed          = DESIRED_SPEED * 10; // Stored in 10ths of meters per second
-}
+// Variables required for mavlink.  Used in AltitudeCntrlVariable and airspeedCntrl
+#if (SERIAL_OUTPUT_FORMAT == SERIAL_MAVLINK)
+// External variables
+int16_t height_target_min           = HEIGHT_TARGET_MIN;
+int16_t height_target_max           = HEIGHT_TARGET_MAX;
+int16_t height_margin               = HEIGHT_MARGIN;
+fractional alt_hold_throttle_min    = ALT_HOLD_THROTTLE_MIN * RMAX;
+fractional alt_hold_throttle_max    = ALT_HOLD_THROTTLE_MAX * RMAX;
+int16_t alt_hold_pitch_min          = ALT_HOLD_PITCH_MIN;
+int16_t alt_hold_pitch_max          = ALT_HOLD_PITCH_MAX;
+int16_t alt_hold_pitch_high         = ALT_HOLD_PITCH_HIGH;
+int16_t rtl_pitch_down              = RTL_PITCH_DOWN;
+#endif
 
 #if (SPEED_CONTROL == 1)  // speed control loop
 
-static int32_t excess_energy_height(void) // computes (1/2gravity)*(actual_speed^2 - desired_speed^2)
+// Initialize to the value from options.h.  Allow updating this value from LOGO/MavLink/etc.
+// Stored in 10ths of meters per second
+int16_t desiredSpeed = (DESIRED_SPEED*10);
+
+
+int32_t excess_energy_height(void) // computes (1/2gravity)*(actual_speed^2 - desired_speed^2)
 {
 	int16_t speedAccum = 6 * desiredSpeed;
 	int32_t equivalent_energy_air_speed = -(__builtin_mulss(speedAccum, speedAccum));
@@ -92,33 +82,33 @@ static int32_t excess_energy_height(void) // computes (1/2gravity)*(actual_speed
 	union longww forward_ground_speed;
 
 	speed_component = IMUvelocityx._.W1 - estimatedWind[0];
-	accum.WW = __builtin_mulsu(speed_component, 37877);
-	equivalent_energy_air_speed += __builtin_mulss(accum._.W1, accum._.W1);
+	accum.WW = __builtin_mulsu (speed_component , 37877);
+	equivalent_energy_air_speed += __builtin_mulss (accum._.W1 , accum._.W1);
 
 	speed_component = IMUvelocityy._.W1 - estimatedWind[1];
-	accum.WW = __builtin_mulsu(speed_component, 37877);
-	equivalent_energy_air_speed += __builtin_mulss(accum._.W1, accum._.W1);
+	accum.WW = __builtin_mulsu (speed_component , 37877);
+	equivalent_energy_air_speed += __builtin_mulss (accum._.W1 , accum._.W1);
 
 	speed_component = IMUvelocityz._.W1 - estimatedWind[2];
-	accum.WW = __builtin_mulsu(speed_component, 37877);
-	equivalent_energy_air_speed += __builtin_mulss(accum._.W1, accum._.W1);
+	accum.WW = __builtin_mulsu (speed_component , 37877);
+	equivalent_energy_air_speed += __builtin_mulss (accum._.W1 , accum._.W1);
 
 	//	compute the projection of the ground speed in the forward direction
 
-	forward_ground_speed.WW = ((__builtin_mulss(-IMUvelocityx._.W1, rmat[1])
-	                          + __builtin_mulss(IMUvelocityy._.W1, rmat[4])) << 2);
+	forward_ground_speed.WW =((__builtin_mulss(-IMUvelocityx._.W1 , rmat[1])
+	                         + __builtin_mulss(IMUvelocityy._.W1 , rmat[4]))<<2);
 
 	//	if we are going forward, add the energy, otherwise, subract it
 
-	accum.WW = __builtin_mulsu(forward_ground_speed._.W1, 37877);
+	accum.WW = __builtin_mulsu (forward_ground_speed._.W1 , 37877);
 
-	if (forward_ground_speed._.W1 > 0)
+	if (forward_ground_speed._.W1 > 0) 
 	{
-		equivalent_energy_ground_speed += __builtin_mulss(accum._.W1, accum._.W1);
+		equivalent_energy_ground_speed += __builtin_mulss (accum._.W1 , accum._.W1);
 	}
 	else
 	{
-		equivalent_energy_ground_speed -= __builtin_mulss(accum._.W1, accum._.W1);
+		equivalent_energy_ground_speed -= __builtin_mulss (accum._.W1 , accum._.W1);
 	}
 
 //	return the smaller of the energies of ground and air speed
@@ -132,10 +122,11 @@ static int32_t excess_energy_height(void) // computes (1/2gravity)*(actual_speed
 	{
 		return equivalent_energy_air_speed;
 	}
+
 }
 #else
 
-static int32_t excess_energy_height(void)
+int32_t excess_energy_height(void)
 {
 	return 0;
 }
@@ -160,7 +151,7 @@ void altitudeCntrl(void)
 	}
 }
 
-static void set_throttle_control(int16_t throttle)
+void set_throttle_control(int16_t throttle)
 {
 	int16_t throttleIn;
 
@@ -185,6 +176,7 @@ static void set_throttle_control(int16_t throttle)
 		{
 			if (temp < udb_pwTrim[THROTTLE_INPUT_CHANNEL]) throttle = udb_pwTrim[THROTTLE_INPUT_CHANNEL] - throttleIn;
 		}
+
 		throttle_control = throttle;
 	}
 	else
@@ -196,10 +188,9 @@ static void set_throttle_control(int16_t throttle)
 void setTargetAltitude(int16_t targetAlt)
 {
 	desiredHeight = targetAlt;
-//	printf("setTargetAltitude(%u)\r\n", desiredHeight);
 }
 
-static void normalAltitudeCntrl(void)
+void normalAltitudeCntrl(void)
 {
 	union longww throttleAccum;
 	union longww pitchAccum;
@@ -208,6 +199,7 @@ static void normalAltitudeCntrl(void)
 	union longww heightError = { 0 };
 
 	speed_height = excess_energy_height(); // equivalent height of the airspeed
+
 	if (udb_flags._.radio_on == 1)
 	{
 		throttleIn = udb_pwIn[THROTTLE_INPUT_CHANNEL];
@@ -220,12 +212,11 @@ static void normalAltitudeCntrl(void)
 		throttleIn = udb_pwTrim[THROTTLE_INPUT_CHANNEL];
 		throttleInOffset = 0;
 	}
+
 	if (flags._.altitude_hold_throttle || flags._.altitude_hold_pitch)
 	{
-		if (THROTTLE_CHANNEL_REVERSED)
-		{
-			throttleInOffset = -throttleInOffset;
-		}
+		if (THROTTLE_CHANNEL_REVERSED) throttleInOffset = - throttleInOffset;
+		
 		if (flags._.GPS_steering)
 		{
 			if (desired_behavior._.takeoff || desired_behavior._.altitude)
@@ -234,25 +225,23 @@ static void normalAltitudeCntrl(void)
 			}
 			else
 			{
-				desiredHeight = goal.fromHeight + (((goal.height - goal.fromHeight) * (int32_t)progress_to_goal) >> 12);
+				desiredHeight = goal.fromHeight + (((goal.height - goal.fromHeight) * (int32_t)progress_to_goal)>>12) ;
 			}
 		}
 		else
 		{
-//#if (ALTITUDEHOLD_STABILIZED == AH_PITCH_ONLY)
-if (ALTITUDEHOLD_STABILIZED == AH_PITCH_ONLY) {
+#if (ALTITUDEHOLD_STABILIZED == AH_PITCH_ONLY)
 			// In stabilized mode using pitch-only altitude hold, use desiredHeight as
 			// set from the state machine upon entering stabilized mode in ent_stabilizedS().
-//#elif (ALTITUDEHOLD_STABILIZED == AH_FULL)
-} else if (ALTITUDEHOLD_STABILIZED == AH_FULL) {
+#elif (ALTITUDEHOLD_STABILIZED == AH_FULL)
 			// In stabilized mode using full altitude hold, use the throttle stick value to determine desiredHeight,
-			desiredHeight = ((__builtin_mulss((int16_t)(HEIGHTTHROTTLEGAIN), throttleInOffset - ((int16_t)(DEADBAND)))) >> 11)
+			desiredHeight =((__builtin_mulss((int16_t)(HEIGHTTHROTTLEGAIN), throttleInOffset - ((int16_t)(DEADBAND)))) >> 11) 
 			                + (int16_t)(HEIGHT_TARGET_MIN);
-}
-//#endif
+#endif
 			if (desiredHeight < (int16_t)(HEIGHT_TARGET_MIN)) desiredHeight = (int16_t)(HEIGHT_TARGET_MIN);
 			if (desiredHeight > (int16_t)(HEIGHT_TARGET_MAX)) desiredHeight = (int16_t)(HEIGHT_TARGET_MAX);
 		}
+
 		if (throttleInOffset < (int16_t)(DEADBAND) && udb_flags._.radio_on)
 		{
 			pitchAltitudeAdjust = 0;
@@ -260,9 +249,10 @@ if (ALTITUDEHOLD_STABILIZED == AH_PITCH_ONLY) {
 		}
 		else
 		{
+
 			heightError._.W1 = - desiredHeight;
 			heightError.WW = (heightError.WW + IMUlocationz.WW + speed_height) >> 13;
-			if (heightError._.W0 < (-(int16_t)(HEIGHT_MARGIN*8.0)))
+			if (heightError._.W0 < (- (int16_t)(HEIGHT_MARGIN*8.0)))
 			{
 				throttleAccum.WW = (int16_t)(MAXTHROTTLE);
 			}
@@ -272,9 +262,10 @@ if (ALTITUDEHOLD_STABILIZED == AH_PITCH_ONLY) {
 			}
 			else
 			{
-				throttleAccum.WW = (int16_t)(MAXTHROTTLE) + (__builtin_mulss((int16_t)(THROTTLEHEIGHTGAIN), (-heightError._.W0 - (int16_t)(HEIGHT_MARGIN*8.0))) >> 3);
-				if (throttleAccum.WW > (int16_t)(MAXTHROTTLE))throttleAccum.WW = (int16_t)(MAXTHROTTLE);
+				throttleAccum.WW = (int16_t)(MAXTHROTTLE) + (__builtin_mulss((int16_t)(THROTTLEHEIGHTGAIN), (-heightError._.W0 - (int16_t)(HEIGHT_MARGIN*8.0)))>>3);
+				if (throttleAccum.WW > (int16_t)(MAXTHROTTLE)) throttleAccum.WW = (int16_t)(MAXTHROTTLE);
 			}
+
 			heightError._.W1 = - desiredHeight;
 			heightError.WW = (heightError.WW + IMUlocationz.WW - speed_height) >> 13;
 			if (heightError._.W0 < (- (int16_t)(HEIGHT_MARGIN*8.0)))
@@ -287,18 +278,18 @@ if (ALTITUDEHOLD_STABILIZED == AH_PITCH_ONLY) {
 			}
 			else
 			{
-				pitchAccum.WW = __builtin_mulss((int16_t)(PITCHHEIGHTGAIN), - heightError._.W0 - (int16_t)(HEIGHT_MARGIN*8.0)) >> 3;
+				pitchAccum.WW = __builtin_mulss((int16_t)(PITCHHEIGHTGAIN) , - heightError._.W0 - (int16_t)(HEIGHT_MARGIN*8.0))>>3;
 				pitchAltitudeAdjust = (int16_t)(PITCHATMAX) + pitchAccum._.W0;
 			}
-//#if (RACING_MODE == 1)
-if (RACING_MODE == 1) {
+
+#if (RACING_MODE == 1)
 			if (flags._.GPS_steering)
 			{
 				throttleAccum.WW = (int32_t)(FIXED_WP_THROTTLE);
 			}
-}
-//#endif
+#endif
 		}
+
 		if (!flags._.altitude_hold_throttle)
 		{
 			manualThrottle(throttleIn);
@@ -311,7 +302,7 @@ if (RACING_MODE == 1) {
 				pitchAltitudeAdjust = 0;
 			}
 			
-			throttleFiltered.WW += (((int32_t)(udb_pwTrim[THROTTLE_INPUT_CHANNEL] - throttleFiltered._.W1)) << THROTTLEFILTSHIFT);
+			throttleFiltered.WW += (((int32_t)(udb_pwTrim[THROTTLE_INPUT_CHANNEL] - throttleFiltered._.W1))<<THROTTLEFILTSHIFT);
 			set_throttle_control(throttleFiltered._.W1 - throttleIn);
 			filterManual = true;
 		}
@@ -323,6 +314,7 @@ if (RACING_MODE == 1) {
 			set_throttle_control(throttleFiltered._.W1 - throttleIn);
 			filterManual = true;
 		}
+		
 		if (!flags._.altitude_hold_pitch)
 		{
 			pitchAltitudeAdjust = 0;
@@ -335,15 +327,13 @@ if (RACING_MODE == 1) {
 	}
 }
 
-static void manualThrottle(int16_t throttleIn)
+void manualThrottle(int16_t throttleIn)
 {
-//	printf("manualThrottle()\r\n");
-
 	int16_t throttle_control_pre;
 
 	throttleFiltered.WW += (((int32_t)(throttleIn - throttleFiltered._.W1)) << THROTTLEFILTSHIFT);
-	if (filterManual)
-	{
+
+	if (filterManual) {
 		// Continue to filter the throttle control value in manual mode to avoid large, instant
 		// changes to throttle value, which can burn out a brushed motor.  But after fading over
 		// to the new throttle value, stop applying the filter to the throttle out to allow
@@ -351,25 +341,23 @@ static void manualThrottle(int16_t throttleIn)
 		throttle_control_pre = throttleFiltered._.W1 - throttleIn;
 		if (throttle_control_pre < 10) filterManual = false;
 	}
-	else
-	{
+	else {
 		throttle_control_pre = 0;
 	}
+
 	set_throttle_control(throttle_control_pre);
 }
 
 // For now, hovering does not attempt to control the throttle, and instead
 // gives manual throttle control back to the pilot.
-static void hoverAltitudeCntrl(void)
+void hoverAltitudeCntrl(void)
 {
-//	printf("hoverAltitudeCntrl()\r\n");
-
 	int16_t throttle_control_pre;
 	int16_t throttleIn = (udb_flags._.radio_on == 1) ? udb_pwIn[THROTTLE_INPUT_CHANNEL] : udb_pwTrim[THROTTLE_INPUT_CHANNEL];
 
 	throttleFiltered.WW += (((int32_t)(throttleIn - throttleFiltered._.W1)) << THROTTLEFILTSHIFT);
-	if (filterManual)
-	{
+
+	if (filterManual) {
 		// Continue to filter the throttle control value in manual mode to avoid large, instant
 		// changes to throttle value, which can burn out a brushed motor.  But after fading over
 		// to the new throttle value, stop applying the filter to the throttle out to allow
@@ -377,17 +365,11 @@ static void hoverAltitudeCntrl(void)
 		throttle_control_pre = throttleFiltered._.W1 - throttleIn;
 		if (throttle_control_pre < 10) filterManual = false;
 	}
-	else
-	{
+	else {
 		throttle_control_pre = 0;
 	}
+
 	set_throttle_control(throttle_control_pre);
-}
-
-#else
-
-void init_altitudeCntrl(void)
-{
 }
 
 #endif //(ALTITUDE_GAINS_VARIABLE != 1)

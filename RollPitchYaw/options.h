@@ -23,9 +23,27 @@
 // options.h
 // Bill Premerlani's UAV Dev Board
 //
-// This file includes most of the user-configuration for this firmware,
-// one of the exceptions being waypoints, which live in the waypoints.h file.
+// This file includes all of the user-configuration for this firmware,
+// with the exception of waypoints, which live in the waypoints.h file.
 //
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Set Up Board Type
+// See the MatrixPilot wiki for more details on different board types.
+#ifdef UDB4
+#define BOARD_TYPE                          UDB4_BOARD
+#endif
+#ifdef UDB5
+#define BOARD_TYPE                          UDB5_BOARD
+#endif
+#ifdef AUAV3
+#define BOARD_TYPE                          AUAV3_BOARD
+#endif
+
+#ifndef BOARD_TYPE
+#define BOARD_TYPE                          UDB5_BOARD
+#endif
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -44,15 +62,15 @@
 //
 // The following 2 orientations are "knife edge" mountings
 // ORIENTATION_ROLLCW: board rolled 90 degrees clockwise,
-//      from point of view of the pilot
+//        from point of view of the pilot
 // ORIENTATION_ROLLCW180: board rolled 90 degrees clockwise,
-//      from point of view of the pilot, then rotate the board 180 around the Z axis of the plane,
+//        from point of view of the pilot, then rotate the board 180 around the Z axis of the plane,
 #define BOARD_ORIENTATION                   ORIENTATION_FORWARDS
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Set this value to your GPS type.  (Set to GPS_STD, GPS_UBX_2HZ, GPS_UBX_4HZ, GPS_MTEK, GPS_NMEA, or GPS_NONE)
-#define GPS_TYPE                            GPS_STD
+#define GPS_TYPE                            GPS_MTEK
 
 // Note: As of MatrixPilot 3.0, Dead Reckoning and Wind Estimation are automatically enabled.
 

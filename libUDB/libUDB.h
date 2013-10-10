@@ -27,54 +27,11 @@
 #include <stdio.h>
 
 #include "options.h"
-
-#if (WIN == 1)
-#define SILSIM                              1
-#undef  HILSIM
-#define HILSIM                              1
-#undef  MODE_SWITCH_TWO_POSITION
-#define MODE_SWITCH_TWO_POSITION            0
-#undef  USE_TELELOG
-#define USE_TELELOG                         0
-#undef  USE_CONFIGFILE
-#define USE_CONFIGFILE                      0
-#undef  USE_USB
-#define USE_USB                             0
-#undef  USE_MSD
-#define USE_MSD                             0
+#if (SILSIM == 1)
 #include "SIL-udb.h"
 #else
-#define SILSIM                              0
 #include <dsp.h>
-#endif // WIN
-
-////////////////////////////////////////////////////////////////////////////////
-// Set Up Board Type
-// The UDB4, UDB5, or AUAV3 definition now comes from the project, or if not
-// set in the project can be specified here.
-// See the MatrixPilot wiki for more details on different board types.
-#ifdef UDB4
-#define BOARD_TYPE                          UDB4_BOARD
 #endif
-#ifdef UDB5
-#define BOARD_TYPE                          UDB5_BOARD
-#endif
-#ifdef AUAV3
-#define BOARD_TYPE                          AUAV3_BOARD
-#endif
-
-#ifndef BOARD_TYPE
-#if (SILSIM == 0)
-#pragma warning BOARD_TYPE defaulting to UDB4_BOARD
-#endif // SILSIM
-#define BOARD_TYPE                          UDB4_BOARD
-#endif // BOARD_TYPE
-
-#ifdef USE_DEBUG_IO
-#define DPRINT printf
-#else
-#define DPRINT(args...)
-#endif // USE_DEBUG_IO
 
 #include "fixDeps.h"
 #include "libUDB_defines.h"
@@ -117,7 +74,6 @@ void udb_init(void);
 // Your code should respond to the Callbacks below.
 void udb_run(void);
 
-int setjmp(void);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Run Background Tasks
@@ -137,6 +93,10 @@ void udb_background_callback_triggered(void);   // Callback
 // This function returns the current CPU load as an integer percentage value
 // from 0-100.
 uint8_t udb_cpu_load(void);
+
+// This function returns the current CPU load as an integer percentage value
+// from 0-10,000.
+uint16_t udb_cpu_ratio(void);
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -189,7 +149,7 @@ extern UDB_SKIP_FLAGS udb_skip_flags;
 #endif
 
 // Implement this callback to prepare the pwOut values.
-// It is called at HEARTBEAT_HZ at a low priority.
+// It is called at 40Hz (once every 25ms) at a low priority.
 void udb_servo_callback_prepare_outputs(void);  // Callback
 
 // Called immediately whenever the radio_on flag is set to 0
@@ -268,9 +228,31 @@ void udb_serial_start_sending_data(void);
 // Implement this callback to tell the UDB what byte is next to send on the serial port.
 // Return -1 to stop sending data.
 int16_t udb_serial_callback_get_byte_to_send(void);     // Callback
+boolean udb_serial_callback_get_binary_to_send(char *c);
 
 // Implement this callback to handle receiving a byte from the serial port
 void udb_serial_callback_received_byte(uint8_t rxchar); // Callback
+
+
+////////////////////////////////////////////////////////////////////////////////
+// On Screen Display
+
+void osd_spi_write(int8_t address, int8_t byte);
+void osd_spi_write_byte(int8_t byte); // Used for writing chars while in auto-increment mode
+void osd_spi_write_location(int16_t loc); // Set where on screen to write the next char
+void osd_spi_write_string(const uint8_t *str); // OSD chars, not ASCII
+void osd_spi_write_vertical_string_at_location(int16_t loc, const uint8_t *str);
+void osd_spi_erase_chars(uint8_t n);
+
+// Convert Row and Col to a location value for use in osd_spi_write_location()
+#define OSD_LOC(ROW, COL) ((ROW)*30+(COL))
+
+#define NUM_FLAG_ZERO_PADDED        1   // When num_digits > 0, left-pad with zeros instead of spaces
+#define NUM_FLAG_SIGNED             2   // Reserve space for a - sign to the left of the number
+void osd_spi_write_number(int32_t val, int8_t num_digits, int8_t decimal_places, int8_t num_flags, int8_t header, int8_t footer);
+// num_digits == 0 means left aligned
+// header or footer == 0 means skip the header or footer char
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
