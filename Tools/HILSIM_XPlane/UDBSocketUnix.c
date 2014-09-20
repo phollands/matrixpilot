@@ -41,7 +41,7 @@ struct UDBSocket_t {
 } UDBSocket_t;
 
 
-UDBSocket UDBSocket_init(UDBSocketType type, uint16_t UDP_port, char *UDP_host, char *serial_port, long serial_baud)
+UDBSocket UDBSocket_init(UDBSocketType type, uint16_t UDP_port, char const *UDP_host, char const *serial_port, long serial_baud)
 {
 #if ( LIN == 1 )
 	speed_t BAUD;

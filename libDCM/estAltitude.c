@@ -24,6 +24,9 @@
 #include "estAltitude.h"
 #include <stdio.h>
 #include <stdlib.h>
+#if (SILSIM == 1)
+#include <math.h>
+#endif
 
 
 // moved out of options.h for now

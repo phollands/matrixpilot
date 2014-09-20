@@ -1,6 +1,7 @@
-CC       = gcc
-CFLAGS   = -pipe -Wall -W -O0
-INCPATH  = -Iinclude -I. -I../HILSIM_XPlane -I../../libUDB -I../../libDCM -I../../MatrixPilot
+CC       = g++
+CFLAGS   = -g -pipe -Wall -W -O0 -DSILSIM=1 -fpermissive 
+#-DUSE_DEBUG_IO
+INCPATH  = -Iinclude -I. -I../HILSIM_XPlane -I projectSpecific -I../../libUDB -I../../libDCM -I../../MatrixPilot
 LFLAGS   =
 LIBS     = -lm
 RM_FILE  = rm -f
@@ -10,7 +11,7 @@ OBJECTS_DIR = ./
 
 MPSIL_TARGET  = matrixpilot
 
-MP_HEADERS = ../../MatrixPilot/options.h ../../MatrixPilot/waypoints.h ../../MatrixPilot/flightplan-logo.h
+#MP_HEADERS = ../../MatrixPilot/options.h ../../MatrixPilot/waypoints.h ../../MatrixPilot/flightplan-logo.h
 
 MPSIL_OBJECTS = \
 SIL-udb.o \
@@ -67,7 +68,10 @@ MPCAT_OBJECTS  = ../HILSIM_XPlane/UDBSocketUnix.o SILcat.o
 
 first: all
 
-%.o: %.c $(MP_HEADERS)
+#%.o: %.c $(MP_HEADERS)
+#	$(CC) -c $(CFLAGS) $(INCPATH) -o $@ $<
+
+%.o: %.c 
 	$(CC) -c $(CFLAGS) $(INCPATH) -o $@ $<
 
 all: $(MPSIL_TARGET) $(MPCAT_TARGET)

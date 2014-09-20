@@ -97,6 +97,7 @@ void print_LED_status(void)
 		   (leds[1] == LED_ON) ? 'G' : '-',
 		   (leds[2] == LED_ON) ? 'O' : '-',
 		   (leds[3] == LED_ON) ? 'B' : '-');
+	fflush(stdout);
 }
 
 

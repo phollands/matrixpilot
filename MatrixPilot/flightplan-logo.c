@@ -19,6 +19,10 @@
 // along with MatrixPilot.  If not, see <http://www.gnu.org/licenses/>.
 
 
+#if (SILSIM == 1)
+#include <stdlib.h>
+#endif
+
 #include "defines.h"
 
 #if (FLIGHT_PLAN_TYPE == FP_LOGO)

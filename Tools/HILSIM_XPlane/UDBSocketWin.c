@@ -48,7 +48,7 @@ struct UDBSocket_t {
 } UDBSocket_t;
 
 
-UDBSocket UDBSocket_init(UDBSocketType type, uint16_t UDP_port, char *UDP_host, char *serial_port, long serial_baud)
+UDBSocket UDBSocket_init(UDBSocketType type, uint16_t UDP_port, const char *UDP_host, const char *serial_port, long serial_baud)
 {
 	UDBSocket newSocket = (UDBSocket)malloc(sizeof(UDBSocket_t));
 	if (!newSocket) {
