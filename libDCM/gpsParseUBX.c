@@ -831,6 +831,8 @@ commit_bodyrate_data(void)
     p_sim = p_sim_;
     q_sim = q_sim_;
     r_sim = r_sim_;
+//    printf("bodyrate msg: gax: %i, gay: %i, gaz: %i, p: %i, q: %i, r: %i\n",
+//    		g_a_x_sim.BB, g_a_y_sim.BB, g_a_z_sim.BB, p_sim.BB, q_sim.BB, r_sim.BB);
 }
 #endif // HILSIM
 

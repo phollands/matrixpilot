@@ -45,11 +45,17 @@
 
 #if (SERIAL_OUTPUT_FORMAT == SERIAL_MAVLINK)
 
+#if (SILSIM == 1)
 #include <math.h>
+#endif
 #include "../MatrixPilot/euler_angles.h"
 #include "mavlink_options.h"
 #include "../libUDB/events.h"
 
+#if (MAG_YAW_DRIFT == 1) // Magnetometer is connected
+		extern int16_t magFieldRaw[];
+		extern int16_t udb_magFieldBody[];
+#endif
 // Setting MAVLINK_TEST_ENCODE_DECODE to 1, will replace the normal code that sends MAVLink messages with
 // as test suite.  The inserted code will self-test every message type to encode packets, de-code packets,
 // and it will then check that the results match. The code reports a pass rate and fail rate

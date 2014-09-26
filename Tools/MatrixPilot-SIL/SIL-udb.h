@@ -54,6 +54,6 @@ void sil_reset(void);
 
 uint16_t get_current_milliseconds();
 void sleep_milliseconds(uint16_t ms);
-
+void get_current_time(uint32_t *, uint16_t *);
 
 #endif
