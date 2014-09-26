@@ -23,42 +23,39 @@
 #include "gpsParseCommon.h"
 #include "heartbeat.h"
 
-#if (GPS_TYPE == GPS_NMEA)
+#if ((GPS_TYPE == GPS_NMEA) || (GPS_TYPE == GPS_NAVSPARKGL))
+#define XOG_LEFT_DIGITS 3
+#define XOG_RIGHT_DIGITS 1
+int nmea_flag=0;
 
-//FIXME: code won't copile with DEBUG_NMEA undefined
 //#define DEBUG_NMEA
 
 #ifdef DEBUG_NMEA
 static uint16_t RMCpos = 0;
 static uint16_t GGApos = 0;
-char debug_RMC[80];
-char debug_GGA[80];
+int8_t debug_RMC[80];
+int8_t debug_GGA[80];
 #include <string.h>
-void debug_rmc(uint8_t ch)
-{
-	if (RMCpos < (sizeof(debug_RMC)-1))
-	{
+void debug_rmc(uint8_t ch) {
+    if (RMCpos < (sizeof (debug_RMC) - 1)) {
 		debug_RMC[RMCpos++] = ch;
 		debug_RMC[RMCpos] = '\0';
 	}
 }
-void debug_rmc_send(int8_t ch)
-{
+void debug_rmc_send(int8_t ch) {
 	debug_rmc(ch);
 	printf("%s\r\n", debug_RMC);
 }
-void debug_gga(uint8_t ch)
-{
-	if (GGApos < (sizeof(debug_GGA)-1))
-	{
+void debug_gga(uint8_t ch) {
+    if (GGApos < (sizeof (debug_GGA) - 1)) {
 		debug_GGA[GGApos++] = ch;
 		debug_GGA[GGApos] = '\0';
 	}
 }
 #else
-#define debug_rmc(a)
-#define debug_rmc_send(a)
-#define debug_gga(a)
+//#define debug_rmc(a)
+//#define debug_rmc_send(int8_t ch)
+//#define debug_gga(a)
 #endif
 
 
@@ -91,7 +88,6 @@ static void gps_checksum(uint8_t gpschar);
 
 void (*msg_parse)(uint8_t gpschar) = &msg_start;
 
-//FIXME: the uncommented messages below assume MTEK gps module
 
 //const char disable_GGA[]        = "$PSRF103,00,00,00,01*24\r\n";
 //const char disable_GLL[]        = "$PSRF103,01,00,00,01*25\r\n";
@@ -123,72 +119,65 @@ static int16_t digit;
 static int32_t degrees, minutes;
 
 union longbbbb lat_gps_, long_gps_, alt_sl_gps_;
-union intbb sog_gps_, cog_gps_;
-uint8_t svs_;
-uint8_t data_valid_, NS_, EW_;
+static union intbb sog_gps_;
+static union uintbb cog_gps_;
+static uint8_t svs_;
+static uint8_t data_valid_, NS_, EW_;
 union intbb hdop_;
-//uint8_t day_of_week;
-union longbbbb last_alt;
+static union longbbbb last_alt;
 
 //union longbbbb tow_;
-//union longbbbb date_gps_, time_gps_;
+union longbbbb date_gps_, time_gps_;
 union intbb nav_valid_, nav_type_;
 //union longbbbb climb_gps_;
 union longbbbb week_no_;
 
+static int digitCount = 0;
 
-union longbbbb date_gps_, time_gps_;
-
-int32_t get_gps_date(void)
-{
-	return date_gps_.WW;
+int16_t get_sog_gps() {
+    return sog_gps.BB;
 }
-int32_t get_gps_time(void)
-{
+
+uint16_t get_cog_gps() {
+    return cog_gps.BB;
+}
+long get_time_gps() {
 	return time_gps_.WW;
 }
 
-
 // if data_valid is 'A', there is valid GPS data that can be used for navigation.
-boolean gps_nav_valid(void)
-{
+
+boolean gps_nav_valid(void) {
 	return (data_valid_ == 'A');
 }
 
-void gps_startup_sequence(int16_t gpscount)
-{
-	if (gpscount == 1.5 * HEARTBEAT_HZ)
-	{
+void gps_startup_sequence(int16_t gpscount) {
+    if (gpscount == 1.5 * HEARTBEAT_HZ) {
 #ifdef DEFAULT_GPS_BAUD
 		udb_gps_set_rate(DEFAULT_GPS_BAUD);
 #else
 		udb_gps_set_rate(9600);
 #warning "Default GPS BAUD not specified, now set at 9600"
 #endif
-	}
-	else if (gpscount == 1.25 * HEARTBEAT_HZ)
-	{
+    } else if (gpscount == 1.25 * HEARTBEAT_HZ) {
 		//FIXME: this can't work unless we know the proprietary GPS type
 		//		gpsoutline(set_FIX_1Hz);
-	}
-	else if (gpscount == 0.5 * HEARTBEAT_HZ)
-	{
+    } else if (gpscount == 0.5 * HEARTBEAT_HZ) {
 		//FIXME: this can't work unless we know the proprietary GPS type
 		//		gpsoutline(set_DEFAULT);
 	}
 }
 
-static void msg_start(uint8_t gpschar)
-{
-	if (gpschar == '$')
-	{
-		msg_parse = &gps_G;                 // Wait for the $
+static void msg_start(uint8_t gpschar) {
+    if (gpschar == '$') {
+#ifdef DEBUG_NMEA
+        //		udb_led_toggle(LED_BLUE ) ;
+#endif
+        msg_parse = &gps_G; // Wait for the G
 		rmc_counter = 0;
 		gga_counter = 0;
 		XOR = 0;
-	}
-	else
-	{
+    } else {
 		// error condition - stay in start state
 	}
 }
@@ -197,48 +186,40 @@ static void msg_start(uint8_t gpschar)
 // States correspond to the portions of the NMEA messages.
 // If an 'G' is received, the state machine transitions to the 'P' state.
 
-static void gps_G(uint8_t gpschar)
-{
+static void gps_G(uint8_t gpschar) {
 	if (gpschar == 'G')                     // "$G" String started
 	{
 		XOR ^= gpschar;
 		msg_parse = &gps_P;                 // Get ready to parse the next int8_t
-	}
-	else
-	{
+    } else {
 		msg_parse = &msg_start;             // No NMEA string or string error, abort the current string and wait for $
 	}
 }
 
-static void gps_P(uint8_t gpschar)
-{
-	if (gpschar == 'P')                     // "$GP", go on
+static void gps_P(uint8_t gpschar) {
+    // accept both GPxxx and GNxxx records
+    if ((gpschar == 'P') || (gpschar == 'N')) // Navspark GL generates GNGGA, GNGLL, GNGSA, GPGSV, GLGSV, GNRMC, GNVTG
 	{
 		XOR ^= gpschar;
 		msg_parse = &gps_id1;
-	}
-	else
-	{
+    } else {
 		msg_parse = &msg_start;             // Abort current string
 	}
 }
 
-static void gps_id1(uint8_t gpschar)
-{
+static void gps_id1(uint8_t gpschar) {
 	XOR ^= gpschar;
 	id1 = gpschar;
 	msg_parse = &gps_id2;
 }
 
-static void gps_id2(uint8_t gpschar)
-{
+static void gps_id2(uint8_t gpschar) {
 	XOR ^= gpschar;
 	id2 = gpschar;
 	msg_parse = &gps_id3;
 }
 
-static void gps_id3(uint8_t gpschar)
-{
+static void gps_id3(uint8_t gpschar) {
 	XOR ^= gpschar;
 
 	if (id1 == 'R' && id2 == 'M' && gpschar == 'C')      // "$GPRMC"
@@ -248,10 +229,10 @@ static void gps_id3(uint8_t gpschar)
 #ifdef DEBUG_NMEA
 //	msg_parse = &msg_start;	
 		strcpy(debug_RMC, "$GPRMC");
+        udb_led_toggle(LED_BLUE);
 		RMCpos = 6;
 #endif
-	}
-	else if (id1 == 'G' && id2 == 'G' && gpschar == 'A') // "$GPGGA"
+    } else if (id1 == 'G' && id2 == 'G' && gpschar == 'A') // "$GPGGA"
 	{
 		gga_counter = 1;                    // Next gga message after the comma
 		msg_parse = &gps_comma;             // A comma ',' is expected now	
@@ -260,24 +241,20 @@ static void gps_id3(uint8_t gpschar)
 //	msg_parse = &msg_start;
 		strcpy(debug_GGA, "$GPGGA");
 #endif
-	}
-	else    // ID not detected, abort
+    } else // ID not detected, abort
 	{
 		msg_parse = &msg_start;
 	}
 }
 
-static void gps_comma(uint8_t gpschar)
-{
+static void gps_comma(uint8_t gpschar) {
 #ifdef DEBUG_NMEA
 	if (gga_counter > 0) debug_GGA[GGApos++] = gpschar;
 	if (rmc_counter > 0) debug_rmc(gpschar);
 #endif
 	if (gpschar != '*') XOR ^= gpschar;
-	if (gpschar == ',')
-	{
-		switch (rmc_counter)
-		{
+    if (gpschar == ',') {
+        switch (rmc_counter) {
 			case 1:
 				time_gps_.WW = 0;
 				msg_parse = &gps_rmc1;
@@ -301,6 +278,7 @@ static void gps_comma(uint8_t gpschar)
 				msg_parse = &gps_rmc6;
 				break;
 			case 7:
+                digitCount = 0;
 				sog_gps_.BB = 0;
 				msg_parse = &gps_rmc7;
 				break;
@@ -315,15 +293,16 @@ static void gps_comma(uint8_t gpschar)
 				rmc_counter++;
 				break;
 		}
-	}
-	else
-	{
-		if (gga_counter == 14 && gpschar == '*')
-		{
+    } else {
+        // Bill's version does just this instead of the 2 tests below
+        //		if (gpschar == '*')
+        //		{
+        //			msg_parse = &gps_checksum;
+        //		}
+        if (gga_counter == 14 && gpschar == '*') {
 			msg_parse = &gps_checksum;
 		}
-		if (rmc_counter == 11 && gpschar == '*')
-		{
+        if (rmc_counter == 11 && gpschar == '*') {
 			msg_parse = &gps_checksum;
 		}
 	}
@@ -355,9 +334,7 @@ static void gps_rmc1(uint8_t gpschar)       // rmc1 -> Time HHMMSS.SSS
 	{
 		rmc_counter = 2;
 		msg_parse = &gps_rmc2;
-	}
-	else if (gpschar != '.')
-	{
+    } else if (gpschar != '.') {
 		time_gps_.WW = time_gps_.WW * 10 + (gpschar - '0');
 	}
 }
@@ -375,9 +352,7 @@ static void gps_rmc2(uint8_t gpschar)       // GPS status
 		minutes = 0;
 		degrees = 0;
 		msg_parse = &gps_rmc3;
-	}
-	else
-	{
+    } else {
 		data_valid_ = gpschar;
 		rmc_counter = 3;
 		msg_parse = &gps_comma;
@@ -390,15 +365,12 @@ static void gps_rmc3(uint8_t gpschar)       // latitude
 	debug_rmc(gpschar);
 #endif
 	XOR ^= gpschar;
-	if (gpschar == ',')                     // latitude not providev, error! start over again
+    if (gpschar == ',') // latitude not provided, error! start over again
 	{
 		msg_parse = &msg_start;
-	}
-	else
-	{
+    } else {
 		digit++;
-		switch (digit)
-		{
+        switch (digit) {
 			case 1: case 2:
 				degrees = 10 * degrees + (gpschar - '0');
 				break;
@@ -433,9 +405,7 @@ static void gps_rmc4(uint8_t gpschar)       // N or S int8_t
 		minutes = 0;
 		degrees = 0;
 		msg_parse = & gps_rmc5;
-	}
-	else
-	{
+    } else {
 		NS_ = gpschar;
 		if (NS_ == 'S') lat_gps_.WW = - lat_gps_.WW;
 		rmc_counter = 5;
@@ -452,9 +422,7 @@ static void gps_rmc5(uint8_t gpschar)       // Longitude
 	if (gpschar == ',')                     // Longitude not provided, error! start over again
 	{
 		msg_parse = &msg_start;
-	}
-	else
-	{
+    } else {
 		digit++;
 		switch (digit)                      // DDDMM.MMMM
 		{
@@ -489,9 +457,9 @@ static void gps_rmc6(uint8_t gpschar)       // E or W int8_t
 		EW_ = ' ';
 		rmc_counter = 7;
 		msg_parse = &gps_rmc7;             // Parse the next message
-	}
-	else
-	{
+        // init digit counter for rmc field 7
+        digitCount = 0;
+    } else {
 		EW_ = gpschar;
 		if (EW_ == 'W') long_gps_.WW = - long_gps_.WW;
 		rmc_counter = 7;
@@ -499,22 +467,43 @@ static void gps_rmc6(uint8_t gpschar)       // E or W int8_t
 	}
 }
 
+// check for correct number of digits and cause abort if error
+static void checkDecimalDigits(uint16_t *result) {
+        if (digitCount == 1)
+        {
+            // only got one digit below decimal, correct to result*100
+            *result *= 10;
+        } else if (digitCount > 2)
+        {
+            // too many digits below decimal
+            msg_parse = &msg_start; // Abort current string
+        }
+}
 static void gps_rmc7(uint8_t gpschar)       // Speed over ground
 {
 #ifdef DEBUG_NMEA
 	debug_rmc(gpschar);
 #endif
 	XOR ^= gpschar;
-	if (gpschar == ',')
-	{
+    if (gpschar == ',') {
+        rmc_counter = 8;
+        msg_parse = &gps_rmc8;
+        // sog > 0, so cast to unsigned is safe
+        checkDecimalDigits((uint16_t*)&(sog_gps_.BB));
+        // convert sog from knots to cm/sec
 		sog_gps_.BB = sog_gps_.BB >> 1;     // knots*100/2? almost cm/s. 1 knot ˜ 50cm/s
-		rmc_counter = 8;
+        // init cog and digit counter for rmc field 8
 		cog_gps_.BB = 0;
-		msg_parse = &gps_rmc8;
-	}
-	else if (gpschar != '.')
-	{
+        digitCount = 0;
+    } else if (gpschar != '.') {
+        digitCount++;
 		sog_gps_.BB = sog_gps_.BB * 10 + (gpschar - '0');
+    } else if (gpschar == '.') {
+        // check for correct number of digits left of decimal
+        if (digitCount != XOG_LEFT_DIGITS) {
+            msg_parse = &msg_start; // Abort current string
+        }
+        digitCount = 0;
 	}
 }
 
@@ -524,15 +513,20 @@ static void gps_rmc8(uint8_t gpschar)       // Course Over Ground
 	debug_rmc(gpschar);
 #endif
 	XOR ^= gpschar;
-	if (gpschar == ',')
-	{
+    if (gpschar == ',') {
 		rmc_counter = 9;
 		date_gps_.WW = 0;
 		msg_parse = &gps_rmc9;
-	}
-	else if (gpschar != '.')
-	{
+        checkDecimalDigits(&(cog_gps_.BB));
+    } else if (gpschar != '.') {
+        digitCount++;
 		cog_gps_.BB = cog_gps_.BB * 10 + (gpschar - '0');    // Course*100
+    } else if (gpschar == '.') {
+        // check for correct number of digits left of decimal
+        if (digitCount != XOG_LEFT_DIGITS) {
+            msg_parse = &msg_start; // Abort current string
+        }
+        digitCount = 0;
 	}
 }
 
@@ -546,9 +540,7 @@ static void gps_rmc9(uint8_t gpschar)       // rmc9 -> Date DDMMYY
 	{
 //		rmc_counter = 10;
 		msg_parse = &gps_comma;             // rmc_counter will be incremented in gps_comma()
-	}
-	else if (gpschar != '.')
-	{
+    } else if (gpschar != '.') {
 		date_gps_.WW = date_gps_.WW * 10 + (gpschar - '0');
 	}
 }
@@ -563,9 +555,7 @@ static void gps_gga7(uint8_t gpschar)       // gga7 -> svs XX
 	{
 		gga_counter = 8;
 		msg_parse = &gps_gga8;
-	}
-	else
-	{
+    } else {
 		svs_ = svs_ * 10 + (gpschar - '0');
 	}
 }
@@ -578,16 +568,13 @@ static void gps_gga8(uint8_t gpschar)       // Hdop XX.XX -> Meters*5
 	debug_GGA[GGApos++] = gpschar;
 #endif
 	XOR ^= gpschar;
-	if (gpschar == ',')
-	{
+    if (gpschar == ',') {
 		hdop_._.B0 = temp >> 1;             // From meters*100 to meters*5
 		temp = 0;
 		alt_sl_gps_.WW = 0;
 		gga_counter = 9;
 		msg_parse = &gps_gga9;
-	}
-	else if (gpschar != '.')
-	{
+    } else if (gpschar != '.') {
 		temp = temp * 10 + (gpschar - '0');
 	}
 }
@@ -603,9 +590,7 @@ static void gps_gga9(uint8_t gpschar)       // Altitude above sea .m
 		alt_sl_gps_.WW *= 10;               // From dm to cm
 		gga_counter = 10;
 		msg_parse = &gps_comma;             // gga_counter will be incremented in gps_comma()
-	}
-	else if (gpschar != '.')
-	{
+    } else if (gpschar != '.') {
 		alt_sl_gps_.WW = alt_sl_gps_.WW * 10 + (gpschar - '0');
 	}
 }
@@ -624,28 +609,22 @@ static void gps_checksum(uint8_t gpschar)   // checksum calculation
 //		debug_rmc_send('a');
 		msg_parse = &msg_start;
 
-		if (XOR == checksum)
-		{
+        if (XOR == checksum) {
 			if (gga_counter > 0)            // We are checking gga
 				gga_chksm_ok = 1;           // And the checksum is good
 
-			if (rmc_counter > 0 && gga_chksm_ok == 1)
-			{
+            if (rmc_counter > 0 && gga_chksm_ok == 1) {
 #ifdef DEBUG_NMEA
 				debug_rmc_send(gpschar);
 #endif
-				udb_background_trigger();   // parsing is complete, schedule navigation
+                udb_background_callback_triggered(); // parsing is complete, schedule navigation
 			}
-		}
-		else
-		{
+        } else {
 			if (gga_counter > 0)            // We are checking gga
 				gga_chksm_ok = 0;           // And the checksum is bad
 		}
 		checksum = 0;
-	}
-	else
-	{
+    } else {
 		if (gpschar <= '9')
 			checksum = (checksum << 4) + (gpschar - '0');
 		else
@@ -656,10 +635,8 @@ LED_RED = LED_OFF;
 #endif
 }
 
-void commit_gps_data(void)
-{
-	if (week_no.BB == 0)
-	{
+void commit_gps_data(void) {
+    if (week_no.BB == 0) {
 		week_no.BB = calculate_week_num(date_gps_.WW);
 	}
 	tow.WW = calculate_time_of_week(time_gps_.WW);
@@ -668,17 +645,17 @@ void commit_gps_data(void)
 	long_gps      = long_gps_;
 	alt_sl_gps   = alt_sl_gps_;             // Altitude
 	sog_gps      = sog_gps_;                // Speed over ground
-	cog_gps.BB      = cog_gps_.BB;                // Course over ground
+    cog_gps = cog_gps_; // Course over ground
 
 	climb_gps.BB = (alt_sl_gps_.WW - last_alt.WW) * GPS_RATE;
 	hdop         = hdop_._.B0;
 	svs          = svs_;
 
 	last_alt     = alt_sl_gps_;
+    nmea_flag = 1;
 }
 
-void init_gps_nmea(void)
-{
+void init_gps_nmea(void) {
 }
 
 #endif // (GPS_TYPE == GPS_NMEA || GPS_TYPE == GPS_ALL)

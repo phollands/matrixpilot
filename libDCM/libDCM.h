@@ -76,6 +76,8 @@ int8_t arcsine(int16_t y);
 int8_t rect_to_polar(struct relative2D *xy);
 int16_t rect_to_polar16(struct relative2D *xy);
 void rotate(struct relative2D *xy, int8_t angle);
+float circ360_f(float angle);
+void rotate_f(struct relative2D_f *xy, float angle);
 void rotate_2D_vector_by_angle(int16_t vector[2], int8_t);
 void rotate_2D_vector_by_vector(int16_t vector1[2], int16_t vector2[2]);
 void rotate_2D_long_vector_by_vector(int32_t vector[2], int16_t rotate[2]);
@@ -92,6 +94,8 @@ uint16_t vector3_mag(int16_t, int16_t, int16_t);
 uint16_t vector2_normalize(int16_t result[], int16_t input[]);
 uint16_t vector3_normalize(int16_t result[], int16_t input[]);
 int32_t long_scale(int32_t arg1, int16_t arg2);
+// miscellaneous
+void magClamp(int16_t *in, int16_t mag);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Vars

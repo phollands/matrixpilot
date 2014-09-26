@@ -48,7 +48,7 @@ fractional spin_axis[] = { 0, 0, RMAX };
 #if (  BOARD_TYPE == AUAV3_BOARD  || BOARD_TYPE == UDB5_BOARD)
 // modified gains for MPU6000
 #define KPROLLPITCH (ACCEL_RANGE * 1280/3)
-#define KIROLLPITCH (ACCEL_RANGE * 3400 / HEARTBEAT_HZ)
+#define KIROLLPITCH (ACCEL_RANGE * (3400 / HEARTBEAT_HZ))
 
 #elif ( BOARD_TYPE == UDB4_BOARD )
 //Paul's gains for 6G accelerometers
@@ -69,9 +69,22 @@ fractional spin_axis[] = { 0, 0, RMAX };
 // rmat is the matrix of direction cosines relating the body and Earth coordinate systems.
 // The columns of rmat are the axis vectors of the plane,
 // as measured in the earth reference frame.
-// The rows of rmat are the unit vectors defining the body frame in the earth frame.
-// rmat therefore describes the body frame B relative to the Earth frame E
-// and in Craig's notation is represented as (B->E)R: LateX format: presupsub{E}{B}R
+// The UDB body frame has Y pointing forward, X to the left and Z downward; this
+// differs from the aviation convention which has X forward and Y to the right.
+// Assuming that rmat is in row-major order, the third row of rmat (MATRIX elements
+// 6, 7 and 8) is the Earth frame Z axis represented in the body frame
+// Since the RPY roll angle (computed in MAVLink.c) uses the third row of rmat,
+// specifically elements 6(x) and 8(z), and positive roll is defined as CCW rotation
+// about the forward (Y) axis of the Earth frame Z vector, then roll to the right
+// (from straight and level) should rotate the Earth Z vector toward +X.
+
+// Therefore: The rows of rmat are the unit vectors representing the Earth frame
+// in the body frame.
+// And: rmat describes the Body frame B relative to the Earth frame E
+// In Craig's notation this is represented as (B->E)R (LateX format: presupsub{E}{B}R ).
+// E  B    E
+//  R  V =  V
+// B
 // To transform a point from body frame to Earth frame, multiply from the left
 // with rmat.
 
@@ -106,7 +119,11 @@ fractional accelEarth[] = { 0, 0, 0 };
 //union longww accelEarthFiltered[] = { { 0 }, { 0 },  { 0 } };
 
 // correction vector integrators;
-static union longww gyroCorrectionIntegral[] =  { { 0 }, { 0 },  { 0 } };
+static union longww gyroCorrectionIntegral[] = {
+    { 0},
+    { 0},
+    { 0}
+};
 
 // accumulator for computing adjusted omega:
 fractional omegaAccum[] = { 0, 0, 0 };
@@ -146,8 +163,7 @@ static fractional declinationVector[2];
 union intbb dcm_declination_angle;
 #endif
 
-void dcm_init_rmat(void)
-{
+void dcm_init_rmat(void) {
 #if (MAG_YAW_DRIFT == 1)
 #if (DECLINATIONANGLE_VARIABLE == 1)
 	dcm_declination_angle.BB = DECLINATIONANGLE;
@@ -157,8 +173,7 @@ void dcm_init_rmat(void)
 #endif
 }
 
-static void VectorCross(fractional * dest, fractional * src1, fractional * src2)
-{
+static void VectorCross(fractional * dest, fractional * src1, fractional * src2) {
 	// Implement the cross product. *dest = *src1X*src2;
 	union longww crossaccum;
 	crossaccum.WW = __builtin_mulss(src1[1], src2[2]);
@@ -176,8 +191,7 @@ static void VectorCross(fractional * dest, fractional * src1, fractional * src2)
 }
 
 
-void read_gyros(void)
-{
+void read_gyros(void) {
 	// fetch the gyro signals and subtract the baseline offset, 
 	// and adjust for variations in supply voltage
 	unsigned spin_rate_over_2;
@@ -194,16 +208,14 @@ void read_gyros(void)
 	spin_rate = vector3_mag(omegagyro[0], omegagyro[1], omegagyro[2]);
 	spin_rate_over_2 = spin_rate >> 1;
 
-	if (spin_rate_over_2 > 0)
-	{
+    if (spin_rate_over_2 > 0) {
 		spin_axis[0] = __builtin_divsd(((int32_t)omegagyro[0]) << 13, spin_rate_over_2);
 		spin_axis[1] = __builtin_divsd(((int32_t)omegagyro[1]) << 13, spin_rate_over_2);
 		spin_axis[2] = __builtin_divsd(((int32_t)omegagyro[2]) << 13, spin_rate_over_2);
 	}
 }
 
-void read_accel(void)
-{
+void read_accel(void) {
 #if (HILSIM == 1)
 	gplane[0] = g_a_x_sim.BB;
 	gplane[1] = g_a_y_sim.BB; 
@@ -214,6 +226,13 @@ void read_accel(void)
 	gplane[2] = ZACCEL_VALUE;
 #endif
 
+#ifdef CATAPULT_LAUNCH_ENABLE
+	// Danger Will Robinson! forward acceleration is negative!
+	if (gplane[1] < -(2 * GRAVITY))
+	{
+		dcm_flags._.launch_detected = 1;
+	}
+#endif
 	// transform gplane from body frame to earth frame
 	// x component in earth frame is earth x unit vector (rmat[0,1,2]) dotted with gplane
 	//FIXME: But why are the y and z components negated?
@@ -226,23 +245,17 @@ void read_accel(void)
 //	accelEarthFiltered[2].WW += ((((int32_t)accelEarth[2])<<16) - accelEarthFiltered[2].WW)>>5;
 }
 
-static int16_t omegaSOG(int16_t omega, uint16_t speed)
-{
+static int16_t omegaSOG(int16_t omega, uint16_t speed) {
 	// multiplies omega times speed, and scales appropriately
 	// omega in radians per second, speed in cm per second
 	union longww working;
 	speed = speed >> 3;
 	working.WW = __builtin_mulsu(omega, speed);
-	if (((int16_t)working._.W1) > ((int16_t)CENTRIFSAT))
-	{
+    if (((int16_t) working._.W1) > ((int16_t) CENTRIFSAT)) {
 		return RMAX;
-	}
-	else if (((int16_t)working._.W1) < ((int16_t)-CENTRIFSAT))
-	{
+    } else if (((int16_t) working._.W1) < ((int16_t) - CENTRIFSAT)) {
 		return - RMAX;
-	}
-	else
-	{
+    } else {
 		working.WW = working.WW>>5;
 		working.WW = __builtin_mulsu(working._.W0, CENTRISCALE);
 		working.WW = working.WW<<5;
@@ -250,8 +263,7 @@ static int16_t omegaSOG(int16_t omega, uint16_t speed)
 	}
 }
 
-static void adj_accel(void)
-{
+static void adj_accel(void) {
 	// total (3D) airspeed in cm/sec is used to adjust for acceleration
 	gplane[0] = gplane[0] - omegaSOG(omegaAccum[2], air_speed_3DGPS);
 	gplane[2] = gplane[2] + omegaSOG(omegaAccum[0], air_speed_3DGPS);
@@ -260,8 +272,7 @@ static void adj_accel(void)
 
 
 // The update algorithm!!
-static void rupdate(void)
-{
+static void rupdate(void) {
 	// This is the key routine. It performs a small rotation
 	// on the direction cosine matrix, based on the gyro vector and correction.
 	// It uses vector and matrix routines furnished by Microchip.
@@ -308,8 +319,7 @@ static void rupdate(void)
 }
 
 // The normalization algorithm
-static void normalize(void)
-{
+static void normalize(void) {
 	//  This is the routine that maintains the orthogonality of the
 	//  direction cosine matrix, which is expressed by the identity
 	//  relationship that the cosine matrix multiplied by its
@@ -350,8 +360,7 @@ static void normalize(void)
 }
 
 #define MAXIMUM_PITCH_ERROR (( fractional ) ( GRAVITY*0.25 ))
-static void roll_pitch_drift(void)
-{
+static void roll_pitch_drift(void) {
 	VectorCross(errorRP, gplane, &rmat[6]);
         // the following is done to limit the pitch error during a catapult launch
         // it has no effect during normal conditions, because acceleration compensated gplane
@@ -361,24 +370,21 @@ static void roll_pitch_drift(void)
         return ;
 }
 
-static void yaw_drift(void)
-{
+static void yaw_drift(void) {
 	// although yaw correction is done in horizontal plane,
 	// this is done in 3 dimensions, just in case we change our minds later
 	// form the horizontal direction over ground based on rmat
-	if (dcm_flags._.yaw_req)
-	{
-		if (ground_velocity_magnitudeXY > GPS_SPEED_MIN)
-		{
+    if (dcm_flags._.yaw_req) {
+        if (ground_velocity_magnitudeXY > GPS_SPEED_MIN) {
 			// vector cross product to get the rotation error in ground frame
 			VectorCross(errorYawground, dirovergndHRmat, dirovergndHGPS);
 			// convert to plane frame:
 			// *** Note: this accomplishes multiplication rmat transpose times errorYawground!!
 			MatrixMultiply(1, 3, 3, errorYawplane, errorYawground, rmat);
-		}
-		else
-		{
-			errorYawplane[0] = errorYawplane[1] = errorYawplane[2] = 0;
+        } else {
+            errorYawplane[0] = 0;
+            errorYawplane[1] = 0;
+            errorYawplane[2] = 0;
 		}
 		
 		dcm_flags._.yaw_req = 0;
@@ -397,8 +403,7 @@ fractional magFieldBodyMagnitudePrevious;
 fractional magFieldBodyPrevious[3];
 
 #ifdef INITIALIZE_VERTICAL // vertical initialization for VTOL
-static void align_rmat_to_mag(void)
-{
+static void align_rmat_to_mag(void) {
 	uint8_t theta;
 	struct relative2D initialBodyField;
 	int16_t costheta;
@@ -418,8 +423,7 @@ static void align_rmat_to_mag(void)
 }
 
 #else // horizontal initialization for usual cases
-static void align_rmat_to_mag(void)
-{
+static void align_rmat_to_mag(void) {
 	uint8_t theta;
 	struct relative2D initialBodyField;
 	int16_t costheta;
@@ -439,8 +443,7 @@ static void align_rmat_to_mag(void)
 }
 #endif // INITIALIZE_VERTICAL
 
-static void quaternion_adjust(fractional quaternion[], fractional direction[])
-{
+static void quaternion_adjust(fractional quaternion[], fractional direction[]) {
 	// performs an adjustment to a quaternion representation of re-alignement.
 	// the cross product is left out, theory and test both show it should not be used.
 	fractional delta_cos;
@@ -474,8 +477,7 @@ static void quaternion_adjust(fractional quaternion[], fractional direction[])
 	quaternion[3] = __builtin_divsd(__builtin_mulsu(quaternion[3], RMAX), magnitude);
 }
 
-static void RotVector2RotMat(fractional rotation_matrix[], fractional rotation_vector[])
-{
+static void RotVector2RotMat(fractional rotation_matrix[], fractional rotation_vector[]) {
 	// rotation vector represents a rotation in vector form
 	// around an axis equal to the normalized value of the vector.
 	// It is assumed that rotation_vector already includes a factor of sin(alpha/2)
@@ -489,12 +491,10 @@ static void RotVector2RotMat(fractional rotation_matrix[], fractional rotation_v
 	cos_half_alpha = rotation_vector[3];
 
 	// compute the square of sine of half alpha
-	for (matrix_index = 0; matrix_index < 3; matrix_index++)
-	{
+    for (matrix_index = 0; matrix_index < 3; matrix_index++) {
 		sin_half_alpha_sqr.WW += __builtin_mulss(rotation_vector[matrix_index], rotation_vector[matrix_index]);
 	}
-	if (sin_half_alpha_sqr.WW > ((int32_t)RMAX*RMAX - 1))
-	{
+    if (sin_half_alpha_sqr.WW > ((int32_t) RMAX * RMAX - 1)) {
 		sin_half_alpha_sqr.WW = (int32_t)RMAX*RMAX - 1;
 	}
 
@@ -504,15 +504,13 @@ static void RotVector2RotMat(fractional rotation_matrix[], fractional rotation_v
 
 	// scale rotation_vector by 2*cos_half_alpha
 	VectorScale (3, cos_half_alpha_rotation_vector,  rotation_vector, cos_half_alpha);
-	for (matrix_index = 0; matrix_index < 3; matrix_index++)
-	{
+    for (matrix_index = 0; matrix_index < 3; matrix_index++) {
 		cos_half_alpha_rotation_vector[matrix_index] *= 4;
 	}
 
 	// compute 2 times rotation_vector times its transpose
 	MatrixMultiply(3, 1, 3, rotation_matrix, rotation_vector, rotation_vector);
-	for (matrix_index = 0; matrix_index < 9; matrix_index++)
-	{
+    for (matrix_index = 0; matrix_index < 9; matrix_index++) {
 		rotation_matrix[matrix_index] *= 4;
 	}
 
@@ -537,8 +535,7 @@ static void RotVector2RotMat(fractional rotation_matrix[], fractional rotation_v
 // delay offsets the 4Hz updates of rmatDelayCompensated by MAG_LATENCY seconds.
 int mag_latency_counter = (HEARTBEAT_HZ / 4) - MAG_LATENCY_COUNT;
 
-static void mag_drift(void)
-{
+static void mag_drift(void) {
 	int16_t mag_error;
 	fractional magFieldEarthNormalized[3];
 	fractional magFieldEarthHorzNorm[2];
@@ -556,15 +553,13 @@ static void mag_drift(void)
 	// the following compensates for magnetometer drift by adjusting the timing
 	// of when rmat is read
 	mag_latency_counter --;
-	if (mag_latency_counter == 0)
-	{
+    if (mag_latency_counter == 0) {
 		VectorCopy(9, rmatDelayCompensated, rmat);
         mag_latency_counter = (HEARTBEAT_HZ / 4); // not really needed, but its good insurance
         // mag_latency_counter is assigned in the next block
 	}
 	
-	if (dcm_flags._.mag_drift_req)
-	{
+    if (dcm_flags._.mag_drift_req) {
 
 		// Compute magnetic offsets
 		magFieldBodyMagnitude =	vector3_mag(udb_magFieldBody[0], udb_magFieldBody[1], udb_magFieldBody[2]);
@@ -581,8 +576,7 @@ static void mag_drift(void)
 		vectorBuffer[2] = VectorDotProduct(3, &rmatBufferA[6], udb_magFieldBody) << 1; 
 		VectorCopy(3, udb_magFieldBody, vectorBuffer);
 
-		if (dcm_flags._.first_mag_reading == 1)
-		{
+        if (dcm_flags._.first_mag_reading == 1) {
 			align_rmat_to_mag();
 			VectorCopy (9, rmatDelayCompensated, rmat);
 		}
@@ -643,18 +637,19 @@ static void mag_drift(void)
 		// compute the negative of estimate of the residual misalignment
 		VectorCross(magAlignmentAdjustment, R2TAlignmentErrorR1, R2TR1RotationVector);
 		
-		if (dcm_flags._.first_mag_reading == 0)
-		{
+        if (dcm_flags._.first_mag_reading == 0) {
 
+#ifdef ENABLE_MAGOFFSET
 			udb_magOffset[0] = udb_magOffset[0] + ((offsetEstimate[0] + 2) >> 2);
 			udb_magOffset[1] = udb_magOffset[1] + ((offsetEstimate[1] + 2) >> 2);
 			udb_magOffset[2] = udb_magOffset[2] + ((offsetEstimate[2] + 2) >> 2);
+#endif
 
+#ifdef ENABLE_MAGALIGNMENT
 			quaternion_adjust(magAlignment, magAlignmentAdjustment);
+#endif
 
-		}
-		else
-		{
+        } else {
 			dcm_flags._.first_mag_reading = 0;
 		}
 
@@ -665,8 +660,7 @@ static void mag_drift(void)
 	}
 }
 
-void udb_magnetometer_callback(void)
-{
+void udb_magnetometer_callback(void) {
 	dcm_flags._.mag_drift_req = 1;
 
 //#define USE_DEBUG_IO
@@ -680,8 +674,7 @@ void udb_magnetometer_callback(void)
 
 #define MAXIMUM_SPIN_DCM_INTEGRAL 20.0 // degrees per second
 
-static void PI_feedback(void)
-{
+static void PI_feedback(void) {
 	fractional errorRPScaled[3];
 	int16_t kpyaw;
 	int16_t kprollpitch;
@@ -689,18 +682,13 @@ static void PI_feedback(void)
 	// boost the KPs at high spin rate, to compensate for increased error due to calibration error
 	// above 50 degrees/second, scale by rotation rate divided by 50
 
-	if (spin_rate < ((uint16_t)(50.0 * DEGPERSEC)))
-	{
+    if (spin_rate < ((uint16_t) (50.0 * DEGPERSEC))) {
 		kpyaw = KPYAW;
 		kprollpitch = KPROLLPITCH;
-	}
-	else if (spin_rate < ((uint16_t)(500.0 * DEGPERSEC)))
-	{
+    } else if (spin_rate < ((uint16_t) (500.0 * DEGPERSEC))) {
 		kpyaw = ((uint16_t)(KPYAW*8.0 / (50.0 * DEGPERSEC)))*(spin_rate>>3);
 		kprollpitch = ((uint16_t)(KPROLLPITCH*8.0 / (50.0 * DEGPERSEC)))*(spin_rate>>3);
-	}
-	else
-	{
+    } else {
 		kpyaw = (int16_t)(10.0 * KPYAW);
 		kprollpitch = (int16_t)(10.0 * KPROLLPITCH);
 	}
@@ -711,8 +699,7 @@ static void PI_feedback(void)
 	// turn off the offset integrator while spinning, it doesn't work in that case,
 	// and it only causes trouble.
 
-	if (spin_rate < ((uint16_t) (MAXIMUM_SPIN_DCM_INTEGRAL * DEGPERSEC)))
-	{	
+    if (spin_rate < ((uint16_t) (MAXIMUM_SPIN_DCM_INTEGRAL * DEGPERSEC))) {
 		gyroCorrectionIntegral[0].WW += (__builtin_mulss(errorRP[0], KIROLLPITCH)>>3);
 		gyroCorrectionIntegral[1].WW += (__builtin_mulss(errorRP[1], KIROLLPITCH)>>3);
 		gyroCorrectionIntegral[2].WW += (__builtin_mulss(errorRP[2], KIROLLPITCH)>>3);
@@ -727,16 +714,13 @@ static void PI_feedback(void)
 	omegacorrI[2] = gyroCorrectionIntegral[2]._.W1>>3;
 }
 
-static uint16_t adjust_gyro_gain (uint16_t old_gain, int16_t gain_change)
-{
+static uint16_t adjust_gyro_gain(uint16_t old_gain, int16_t gain_change) {
 	uint16_t gain;
 	gain = old_gain + gain_change;
-	if (gain > (uint16_t)(1.1 * GGAIN))
-	{
+    if (gain > (uint16_t) (1.1 * GGAIN)) {
 		gain = (uint16_t)(1.1 * GGAIN);
 	}
-	if (gain < (uint16_t)(0.9 * GGAIN))
-	{
+    if (gain < (uint16_t) (0.9 * GGAIN)) {
 		gain = (uint16_t)(0.9 * GGAIN);
 	}
 	return gain;
@@ -745,14 +729,12 @@ static uint16_t adjust_gyro_gain (uint16_t old_gain, int16_t gain_change)
 #define GYRO_CALIB_TAU 10.0
 #define MINIMUM_SPIN_RATE_GYRO_CALIB 50.0 // degrees/second
 
-static void calibrate_gyros(void)
-{
+static void calibrate_gyros(void) {
 	fractional omegacorrPweighted[3];
 	int32_t calib_accum;
 	int16_t gain_change;
 	uint16_t spin_rate_over2;
-	if (spin_rate > (uint16_t) (MINIMUM_SPIN_RATE_GYRO_CALIB * DEGPERSEC))
-	{
+    if (spin_rate > (uint16_t) (MINIMUM_SPIN_RATE_GYRO_CALIB * DEGPERSEC)) {
 		spin_rate_over2 = spin_rate>>1;
 		VectorMultiply(3, omegacorrPweighted, spin_axis, omegacorrP); // includes 1/2
 
@@ -802,27 +784,31 @@ void output_IMUvelocity(void)
 
 extern void dead_reckon(void);
 
-void dcm_run_imu_step(void)
-{
+void dcm_run_imu_step(void) {
 	// update the matrix, renormalize it, adjust for roll and 
 	// pitch drift, and send it to the servos.
-	dead_reckon();              // in libDCM:deadReconing.c
+    
+    // TODO: dead reckoning is currently disabled to test GPS-only accuracy
+//    dead_reckon(); // in libDCM:deadReconing.c
+    
+#ifndef DISABLE_CENTRIPETAL_COMP
 	adj_accel();                // local
+#endif
 	rupdate();                  // local
 	normalize();                // local
 	roll_pitch_drift();         // local
 #if (MAG_YAW_DRIFT == 1)
-	if (magMessage == 7)
-	{
+    // mag yaw drift correction is not applied if MAG_YAW_ENABLE == 0
+    if (magMessage == 7) {
+        // sets errorYawplane for drift correction
 		mag_drift();            // local
 	}
-	else
-	{
-		yaw_drift();            // local
-	}
-#else
+#endif
+#if (MAG_YAW_DRIFT == 0 || MAG_YAW_ENABLE == 0)
+    // use GPS for yaw drift correction: this will overwrite errorYawplane
 	yaw_drift();                // local
 #endif
+    // this routine uses globals errorRP and errorYawplane for yaw drift correction
 	PI_feedback();              // local
 	calibrate_gyros();          // local
 }

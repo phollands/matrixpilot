@@ -19,11 +19,13 @@
 // along with MatrixPilot.  If not, see <http://www.gnu.org/licenses/>.
 
 
+#include <math.h>
 #include "libDCM_internal.h"
 
 //  math libraray
 
 #define RADIANTOCIRCULAR 10430 
+#define DEG_TO_RADIANS (3.14159 / 180)
 
 //  sine table for angles from zero to pi/2 with an increment of pi/128 radian.
 //  sine values are multiplied by 2**14
@@ -170,6 +172,25 @@ void rotate(struct relative2D *xy, int8_t angle)
 	xy->y = newy;
 }
 
+void rotate_f(struct relative2D_f *xy, float angle)
+{       // total 5487 + 680 = 6167 cycles
+	//  rotates xy by angle in degrees, measured in a counter clockwise sense.
+	//  A mathematical angle of plus or minus pi is represented digitally as plus or minus 180.
+	float cosang, sinang;
+        // convert from degress to radians
+        angle *= DEG_TO_RADIANS;
+	sinang = sinf(angle);   // 2238 cycles
+	cosang = cosf(angle);   // 3249 cycles
+	xy->x = cosang * xy->x - sinang * xy->y;    // 122 + 2*109
+	xy->y = sinang * xy->x + cosang * xy->y;    // 122 + 2*109
+}
+
+float circ360_f(float angle)
+{
+        if (angle < -180) angle += 360.0f;      // 122 cycles (FP routine)
+        if (angle > 180.0f) angle -= 360.0f;
+        return angle;
+}
 int8_t rect_to_polar(struct relative2D *xy)
 {
 	//  Convert from rectangular to polar coordinates using "CORDIC" arithmetic, which is basically
@@ -398,4 +419,10 @@ int32_t long_scale(int32_t arg1, int16_t arg2)
 	{
 		return -product;
 	}
+}
+void magClamp(int16_t *in, int16_t mag) {
+    if (*in < -mag)
+        *in = -mag;
+    else if (*in > mag)
+        *in = mag;
 }

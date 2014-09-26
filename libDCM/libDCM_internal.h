@@ -59,6 +59,8 @@ extern uint16_t air_speed_3DGPS;
 
 extern uint8_t lat_cir;
 extern int16_t cos_lat;
+extern float cos_lat_f;
+extern float loc_f[3];
 
 #if (HILSIM == 1)
 extern union intbb g_a_x_sim_, g_a_y_sim_, g_a_z_sim_;
