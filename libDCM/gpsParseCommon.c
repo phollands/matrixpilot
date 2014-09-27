@@ -225,7 +225,7 @@ void udb_background_callback_triggered(void)
 		velocity_thru_air.x = GPSvelocity.x - estimatedWind[0];
 		velocity_thru_airz  = GPSvelocity.z - estimatedWind[2];
 
-#if (SILSIM != 1)
+#if (SILSIM != 1 && BOARD_TYPE == AUAV3_BOARD)
                 // assert digital out 2
                 _TRISA6 = 0;
                 DIG2 = 1;
@@ -291,7 +291,7 @@ void udb_background_callback_triggered(void)
                 IMUintegralAccelerationy._.W1 = GPSvelocity.y;
                 IMUintegralAccelerationz._.W1 = GPSvelocity.z;
 
-#if (SILSIM != 1)
+#if (SILSIM != 1 && BOARD_TYPE == AUAV3_BOARD)
                 // deassert digital out 2
                 DIG2 = 0;
                 // elapsed time ~100 usec = 7000 cycles at 70 MIPS

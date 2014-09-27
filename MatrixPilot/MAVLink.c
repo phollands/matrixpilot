@@ -56,6 +56,7 @@
 		extern int16_t magFieldRaw[];
 		extern int16_t udb_magFieldBody[];
 #endif
+                
 // Setting MAVLINK_TEST_ENCODE_DECODE to 1, will replace the normal code that sends MAVLink messages with
 // as test suite.  The inserted code will self-test every message type to encode packets, de-code packets,
 // and it will then check that the results match. The code reports a pass rate and fail rate
@@ -159,10 +160,12 @@ extern struct ADchannel udb_vcc;
 extern struct ADchannel udb_5v;
 extern struct ADchannel udb_rssi;
 
+extern long barometer_altitude;        // above sea level altitude - ASL (millimeters)
+
 union intbb voltage_milis = {0};
-uint8_t mavlink_counter_40hz = 0;
-uint64_t usec = 0; // A measure of time in microseconds (should be from Unix Epoch).
-uint32_t msec = 0; // A measure of time in microseconds (should be from Unix Epoch).
+uint8_t mavlink_counter = 0;
+
+uint32_t msec = 0; // A measure of time in milliseconds (should be from Unix Epoch).
 
 int16_t sb_index = 0;
 int16_t end_index = 0;
@@ -237,7 +240,9 @@ void init_mavlink(void)
 
 	// QGroundControl GCS lets user send message to increase stream rate
 	streamRates[MAV_DATA_STREAM_RC_CHANNELS] = MAVLINK_RATE_RC_CHAN;
-	streamRates[MAV_DATA_STREAM_RAW_SENSORS] = MAVLINK_RATE_RAW_SENSORS;
+	streamRates[MAV_DATA_STREAM_RAW_IMU] = MAVLINK_RATE_RAW_IMU;
+	streamRates[MAV_DATA_STREAM_RAW_GPS] = MAVLINK_RATE_RAW_GPS;
+	streamRates[MAV_DATA_STREAM_RAW_GPS_STATUS] = MAVLINK_RATE_RAW_GPS_STATUS;
 	streamRates[MAV_DATA_STREAM_POSITION] = MAVLINK_RATE_POSITION;
 
 	streamRates[MAV_DATA_STREAM_EXTRA1] = MAVLINK_RATE_SUE;
@@ -263,9 +268,9 @@ int16_t udb_serial_callback_get_byte_to_send(void)
 #include "ring_buffer.h"
 
 // to be used with OpenLog for software flow control
-// Warning: imcompatible with mavlink binary uplink
+// Warning: incompatible with mavlink binary uplink
 extern boolean pauseSerial;
-#define SOFTWARE_FLOW_CONTROL 0
+//#define SOFTWARE_FLOW_CONTROL 1
 
 // compiler built_in mechanism to set and restore IPL
 static int current_cpu_ipl;
@@ -509,6 +514,7 @@ int16_t send_by_index = 0;
 // http://www.qgroundcontrol.org/parameter_interface
 
 #include "parameter_table.h"
+#include "heartbeat.h"
 
 #if (RECORD_FREE_STACK_SPACE ==  1)
 void mavlink_send_param_maxstack(int16_t);
@@ -795,6 +801,7 @@ void mavlink_send_frame_anglerate(int16_t i)
 	deg_angle._.W0 = *((int16_t*) mavlink_parameters_list[i].pparam);
 
 //	deg_angle.WW = __builtin_mulss(deg_angle._.W0, 40);
+        //FIXME: is this a hardwired 40Hz?
 	deg_angle.WW = __builtin_mulss(deg_angle._.W0, (int16_t)(57.3 * 40.0)); //(RMAX * 180.0 / 256.0));
 	deg_angle.WW <<= 2;
 	if (deg_angle._.W0 > 0x8000) deg_angle._.W1++; // Take care of the rounding error
@@ -811,6 +818,7 @@ void mavlink_set_frame_anglerate(mavlink_param_union_t setting, int16_t i)
 	if (setting.type != MAVLINK_TYPE_INT32_T) return;
 
 	union longww dec_angle;
+        //FIXME: is this a hardwired 40Hz?
 	dec_angle.WW = __builtin_mulss((int16_t) setting.param_int32, (128.0 * 7.15)); //(int16_t)(RMAX * 128 / (57.3 * 40.0))
 	dec_angle.WW <<= 9;
 	if (dec_angle._.W0 > 0x8000) dec_angle.WW += 0x8000; // Take care of the rounding error
@@ -873,7 +881,9 @@ void handleMessage(void)
 			if (packet.req_stream_id == MAV_DATA_STREAM_ALL)
 			{
 				// Warning: mavproxy automatically sets all.  Do not include all here, it will overide defaults.
-				streamRates[MAV_DATA_STREAM_RAW_SENSORS] = freq;
+				streamRates[MAV_DATA_STREAM_RAW_IMU] = freq;
+				streamRates[MAV_DATA_STREAM_RAW_GPS] = freq;
+				streamRates[MAV_DATA_STREAM_RAW_GPS_STATUS] = freq;
 				streamRates[MAV_DATA_STREAM_RC_CHANNELS] = freq;
 			}
 			else
@@ -1460,7 +1470,7 @@ inline void preflight_storage_complete_callback(boolean success)
 // MAIN MAVLINK CODE FOR SENDING COMMANDS TO THE GROUND CONTROL STATION
 //
 
-const uint8_t mavlink_freq_table[] = {0, 40, 20, 13, 10, 8, 7, 6, 5, 4, 4};
+//const uint8_t mavlink_freq_table[] = {0, 40, 20, 13, 10, 8, 7, 6, 5, 4, 4};
 
 boolean is_this_the_moment_to_send(uint8_t counter, uint8_t max_counter)
 {
@@ -1475,6 +1485,12 @@ boolean is_this_the_moment_to_send(uint8_t counter, uint8_t max_counter)
 }
 
 // Decide whether it the correct moment to send a given telemetry update, depending on requested frequency
+// mavlink_counter ranges [0, HEARTBEAT_HZ) and allowable frequencies are [1:HEARTBEAT_HZ]
+// if frequency is N then (HEARTBEAT_HZ / N) is reasonable for a modulo limit
+// and this will range from HEARTBEAT_HZ down to 1 for freq. [1: HEARTBEAT_HZ]
+// If N doesn't divide evenly into HEARTBEAT_HZ, there will be some error e.g.
+// for N = 3, HEARTBEAT_HZ/N truncates to 66, and actual transmissions will be at
+// counter values of 66, 132, 198, 66, with actual intervals .33, .33, .34 seconds.
 boolean mavlink_frequency_send(uint8_t frequency, uint8_t counter)
 {
 	uint8_t max_counter;
@@ -1483,37 +1499,19 @@ boolean mavlink_frequency_send(uint8_t frequency, uint8_t counter)
 	{
 		return false;
 	}
-	else if (frequency > 0 && frequency < 11)
+	else if (frequency < HEARTBEAT_HZ)
 	{
-		max_counter = mavlink_freq_table[frequency];
+		max_counter = HEARTBEAT_HZ / frequency;
 		return is_this_the_moment_to_send(counter, max_counter);
-	}
-	else if (frequency > 10  && frequency < 14)
-	{
-		max_counter = 4;
-		return is_this_the_moment_to_send(counter, max_counter);
-	}
-	else if (frequency > 13 && frequency < 17)
-	{
-		max_counter = 3;
-		return is_this_the_moment_to_send(counter, max_counter);
-	}
-	else if (frequency > 16 && frequency < 24)
-	{
-		max_counter = 2;
-		return is_this_the_moment_to_send(counter, max_counter);
-	}
-	else if (frequency > 23)
-	{
-		return true; // send data on every call
 	}
 	else
 	{
-		return false; // should never reach this line
+		return true; // send data on every call
 	}
 }
 
-void mavlink_output_40hz(void)
+// called at HEARTBEAT_HZ
+void mavlink_output(void)
 #if (MAVLINK_TEST_ENCODE_DECODE == 1)
 {
 	if (mavlink_test_first_pass_flag == 1)
@@ -1554,10 +1552,12 @@ void mavlink_output_40hz(void)
 
 	uint8_t spread_transmission_load = 0; // Used to spread sending of different message types over a period of 1 second.
 
-	if (++mavlink_counter_40hz >= 40) mavlink_counter_40hz = 0;
+	if (++mavlink_counter >= HEARTBEAT_HZ) mavlink_counter = 0;
 
-	usec += 25000; // Frequency sensitive code
-	msec += 25; // Frequency sensitive code
+        // this value is now maintained in _T1Interrupt
+//	systime_usec += (1000000 / HEARTBEAT_HZ); // Frequency sensitive code
+
+	msec = systime_usec / 1000;
 
 	// Note that message types are arranged in order of importance so that if the serial buffer fills up,
 	// critical message types are more likely to still be transmitted.
@@ -1565,7 +1565,7 @@ void mavlink_output_40hz(void)
 	// HEARTBEAT
 	spread_transmission_load = 1;
 
-	if (mavlink_frequency_send(MAVLINK_RATE_HEARTBEAT, mavlink_counter_40hz + spread_transmission_load))
+	if (mavlink_frequency_send(MAVLINK_RATE_HEARTBEAT, mavlink_counter + spread_transmission_load))
 	{
 		if (flags._.GPS_steering == 0 && flags._.pitch_feedback == 0)
 		{
@@ -1597,20 +1597,20 @@ void mavlink_output_40hz(void)
 	}
 
 	spread_transmission_load = 4;
-	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_RAW_SENSORS], mavlink_counter_40hz + spread_transmission_load))
+	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_RAW_GPS], mavlink_counter + spread_transmission_load))
 	{
 		int16_t gps_fix_type;
 		if (gps_nav_valid())
 			gps_fix_type = 3;
 		else
 			gps_fix_type = 0;
-		mavlink_msg_gps_raw_int_send(MAVLINK_COMM_0, usec, gps_fix_type, lat_gps.WW, long_gps.WW, alt_sl_gps.WW, hdop, 65535, sog_gps.BB, cog_gps.BB, svs);
+		mavlink_msg_gps_raw_int_send(MAVLINK_COMM_0, systime_usec, gps_fix_type, lat_gps.WW, long_gps.WW, alt_sl_gps.WW, hdop, 65535, sog_gps.BB, cog_gps.BB, svs);
 	}
 
 	// GLOBAL POSITION INT - derived from fused sensors
 	// Note: This code assumes that Dead Reckoning is running.
 	spread_transmission_load = 6;
-	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_POSITION], mavlink_counter_40hz + spread_transmission_load))
+	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_POSITION], mavlink_counter + spread_transmission_load))
 	{
 		accum_A_long.WW = IMUlocationy._.W1 + (int32_t)(lat_origin.WW / 90.0); // meters North from Equator
 		lat = (int32_t) accum_A_long.WW * 90; // degrees North from Equator
@@ -1642,7 +1642,7 @@ void mavlink_output_40hz(void)
 	//  Roll: Earth Frame of Reference
 	spread_transmission_load = 12;
 
-	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_POSITION], mavlink_counter_40hz + spread_transmission_load))
+	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_POSITION], mavlink_counter + spread_transmission_load))
 	{
 		matrix_accum.x = rmat[8];
 		matrix_accum.y = rmat[6];
@@ -1685,14 +1685,14 @@ void mavlink_output_40hz(void)
 	//  Roll: Earth Frame of Reference
 	spread_transmission_load = 14;
 
-	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_POSITION], mavlink_counter_40hz + spread_transmission_load))
+	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_POSITION], mavlink_counter + spread_transmission_load))
 	{
 		mavlink_heading = get_geo_heading_angle();
 		int16_t pwOut_max = 4000;
 		if (THROTTLE_CHANNEL_REVERSED == 1) pwOut_max = 2000;
 		mavlink_msg_vfr_hud_send(MAVLINK_COMM_0, (float)(air_speed_3DIMU / 100.0), (float)(ground_velocity_magnitudeXY / 100.0), (int16_t) mavlink_heading,
 			(uint16_t)(((float)((udb_pwOut[THROTTLE_OUTPUT_CHANNEL]) - udb_pwTrim[THROTTLE_INPUT_CHANNEL]) * 100.0) / (float)(pwOut_max - udb_pwTrim[THROTTLE_INPUT_CHANNEL])),
-			((float)(IMUlocationz._.W1 + (alt_origin.WW / 100.0))),
+			(float)barometer_altitude, //((float)(IMUlocationz._.W1 + (alt_origin.WW / 100.0))),
 			(float) -IMUvelocityz._.W1);
 		//void mavlink_msg_vfr_hud_send(mavlink_channel_t chan, float airspeed, float groundspeed, int16_t heading, uint16_t throttle, float alt, float climb)
 	}
@@ -1700,10 +1700,11 @@ void mavlink_output_40hz(void)
 
 	// SYSTEM STATUS
 	spread_transmission_load = 18;
-	if (mavlink_frequency_send(MAVLINK_RATE_SYSTEM_STATUS, mavlink_counter_40hz + spread_transmission_load))
+	if (mavlink_frequency_send(MAVLINK_RATE_SYSTEM_STATUS, mavlink_counter + spread_transmission_load))
 	{
 #if (BOARD_TYPE == AUAV3_BOARD)
-		voltage_milis.BB = (uint16_t)(2 * 5550 * 3.3 * ((double)udb_vcc.value + 32768) / 65536);
+            // note that this voltage is NOT VCC, it is the (scaled) battery input voltage to ACSP1
+		voltage_milis.BB = (uint16_t)(2 * 5499 * 3.3 * ((double)udb_vcc.value + 32768) / 65536);
 #else
 		// TODO: assign this for udb4/5
 		voltage_milis.BB = 0;
@@ -1737,7 +1738,7 @@ void mavlink_output_40hz(void)
 	//	uint16_t chan3_raw, uint16_t chan4_raw, uint16_t chan5_raw, uint16_t chan6_raw, uint16_t chan7_raw,
 	//	uint16_t chan8_raw, uint8_t rssi)
 	spread_transmission_load = 24;
-	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_RAW_SENSORS], mavlink_counter_40hz + spread_transmission_load))
+	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_RC_CHANNELS], mavlink_counter + spread_transmission_load))
 	{
 		mavlink_msg_rc_channels_raw_send(MAVLINK_COMM_0, msec,
 				(uint16_t)((udb_pwIn[0]) >> 1),
@@ -1759,21 +1760,21 @@ void mavlink_output_40hz(void)
 	//	uint16_t chan5_raw, uint16_t chan6_raw, uint16_t chan7_raw, uint16_t chan8_raw, uint8_t rssi)
 	// RAW SENSORS - ACCELOREMETERS and GYROS
 	// It is expected that these values are graphed to allow users to check basic sensor operation,
-	// and to graph noise on the signals. As this code if for testing and graphing basic hardware, it uses
-	// UDB conventions coordinate conventions for X,Y and Z axis rather than MAVLink conventions.
+	// and to graph noise on the signals. As this code is for testing and graphing basic hardware, it uses
+	// raw sensor data, not corrected for offsets or mounting orientation.
 	// See:- http://code.google.com/p/gentlenav/wiki/UDBCoordinateSystems and the "Aviation Convention" diagram.
 
 	spread_transmission_load = 30;
-	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_RAW_SENSORS], mavlink_counter_40hz + spread_transmission_load))
+	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_RAW_IMU], mavlink_counter + spread_transmission_load))
 	{
 #if (MAG_YAW_DRIFT == 1) // Magnetometer is connected
-		extern int16_t magFieldRaw[];
-		mavlink_msg_raw_imu_send(MAVLINK_COMM_0, usec,
-			(int16_t)   udb_xaccel.value,	(int16_t)   udb_yaccel.value,	(int16_t) - udb_zaccel.value,
-			(int16_t) - udb_xrate.value,	(int16_t) - udb_yrate.value,	(int16_t) - udb_zrate.value,
-			(int16_t)   magFieldRaw[0],		(int16_t)   magFieldRaw[1],		(int16_t)   magFieldRaw[2]);
+		mavlink_msg_raw_imu_send(MAVLINK_COMM_0, systime_usec,
+			(int16_t)udb_xaccel.value, (int16_t)udb_yaccel.value, (int16_t)udb_zaccel.value,
+			(int16_t)udb_xrate.value, (int16_t)udb_yrate.value, (int16_t)udb_zrate.value,
+//			(int16_t)magFieldRaw[0], (int16_t)magFieldRaw[1], (int16_t)magFieldRaw[2],
+			(int16_t)udb_magFieldBody[0], (int16_t)udb_magFieldBody[1], (int16_t)udb_magFieldBody[2]);
 #else // magnetometer is not connected
-		mavlink_msg_raw_imu_send(MAVLINK_COMM_0, usec,
+		mavlink_msg_raw_imu_send(MAVLINK_COMM_0, systime_usec,
 			(int16_t)   udb_xaccel.value,	(int16_t)   udb_yaccel.value,	(int16_t) - udb_zaccel.value,
 			(int16_t) - udb_xrate.value,	(int16_t) - udb_yrate.value,	(int16_t) - udb_zrate.value,
 			(int16_t)   0,					(int16_t)  0,					(int16_t)   0); // zero as mag not connected.
@@ -1786,14 +1787,14 @@ void mavlink_output_40hz(void)
 	// POSITION SENSOR DATA - Using STREAM_EXTRA2
 
 	spread_transmission_load = 36;
-	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_EXTRA2], mavlink_counter_40hz + spread_transmission_load))
+	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_EXTRA2], mavlink_counter + spread_transmission_load))
 	{
 		mavlink_msg_altitudes_send(MAVLINK_COMM_0, msec, alt_sl_gps.WW, relative_alt, 0, 0, 0, 0);
 		//static inline void mavlink_msg_altitudes_send(mavlink_channel_t chan, uint32_t time_boot_ms, int32_t alt_gps, int32_t alt_imu, int32_t alt_barometric, int32_t alt_optical_flow, int32_t alt_range_finder, int32_t alt_extra)
 	}
 
 	spread_transmission_load = 40;
-	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_EXTRA2], mavlink_counter_40hz + spread_transmission_load))
+	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_EXTRA2], mavlink_counter + spread_transmission_load))
 	{
 		mavlink_msg_airspeeds_send(MAVLINK_COMM_0, msec, 0, 0, 0, 0, 0, 0);
 		//mavlink_msg_airspeeds_send(mavlink_channel_t chan, uint32_t time_boot_ms, int16_t airspeed_imu, int16_t airspeed_pitot, int16_t airspeed_hot_wire, int16_t airspeed_ultrasonic, int16_t aoa, int16_t aoy)
@@ -1802,7 +1803,7 @@ void mavlink_output_40hz(void)
 	// SEND SERIAL_UDB_EXTRA (SUE) VIA MAVLINK FOR BACKWARDS COMPATIBILITY with FLAN.PYW (FLIGHT ANALYZER)
 	// The MAVLink messages for this section of code are unique to MatrixPilot and are defined in matrixpilot.xml
 	spread_transmission_load = 10;
-	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_EXTRA1], mavlink_counter_40hz + spread_transmission_load)) // SUE code historically ran at 8HZ
+	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_EXTRA1], mavlink_counter + spread_transmission_load)) // SUE code historically ran at 8HZ
 	{
 		switch (mavlink_sue_telemetry_counter)
 		{
@@ -1821,7 +1822,7 @@ void mavlink_output_40hz(void)
 				break;
 			case 5:
 				mavlink_msg_serial_udb_extra_f4_send(MAVLINK_COMM_0, ROLL_STABILIZATION_AILERONS, ROLL_STABILIZATION_RUDDER, PITCH_STABILIZATION,
-					YAW_STABILIZATION_RUDDER, YAW_STABILIZATION_AILERON, AILERON_NAVIGATION, RUDDER_NAVIGATION, ALTITUDEHOLD_STABILIZED,
+					ROLL_CONTROL_RUDDER, YAW_STABILIZATION_AILERON, AILERON_NAVIGATION, RUDDER_NAVIGATION, ALTITUDEHOLD_STABILIZED,
 					ALTITUDEHOLD_WAYPOINT, RACING_MODE);
 				mavlink_sue_telemetry_counter--;
 				break;

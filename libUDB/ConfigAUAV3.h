@@ -22,11 +22,19 @@
 // used for the AUAV3 with dsPIC33EP512MU810
 
 
-#define ACCEL_RANGE         4       //    4 g range
+#define ACCEL_RANGE         4       // MPU6000 accelerometer g range
 
 // note : it is possible to use other accelerometer ranges on the MPU6000
 #define SCALEGYRO           3.0016  // 500 degree/second range
-#define SCALEACCEL          1.29    // 4 g range
+#if (ACCEL_RANGE == 4)
+#define SCALEACCEL          1.27    // 4 g range
+#elif ( ACCEL_RANGE == 8)
+#define SCALEACCEL          2.578    // 8 g range
+#elif ( ACCEL_RANGE == 16)
+#define SCALEACCEL          5.162    // 16 g range
+#else
+#error "unsupported value for ACCEL_RANGE"
+#endif
 
 // A/D channels:
 #define A_VCC_BUFF          5       // V, pin label Bat Volt

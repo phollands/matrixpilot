@@ -55,6 +55,15 @@
 
 union udb_fbts_byte udb_flags;
 
+#if (BOARD_TYPE == AUAV3_BOARD)
+union longww battery_current;
+union longww battery_mAh_used;
+union longww battery_voltage;	// battery_voltage._.W1 is in tenths of Volts
+uint8_t rc_signal_strength;
+#define MIN_RSSI	((int32_t)((RSSI_MIN_SIGNAL_VOLTAGE)/3.3 * 65536))
+#define RSSI_RANGE	((int32_t)((RSSI_MAX_SIGNAL_VOLTAGE-RSSI_MIN_SIGNAL_VOLTAGE)/3.3 * 100))
+
+#else
 #if (ANALOG_CURRENT_INPUT_CHANNEL != CHANNEL_UNUSED)
 union longww battery_current;
 union longww battery_mAh_used;
@@ -70,6 +79,7 @@ uint8_t rc_signal_strength;
 #define RSSI_RANGE	((int32_t)((RSSI_MAX_SIGNAL_VOLTAGE-RSSI_MIN_SIGNAL_VOLTAGE)/3.3 * 100))
 #endif
 
+#endif
 
 // Functions only included with nv memory.
 #if (USE_NV_MEMORY == 1)
@@ -94,6 +104,9 @@ void udb_skip_imu_calibration(boolean b)
 //#endif
 //
 
+#if (USE_SBUS_INPUT == 1)
+void udb_init_Sbus(void);
+#endif
 void udb_init(void)
 {
 	udb_flags.B = 0;
@@ -123,6 +136,11 @@ void udb_init(void)
 	flexiFunctionServiceInit();
 #endif
 	udb_init_clock();
+#if (USE_SBUS_INPUT == 1)
+        udb_init_Sbus();
+#else
+        // TODO: modify udb_init_capture to work correctly with S.bus input
+#endif
 	udb_init_capture();
 #if (MAG_YAW_DRIFT == 1 && HILSIM != 1)
 //	udb_init_I2C();
@@ -166,7 +184,7 @@ void udb_run(void)
 		// it's possible for an interrupt to occur between turning the orange LED off
 		// and completion of the Idle instruction, but the off time will be little more than
 		// the ISR servicing latency. The Idle timer will still be cycle-accurate.
-		LED_ORANGE = LED_OFF;
+//		LED_ORANGE = LED_OFF;
 		Idle();
 #else
 		// pause cpu counting timer while not in an ISR
@@ -199,6 +217,7 @@ void udb_a2d_record_offsets(void)
 #else  // horizontal initialization
 void udb_a2d_record_offsets(void)
 {
+#ifndef PRE_CALIBRATED
 #if (USE_NV_MEMORY == 1)
 	if(udb_skip_flags.skip_imu_cal == 1)
 		return;
@@ -214,16 +233,29 @@ void udb_a2d_record_offsets(void)
 #ifdef VREF
 	udb_vref.offset = udb_vref.value;
 #endif
+#else
+	UDB_XACCEL.offset = XACCEL_OFFSET;
+	UDB_YACCEL.offset = YACCEL_OFFSET;
+	UDB_ZACCEL.offset = ZACCEL_OFFSET;
+
+        udb_xrate.offset = XRATE_OFFSET;
+	udb_yrate.offset = YRATE_OFFSET;
+	udb_zrate.offset = ZRATE_OFFSET;
+#endif
 }
 #endif // INITIALIZE_VERTICAL
 
 void udb_servo_record_trims(void)
 {
+#if (FIXED_TRIMPOINT != 1)	// Do not alter trims from preset when they are fixed
 	int16_t i;
 	for (i = 0; i <= NUM_INPUTS; i++)
 	{
 		udb_pwTrim[i] = udb_pwIn[i];
 	}
+#else
+		udb_pwTrim[THROTTLE_INPUT_CHANNEL] = THROTTLE_TRIMPOINT; 
+#endif
 }
 
 // saturation logic to maintain pulse width within bounds
@@ -234,6 +266,35 @@ int16_t udb_servo_pulsesat(int32_t pw)
 	return (int16_t)pw;
 }
 
+#if (BOARD_TYPE == AUAV3_BOARD)
+extern struct ADchannel udb_vcc;
+extern struct ADchannel udb_5v;
+extern struct ADchannel udb_rssi;
+void calculate_analog_sensor_values(void)
+{
+	// Shift up from [-2^15 , 2^15-1] to [0 , 2^16-1]
+	// Convert to current in tenths of Amps
+	battery_current.WW = (udb_5v.value + (int32_t)32768) * (MAX_CURRENT) + (((int32_t)(CURRENT_SENSOR_OFFSET)) << 16);
+
+	// mAh = mA / 144000 (increment per 40Hz tick is /40*60*60)
+	// 90000/144000 == 900/1440
+	battery_mAh_used.WW += (battery_current.WW / 1440);
+
+        // Shift up from [-2^15 , 2^15-1] to [0 , 2^16-1]
+	// Convert to voltage in tenths of Volts
+	battery_voltage.WW = (udb_vcc.value + (int32_t)32768) * (MAX_VOLTAGE) + (((int32_t)(VOLTAGE_SENSOR_OFFSET)) << 16);
+
+	union longww rssi_accum;
+	rssi_accum.WW = (((udb_rssi.value + 32768) - (MIN_RSSI)) * (10000 / (RSSI_RANGE)));
+	if (rssi_accum._.W1 < 0)
+		rc_signal_strength = 0;
+	else if (rssi_accum._.W1 > 100)
+		rc_signal_strength = 100;
+	else
+		rc_signal_strength = (uint8_t)rssi_accum._.W1;
+}
+
+#else
 void calculate_analog_sensor_values(void)
 {
 #if (ANALOG_CURRENT_INPUT_CHANNEL != CHANNEL_UNUSED)
@@ -263,3 +324,5 @@ void calculate_analog_sensor_values(void)
 		rc_signal_strength = (uint8_t)rssi_accum._.W1;
 #endif
 }
+
+#endif

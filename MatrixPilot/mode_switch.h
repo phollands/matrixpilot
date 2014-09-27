@@ -23,23 +23,12 @@
 #define FLIGHT_MODE_SWITCH_H
 
 
-inline int16_t flight_mode_switch_manual(void)
-{
-	return flags._.man_req;
-}
-
-inline int16_t flight_mode_switch_stabilize(void)
-{
-	return flags._.auto_req;
-}
-
-inline int16_t flight_mode_switch_waypoints(void)
-{
-	return flags._.home_req;
-}
+int16_t flight_mode_switch_manual(void);
+int16_t flight_mode_switch_stabilize(void);
+int16_t flight_mode_switch_waypoints(void);
 
 void flight_mode_switch_2pos_poll(void); // this is called at 40 hertz and scans the two postion switch option.
-void flight_mode_switch_check_set(void); // this is called at 2 hertz and changes the flight mode if req.
+void flight_mode_switch_check_set(void); // Called at HEARTBEAT_HZ and changes the flight mode if req.
 
 
 #endif // FLIGHT_MODE_SWITCH_H

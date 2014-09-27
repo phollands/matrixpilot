@@ -40,7 +40,8 @@ extern int16_t waggle;
 //#define WAGGLE_SIZE 300
 
 struct flag_bits {
-	uint16_t unused                     : 6;
+	uint16_t unused                     : 5;
+    uint16_t disable_throttle           : 1;
 	uint16_t save_origin                : 1;
 	uint16_t GPS_steering               : 1;
 	uint16_t pitch_feedback             : 1;
@@ -213,7 +214,7 @@ extern union bfbts_word desired_behavior;
 void init_serial(void);
 void serial_output(char* format, ...);
 void serial_output_8hz(void);
-void mavlink_output_40hz(void);
+void mavlink_output(void);
 
 // Serial Output Format
 #define SERIAL_NONE         0    // No serial data is sent

@@ -20,6 +20,7 @@
 
 
 // used for the UDB4
+#define ACCEL_RANGE         4       // accelerometer g range
 
 #define	xrateBUFF           2
 #define	yrateBUFF           1

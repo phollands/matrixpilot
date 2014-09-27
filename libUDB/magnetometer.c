@@ -26,9 +26,12 @@
 #include "rmat.h"
 #include <stdio.h>
 
-int16_t udb_magFieldBody[3];                    // magnetic field in the body frame of reference 
-int16_t udb_magOffset[3] = { 0 , 0 , 0 };       // magnetic offset in the body frame of reference
-int16_t magGain[3] = { RMAX , RMAX , RMAX };    // magnetometer calibration gains
+    // magnetic field in the body frame of reference
+int16_t udb_magFieldBody[3];
+// magnetic offset in the sensor frame of reference
+int16_t udb_magOffset[3] = { 2 * MAG_XOFFSET, 2 * MAG_YOFFSET, 2 * MAG_ZOFFSET};
+// sensor frame magnetometer calibration gains
+int16_t magGain[3] = {  RMAX * MAG_XGAIN , RMAX * MAG_YGAIN, RMAX * MAG_ZGAIN };
 int16_t rawMagCalib[3] = { 0 , 0 , 0 };
 int16_t magFieldRaw[3];
 int16_t magMessage = 0;                         // message type
@@ -119,6 +122,8 @@ void rxMagnetometer(magnetometer_callback_funcptr callback)  // service the magn
 			break;
 		case 3:     // clear out any data that is still there
 			I2C_Read(HMC5883_COMMAND, hmc5883read_index, 1, magreg, 6, &I2C_callback, I2C_MODE_WRITE_ADDR_READ);
+                            // skip the calibration step
+//                        magMessage = 5;
 			break;
 		case 4:     // enable the calibration process
 			magCalibPause = 2;
@@ -150,9 +155,9 @@ static void I2C_callback(boolean I2CtrxOK)
 	int16_t vectorIndex;
 	if (I2CtrxOK == true)
 	{
-		magFieldRaw[0] = (magreg[0]<<8)+magreg[1]; 
-		magFieldRaw[1] = (magreg[2]<<8)+magreg[3]; 
-		magFieldRaw[2] = (magreg[4]<<8)+magreg[5];
+		magFieldRaw[0] = (magreg[0]<<8)+magreg[1] - (udb_magOffset[0]>>1);
+		magFieldRaw[1] = (magreg[2]<<8)+magreg[3] - (udb_magOffset[1]>>1);
+		magFieldRaw[2] = (magreg[4]<<8)+magreg[5] - (udb_magOffset[2]>>1);
 
 		for (vectorIndex = 0; vectorIndex < 6; vectorIndex++)
 		{
@@ -160,9 +165,9 @@ static void I2C_callback(boolean I2CtrxOK)
 		}
 		if (magMessage == 7)
 		{
-			udb_magFieldBody[0] = MAG_X_SIGN((__builtin_mulsu((magFieldRaw[MAG_X_AXIS]), magGain[MAG_X_AXIS]))>>14) - (udb_magOffset[0]>>1);
-			udb_magFieldBody[1] = MAG_Y_SIGN((__builtin_mulsu((magFieldRaw[MAG_Y_AXIS]), magGain[MAG_Y_AXIS]))>>14) - (udb_magOffset[1]>>1);
-			udb_magFieldBody[2] = MAG_Z_SIGN((__builtin_mulsu((magFieldRaw[MAG_Z_AXIS]), magGain[MAG_Z_AXIS]))>>14) - (udb_magOffset[2]>>1);
+			udb_magFieldBody[0] = MAG_X_SIGN((__builtin_mulsu((magFieldRaw[MAG_X_AXIS]), magGain[MAG_X_AXIS]))>>14);
+			udb_magFieldBody[1] = MAG_Y_SIGN((__builtin_mulsu((magFieldRaw[MAG_Y_AXIS]), magGain[MAG_Y_AXIS]))>>14);
+			udb_magFieldBody[2] = MAG_Z_SIGN((__builtin_mulsu((magFieldRaw[MAG_Z_AXIS]), magGain[MAG_Z_AXIS]))>>14);
 
 			if ((abs(udb_magFieldBody[0]) < MAGNETICMAXIMUM) &&
 			    (abs(udb_magFieldBody[1]) < MAGNETICMAXIMUM) &&
@@ -178,22 +183,23 @@ static void I2C_callback(boolean I2CtrxOK)
 				magMessage = 0;         // invalid reading, reset the magnetometer
 			}
 		}
-		else if (magMessage == 5)       // Calibration data
-		{
-			for (vectorIndex = 0; vectorIndex < 3; vectorIndex++)
-			{
-				rawMagCalib[vectorIndex] = magFieldRaw[vectorIndex];
-				if ((magFieldRaw[vectorIndex] > MAGNETICMINIMUM) && (magFieldRaw[vectorIndex] < MAGNETICMAXIMUM))
-				{
-					magGain[vectorIndex] = __builtin_divud(((int32_t)(MAG_GAIN*RMAX)), magFieldRaw[vectorIndex]);
-				}
-				else
-				{
-					magGain[vectorIndex] = RMAX;
-					magMessage = 0;     // invalid calibration, reset the magnetometer
-				}
-			}
-		}
+                    // ignore gain calibration data
+//		else if (magMessage == 5)       // Calibration data
+//		{
+//			for (vectorIndex = 0; vectorIndex < 3; vectorIndex++)
+//			{
+//				rawMagCalib[vectorIndex] = magFieldRaw[vectorIndex];
+//				if ((magFieldRaw[vectorIndex] > MAGNETICMINIMUM) && (magFieldRaw[vectorIndex] < MAGNETICMAXIMUM))
+//				{
+//					magGain[vectorIndex] = __builtin_divud(((int32_t)(MAG_GAIN*RMAX)), magFieldRaw[vectorIndex]);
+//				}
+//				else
+//				{
+//					magGain[vectorIndex] = RMAX;
+//					magMessage = 0;     // invalid calibration, reset the magnetometer
+//				}
+//			}
+//		}
 	}
 }
 

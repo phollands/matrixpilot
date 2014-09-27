@@ -23,17 +23,16 @@
 #define HEARTBEAT_H
 
 
-// number of heartbeats per second
+// number of heartbeats per second; this is also the frequency of the PID loops
 #define HEARTBEAT_HZ 200
 
 // number of servo updates per second
 #define SERVO_HZ 40
 
-// frequency of PID loop (HEARTBEAT_HZ / PID_HZ must be an integer)
-#define PID_HZ 40
 
 // Read-only value increments with each heartbeat
 extern uint16_t udb_heartbeat_counter;
 
+extern uint64_t systime_usec; // A measure of time in microseconds (should be from Unix Epoch).
 
 #endif // HEARTBEAT_H

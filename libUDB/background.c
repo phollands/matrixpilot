@@ -54,6 +54,7 @@ uint16_t _cpu_timer = 0;
 uint32_t busy_timer = 0;
 #endif
 
+uint64_t systime_usec = 0; // A measure of time in microseconds (should be from Unix Epoch).
 uint16_t udb_heartbeat_counter = 0;
 #define HEARTBEAT_MAX 57600 // Evenly divisible by many common values: 2^8 * 3^2 * 5^2
 #define MAX_NOISE_RATE 5    // up to 5 PWM "glitches" per second are allowed
@@ -85,9 +86,18 @@ void udb_init_clock(void)   // initialize timers
 
 	T1CONbits.TON = 0;      // turn off timer 1
 	TMR1 = 0;
+        // configure fallback period 2/HEARTBEAT_HZ
+        // If MPU6000 is generating interrupts, the ISR will clear TMR1 at HEARTBEAT_HZ and
+        // no timer-generated interrupts will occur. But if the MPU6000 fails to
+        // generate interrupts, the flight mode state machine will still be called
+        // at a reduced frequency. This will at least allow switching back to manual mode.
+	T1CONbits.TCKPS = 2;    // prescaler = 64
+	PR1 = ((FCY / 64) / HEARTBEAT_HZ) << 1;
+	T1CONbits.TCS = 0;      // use the crystal to drive the clock
 	_T1IP = INT_PRI_T1;     // set interrupt priority
 	_T1IF = 0;              // clear the interrupt
 	_T1IE = 1;              // enable the interrupt
+	T1CONbits.TON = 1;      // turn on timer 1
 #endif
 
 
@@ -149,6 +159,27 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _T1Interrupt(void)
 	interrupt_save_set_corcon;
 
 	_T1IF = 0;              // clear the interrupt
+        // note that this will cause the systime_usec clock to lose a cycle or
+        // two every heartbeat, if used as the system clock. But it's currently
+        // only being used that way in fallback mode. Normally we count on the
+        // MPU6000 to generate interrupts at accurate 200Hz intervals.
+        uint16_t tval = TMR1;   // grab the timer value
+        TMR1 = 0;               // and clear it
+
+        // maintain system time in usec using Timer1, which is running at FCY/64
+        // Supported  FCY is 40e6 for UDB4/5 and 70e6 for AUAV3;
+        // therefore must convert TMR1 value to usec here
+        // FCY/64 possible values are 1e6 * [40/64, 70/64]
+        // and conversion scale factor is [64/70, 8/5]
+        union longww usec;
+        usec.WW = __builtin_muluu(tval, (32768 * 64 / (FCY / 1000000))) << 1;
+        // fallback check; this should be close to 1e6 / HEARTBEAT_HZ, or twice that 
+        // if the MPU6000 failed to generate an interrupt
+        if (usec._.W1 < (10 + 1E6 / HEARTBEAT_HZ)) {
+            systime_usec += 1E6 / HEARTBEAT_HZ;
+        } else {
+            systime_usec += usec._.W1;
+        }
 
 #if (HILSIM == 1)
 #ifdef USE_MAVLINK_DBGIO

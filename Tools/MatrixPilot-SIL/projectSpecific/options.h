@@ -100,6 +100,8 @@
 // Set any of these to 0 to disable the stabilization in that axis.
 #define ROLL_STABILIZATION_AILERONS         1
 #define ROLL_STABILIZATION_RUDDER           0
+// experimental: use rudder to ...
+#define ROLL_CONTROL_RUDDER                 1
 #define PITCH_STABILIZATION                 1
 #define YAW_STABILIZATION_RUDDER            0
 #define YAW_STABILIZATION_AILERON           1

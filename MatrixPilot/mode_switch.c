@@ -52,8 +52,23 @@ static int16_t flight_mode_switch_state = MANUAL_LONG_TERM;
 static uint8_t request_autopilot_mode = FLIGHT_MODE_SWITCH_MANUAL;
 static uint16_t toggle_switch_counter_40hz = 0;
 #endif // MODE_SWITCH_TWO_POSITION
+
 static union fbts_int old_rtl_flags;
 
+int16_t flight_mode_switch_manual(void)
+{
+	return flags._.man_req;
+}
+
+int16_t flight_mode_switch_stabilize(void)
+{
+	return flags._.auto_req;
+}
+
+int16_t flight_mode_switch_waypoints(void)
+{
+	return flags._.home_req;
+}
 
 // The functionality of this code allows a two state mode switch on the transmitter, to be used
 // to create three flight modes. When switch is "Down" the plane always reverts to Manual. When "Up" the plane moves to Stabilized".
