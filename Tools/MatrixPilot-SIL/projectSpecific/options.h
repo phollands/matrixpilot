@@ -45,15 +45,17 @@
 // define this to add debug text messages to mavlink stream
 #undef USE_MAVLINK_DBGIO
 
-// mucking around trying to compile silsim
-#define ACCEL_RANGE 4
+// define this to test alternate stabilization techniques
+//#define DISABLE_CENTRIPETAL_COMP
+#undef DISABLE_CENTRIPETAL_COMP
 
 ////////////////////////////////////////////////////////////////////////////////
 // Set Up Board Type
 // See the MatrixPilot wiki for more details on different board types.
-//#define BOARD_TYPE                          UDB4_BOARD
-#define BOARD_TYPE                          UDB5_BOARD
+#define BOARD_TYPE                          UDB4_BOARD
+//#define BOARD_TYPE                          UDB5_BOARD
 //#define BOARD_TYPE                          AUAV3_BOARD
+#define ACCEL_RANGE         4       // accelerometer g range
 
 //#pragma message "mw"
 
@@ -91,7 +93,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Set this value to your GPS type.  (Set to GPS_STD, GPS_UBX_2HZ, GPS_UBX_4HZ, GPS_NMEA or GPS_MTEK)
 #define GPS_TYPE GPS_UBX_4HZ
-#define DEADRECKONING           1
+//#define GPS_TYPE GPS_NAVSPARKGL
+//#define DEFAULT_GPS_BAUD 115200
+
+#define BAROMETER_ALTITUDE 0
 
 ////////////////////////////////////////////////////////////////////////////////
 // Enable/Disable core features of this firmware
@@ -103,8 +108,7 @@
 // experimental: use rudder to ...
 #define ROLL_CONTROL_RUDDER                 1
 #define PITCH_STABILIZATION                 1
-#define YAW_STABILIZATION_RUDDER            0
-#define YAW_STABILIZATION_AILERON           1
+#define YAW_STABILIZATION_AILERON           0
 
 // Aileron and Rudder Navigation
 // Set either of these to 0 to disable use of that control surface for navigation.
@@ -170,13 +174,18 @@
 // the magnetometerOptions.h file, including declination and magnetometer type.
 #define MAG_YAW_DRIFT                       1
 
+#define MAG_YAW_ENABLE                      0
+#undef ENABLE_MAGOFFSET
+//#define ENABLE_MAGOFFSET
+#undef ENABLE_MAGALIGNMENT
+//#define ENABLE_MAGALIGNMENT
 
 // Racing Mode
 // Setting RACING_MODE to 1 will keep the plane at a set throttle value while in waypoint mode.
 // RACING_MODE_WP_THROTTLE is the throttle value to use, and should be set between 0.0 and 1.0.
 // Racing performance can be improved by disabling cross tracking for your waypoints.
 #define RACING_MODE							0
-#define RACING_MODE_WP_THROTTLE				1
+#define RACING_MODE_WP_THROTTLE		.8
 
 // Set this to 1 if you want the UAV Dev Board to fly your plane without a radio transmitter or
 // receiver. (Totally autonomous.)  This is just meant for simulation and debugging.  It is not
@@ -206,6 +215,7 @@
 // PPM_NUMBER_OF_CHANNELS is the number of channels sent on the PWM signal.  This is
 // often different from the NUM_INPUTS value below, and should usually be left at 8.
 //
+#define USE_SBUS_INPUT                      0
 #define USE_PPM_INPUT                       0
 #define PPM_NUMBER_OF_CHANNELS              8
 #define PPM_SIGNAL_INVERTED                 0
@@ -217,6 +227,10 @@
 //   5 also enables E8 as the 5th input channel
 // For UDB4 boards: Set to 1-8
 #define NUM_INPUTS                          6
+// respect TX trim settings
+#define FIXED_TRIMPOINT     0
+#define THROTTLE_TRIMPOINT  2110
+#define CHANNEL_TRIMPOINT   3000
 
 // Channel numbers for each input.
 // Use as is, or edit to match your setup.
@@ -261,7 +275,7 @@
 #define AILERON_OUTPUT_CHANNEL              CHANNEL_2
 #define ELEVATOR_OUTPUT_CHANNEL             CHANNEL_3
 #define RUDDER_OUTPUT_CHANNEL               CHANNEL_4
-#define AILERON_SECONDARY_OUTPUT_CHANNEL	CHANNEL_5
+#define AILERON_SECONDARY_OUTPUT_CHANNEL    CHANNEL_UNUSED
 #define CAMERA_PITCH_OUTPUT_CHANNEL         CHANNEL_UNUSED
 #define CAMERA_YAW_OUTPUT_CHANNEL           CHANNEL_UNUSED
 #define TRIGGER_OUTPUT_CHANNEL              CHANNEL_UNUSED
@@ -365,10 +379,23 @@
 
 #define SERIAL_OUTPUT_FORMAT 	SERIAL_MAVLINK
 //#define SERIAL_OUTPUT_FORMAT 	SERIAL_UDB_EXTRA
+//#define SERIAL_OUTPUT_FORMAT 	SERIAL_NMEA
+//#define SERIAL_OUTPUT_FORMAT 	SERIAL_MAGNETOMETER
+
+// use ring buffer and software flow control for onboard openlog
+// **** not compatible with mavlink binary uplink ****
+// TODO: add option to use separate UART for mavlink uplink
+// TODO: port gimbal parameter setting code for use instead of mavlink uplink
+//       (could use "console" instead)
+//#define USE_RING_BUFFER
+#undef USE_RING_BUFFER
+// to be used with OpenLog for software flow control
+// Warning: incompatible with mavlink binary uplink
+#define SOFTWARE_FLOW_CONTROL 0
 
 // MAVLink requires an aircraft Identifier (I.D) as it is deaigned to control multiple aircraft
 // Each aircraft in the sky will need a unique I.D. in the range from 0-255
-#define MAVLINK_SYSID                       55
+#define MAVLINK_SYSID                       1
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -470,17 +497,17 @@
 // YAWKP_AILERON is the proportional feedback gain for ailerons in response to yaw error
 // YAWKD_AILERON is the derivative feedback gain for ailerons in response to yaw rotation
 // AILERON_BOOST is the additional gain multiplier for the manually commanded aileron deflection
-#define ROLLKP				0.05 //0.22
-#define ROLLKD				0.01 //0.02
-#define YAWKP_AILERON		0.045 // 0.05
-#define YAWKD_AILERON		0.08 //0.11 //0.05
+#define ROLLKP				0.1 //0.22
+#define ROLLKD				0.1 //0.02
+#define YAWKP_AILERON		0.375 // 0.05
+#define YAWKD_AILERON		0.0 //0.11 //0.05
 #define AILERON_BOOST		0.5
 
 // Elevator/Pitch Control Gains
 // PITCHGAIN is the pitch stabilization gain, typically around 0.125
 // PITCHKD feedback gain for pitch damping, around 0.0625
 // RUDDER_ELEV_MIX is the degree of elevator adjustment for rudder and banking
-// AILERON_ELEV_MIX is the degree of elevator adjustment for aileron
+// ROLL_ELEV_MIX is the degree of elevator adjustment for aileron
 // ELEVATOR_BOOST is the additional gain multiplier for the manually commanded elevator deflection
 #define PITCHGAIN			0.08 // 0.150
 #define PITCHKD				0 //0.015 // 0.075
