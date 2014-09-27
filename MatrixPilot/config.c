@@ -136,7 +136,7 @@ void load_config(void)
 	config._.RollStabilizaionAilerons = ini_getbool(strStabilise, "roll_ail", ROLL_STABILIZATION_AILERONS, strConfigFile);
 	config._.RollStabilizationRudder = ini_getbool(strStabilise, "roll_rud", ROLL_STABILIZATION_RUDDER, strConfigFile);
 	config._.PitchStabilization = ini_getbool(strStabilise, "pitch", PITCH_STABILIZATION, strConfigFile);
-	config._.YawStabilizationRudder = ini_getbool(strStabilise, "yaw_rud", YAW_STABILIZATION_RUDDER, strConfigFile);
+	config._.YawStabilizationRudder = ini_getbool(strStabilise, "yaw_rud", ROLL_CONTROL_RUDDER, strConfigFile);
 	config._.YawStabilizationAileron = ini_getbool(strStabilise, "yaw_ail", YAW_STABILIZATION_AILERON, strConfigFile);
 
 	config._.AileronNavigation = ini_getbool(strNavigation, "ail", AILERON_NAVIGATION, strConfigFile);
