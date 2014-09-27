@@ -31,8 +31,7 @@ const int16_t aileronbgain = (int16_t)(8.0*AILERON_BOOST);
 const int16_t elevatorbgain = (int16_t)(8.0*ELEVATOR_BOOST);
 const int16_t rudderbgain = (int16_t)(8.0*RUDDER_BOOST);
 
-void servoMix(void)
-{
+void servoMix(void) {
 	int32_t temp;
 	int16_t pwManual[NUM_INPUTS+1];
 
@@ -44,10 +43,9 @@ void servoMix(void)
 			pwManual[temp] = udb_pwTrim[temp];
 
 	// Apply boosts if in a stabilized mode
-	if (udb_flags._.radio_on && flags._.pitch_feedback)
-	{
-		pwManual[AILERON_INPUT_CHANNEL] += ((pwManual[AILERON_INPUT_CHANNEL] - udb_pwTrim[AILERON_INPUT_CHANNEL]) * aileronbgain) >> 3;
-		pwManual[ELEVATOR_INPUT_CHANNEL] += ((pwManual[ELEVATOR_INPUT_CHANNEL] - udb_pwTrim[ELEVATOR_INPUT_CHANNEL]) * elevatorbgain) >> 3;
+    if (udb_flags._.radio_on && flags._.pitch_feedback) {
+        //		pwManual[AILERON_INPUT_CHANNEL] += ((pwManual[AILERON_INPUT_CHANNEL] - udb_pwTrim[AILERON_INPUT_CHANNEL]) * aileronbgain) >> 3;
+        //		pwManual[ELEVATOR_INPUT_CHANNEL] += ((pwManual[ELEVATOR_INPUT_CHANNEL] - udb_pwTrim[ELEVATOR_INPUT_CHANNEL]) * elevatorbgain) >> 3;
 		pwManual[RUDDER_INPUT_CHANNEL] += ((pwManual[RUDDER_INPUT_CHANNEL] - udb_pwTrim[RUDDER_INPUT_CHANNEL]) * rudderbgain) >> 3;
 	}
 
@@ -56,7 +54,8 @@ void servoMix(void)
 	// Mix pitch_control into elevators
 	// Mix yaw control and waggle into rudder
 #if (AIRFRAME_TYPE == AIRFRAME_STANDARD)
-		temp = pwManual[AILERON_INPUT_CHANNEL] + REVERSE_IF_NEEDED(AILERON_CHANNEL_REVERSED, roll_control + waggle);
+		// manual roll control now handled in rollCntrl.c; no "boost" needed
+		temp = 3000 + REVERSE_IF_NEEDED(AILERON_CHANNEL_REVERSED, roll_control + waggle);
 		udb_pwOut[AILERON_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
 		
 		udb_pwOut[AILERON_SECONDARY_OUTPUT_CHANNEL] = 3000 +
@@ -100,12 +99,9 @@ void servoMix(void)
 			REVERSE_IF_NEEDED(RUDDER_CHANNEL_REVERSED, pitch_control - vtail_yaw_control);
 		udb_pwOut[RUDDER_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
 
-		if (pwManual[THROTTLE_INPUT_CHANNEL] == 0)
-		{
-			udb_pwOut[THROTTLE_OUTPUT_CHANNEL] = 0;
-		}
-		else
-		{
+		if (pwManual[THROTTLE_INPUT_CHANNEL] == 0) {
+				udb_pwOut[THROTTLE_OUTPUT_CHANNEL] = 0;
+		} else {
 			temp = pwManual[THROTTLE_INPUT_CHANNEL] + REVERSE_IF_NEEDED(THROTTLE_CHANNEL_REVERSED, throttle_control);
 			udb_pwOut[THROTTLE_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
 		}
@@ -128,12 +124,9 @@ void servoMix(void)
 		temp = pwManual[RUDDER_INPUT_CHANNEL] + REVERSE_IF_NEEDED(RUDDER_CHANNEL_REVERSED, yaw_control);
 		udb_pwOut[RUDDER_OUTPUT_CHANNEL] =  udb_servo_pulsesat(temp);
 		
-		if (pwManual[THROTTLE_INPUT_CHANNEL] == 0)
-		{
-			udb_pwOut[THROTTLE_OUTPUT_CHANNEL] = 0;
-		}
-		else
-		{
+		if (pwManual[THROTTLE_INPUT_CHANNEL] == 0) {
+				udb_pwOut[THROTTLE_OUTPUT_CHANNEL] = 0;
+		} else {
 			temp = pwManual[THROTTLE_INPUT_CHANNEL] + REVERSE_IF_NEEDED(THROTTLE_CHANNEL_REVERSED, throttle_control);
 			udb_pwOut[THROTTLE_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
 		}
@@ -158,12 +151,9 @@ void servoMix(void)
 		temp = pwManual[RUDDER_INPUT_CHANNEL] /*+ REVERSE_IF_NEEDED(RUDDER_CHANNEL_REVERSED, yaw_control)*/;
 		udb_pwOut[RUDDER_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
 
-		if (pwManual[THROTTLE_INPUT_CHANNEL] == 0)
-		{
-			udb_pwOut[THROTTLE_OUTPUT_CHANNEL] = 0;
-		}
-		else
-		{
+		if (pwManual[THROTTLE_INPUT_CHANNEL] == 0) {
+				udb_pwOut[THROTTLE_OUTPUT_CHANNEL] = 0;
+		} else {
 			temp = pwManual[THROTTLE_INPUT_CHANNEL] + REVERSE_IF_NEEDED(THROTTLE_CHANNEL_REVERSED, throttle_control);
 			udb_pwOut[THROTTLE_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
 		}
@@ -175,14 +165,12 @@ void servoMix(void)
 		udb_pwOut[PASSTHROUGH_D_OUTPUT_CHANNEL] = udb_servo_pulsesat(pwManual[PASSTHROUGH_D_INPUT_CHANNEL]);
 }
 
-void cameraServoMix(void)
-{
+void cameraServoMix(void) {
 	int32_t temp;
 	int16_t pwManual[NUM_INPUTS+1];
 
 	// If radio is off, use udb_pwTrim values instead of the udb_pwIn values
-	for (temp = 0; temp <= NUM_INPUTS; temp++)
-	{
+    for (temp = 0; temp <= NUM_INPUTS; temp++) {
 		if (udb_flags._.radio_on)
 			pwManual[temp] = udb_pwIn[temp];
 		else
