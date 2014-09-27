@@ -23,6 +23,9 @@
 #if (USE_TELELOG == 1)
 #include "telemetry_log.h"
 #endif
+#ifdef USE_RING_BUFFER
+#include "ring_buffer.h"
+#endif
 #include "../libUDB/heartbeat.h"
 #if (SILSIM != 1)
 #include "../libUDB/libUDB_internal.h" // Needed for access to RCON
@@ -33,6 +36,14 @@
 
 #if (SERIAL_OUTPUT_FORMAT != SERIAL_MAVLINK) // All MAVLink telemetry code is in MAVLink.c
 
+#ifndef USE_RING_BUFFER
+#define SERIAL_BUFFER_SIZE 256
+uint8_t serial_buffer[SERIAL_BUFFER_SIZE];
+#else
+int16_t sb_index = 0;
+int16_t end_index = 0;
+char serial_interrupt_stopped = 1;
+#endif
 #if (FLY_BY_DATALINK_ENABLED == 1)
 #include "fly_by_datalink.h"
 #endif
@@ -61,13 +72,7 @@ uint8_t fp_checksum;
 void (*sio_parse)(uint8_t inchar) = &sio_newMsg;
 
 
-#define SERIAL_BUFFER_SIZE 256
-char serial_buffer[SERIAL_BUFFER_SIZE + 1];
-int16_t sb_index = 0;
-int16_t end_index = 0;
-
-void init_serial()
-{
+void init_serial() {
 #if (SERIAL_OUTPUT_FORMAT == SERIAL_OSD_REMZIBI)
 	dcm_flags._.nmea_passthrough = 1;
 #endif
@@ -86,15 +91,12 @@ void init_serial()
 // Receive Serial Commands
 //
 
-void udb_serial_callback_received_byte(uint8_t rxchar)
-{
+void udb_serial_callback_received_byte(uint8_t rxchar) {
 	(*sio_parse)(rxchar); // parse the input byte
 }
 
-void sio_newMsg(uint8_t inchar)
-{
-	switch (inchar)
-	{
+void sio_newMsg(uint8_t inchar) {
+    switch (inchar) {
 	case 'V':
 		sio_parse = &sio_voltage_high;
 		break;
@@ -133,29 +135,23 @@ void sio_newMsg(uint8_t inchar)
 	} // switch
 }
 
-void sio_voltage_high(uint8_t inchar)
-{
+void sio_voltage_high(uint8_t inchar) {
 	voltage_temp.BB = 0; // initialize our temp variable
 	voltage_temp._.B1 = inchar;
 	sio_parse = &sio_voltage_low;
 }
 
-void sio_voltage_low(uint8_t inchar)
-{
+void sio_voltage_low(uint8_t inchar) {
 	voltage_temp._.B0 = inchar;
 	voltage_temp.BB = voltage_temp.BB * 2; // convert to voltage
 	voltage_milis.BB = voltage_temp.BB;
 	sio_parse = &sio_newMsg;
 }
 
-int8_t hex_char_val(uint8_t inchar)
-{
-	if (inchar >= '0' && inchar <= '9')
-	{
+int8_t hex_char_val(uint8_t inchar) {
+    if (inchar >= '0' && inchar <= '9') {
 		return (inchar - '0');
-	}
-	else if (inchar >= 'A' && inchar <= 'F')
-	{
+    } else if (inchar >= 'A' && inchar <= 'F') {
 		return (inchar - 'A' + 10);
 	}
 	return -1;
@@ -193,27 +189,18 @@ int8_t hex_char_val(uint8_t inchar)
 // the waypoint { {100, 50, 15}, F_INVERTED, {0, 0, 0} }
 //
 
-void sio_fp_data(uint8_t inchar)
-{
-	if (inchar == '*')
-	{
+void sio_fp_data(uint8_t inchar) {
+    if (inchar == '*') {
 		fp_high_byte = -1;
 		sio_parse = &sio_fp_checksum;
-	}
-	else
-	{
+    } else {
 		int8_t hexVal = hex_char_val(inchar);
-		if (hexVal == -1)
-		{
+        if (hexVal == -1) {
 			sio_parse = &sio_newMsg;
 			return;
-		}
-		else if (fp_high_byte == -1)
-		{
+        } else if (fp_high_byte == -1) {
 			fp_high_byte = hexVal * 16;
-		}
-		else
-		{
+        } else {
 			flightplan_live_received_byte(fp_high_byte + hexVal);
 			fp_high_byte = -1;
 		}
@@ -221,23 +208,16 @@ void sio_fp_data(uint8_t inchar)
 	}
 }
 
-void sio_fp_checksum(uint8_t inchar)
-{
+void sio_fp_checksum(uint8_t inchar) {
 	int8_t hexVal = hex_char_val(inchar);
 
-	if (hexVal == -1)
-	{
+    if (hexVal == -1) {
 		sio_parse = &sio_newMsg;
-	}
-	else if (fp_high_byte == -1)
-	{
+    } else if (fp_high_byte == -1) {
 		fp_high_byte = hexVal * 16;
-	}
-	else
-	{
+    } else {
 		uint8_t v = fp_high_byte + hexVal;
-		if (v == fp_checksum)
-		{
+        if (v == fp_checksum) {
 			flightplan_live_commit();
 		}
 		sio_parse = &sio_newMsg;
@@ -246,27 +226,18 @@ void sio_fp_checksum(uint8_t inchar)
 
 #if (CAM_USE_EXTERNAL_TARGET_DATA == 1)
 
-void sio_cam_data(uint8_t inchar)
-{
-	if (inchar == '*')
-	{
+void sio_cam_data(uint8_t inchar) {
+    if (inchar == '*') {
 		fp_high_byte = -1;
 		sio_parse = &sio_cam_checksum;
-	}
-	else
-	{
+    } else {
 		int8_t hexVal = hex_char_val(inchar);
-		if (hexVal == -1)
-		{
+        if (hexVal == -1) {
 			sio_parse = &sio_newMsg;
 			return;
-		}
-		else if (fp_high_byte == -1)
-		{
+        } else if (fp_high_byte == -1) {
 			fp_high_byte = hexVal * 16;
-		}
-		else
-		{
+        } else {
 			uint8_t combined = fp_high_byte + hexVal;
 			camera_live_received_byte(combined);
 			fp_high_byte = -1;
@@ -275,23 +246,16 @@ void sio_cam_data(uint8_t inchar)
 	}
 }
 
-void sio_cam_checksum(uint8_t inchar)
-{
+void sio_cam_checksum(uint8_t inchar) {
 	int8_t hexVal = hex_char_val(inchar);
 
-	if (hexVal == -1)
-	{
+    if (hexVal == -1) {
 		sio_parse = &sio_newMsg;
-	}
-	else if (fp_high_byte == -1)
-	{
+    } else if (fp_high_byte == -1) {
 		fp_high_byte = hexVal * 16;
-	}
-	else
-	{
+    } else {
 		uint8_t v = fp_high_byte + hexVal;
-		if (v == fp_checksum)
-		{
+        if (v == fp_checksum) {
 			camera_live_commit();
 		}
 		sio_parse = &sio_newMsg;
@@ -301,26 +265,19 @@ void sio_cam_checksum(uint8_t inchar)
 
 #if (FLY_BY_DATALINK_ENABLED == 1)
 
-void sio_fbdl_data(unsigned char inchar)
-{
-	if (get_fbdl_pos() < LENGTH_OF_PACKET)
-	{
+void sio_fbdl_data(unsigned char inchar) {
+    if (get_fbdl_pos() < LENGTH_OF_PACKET) {
 		fp_checksum += inchar;
 		if (!fbdl_live_received_byte(inchar))
 			fbdl_live_begin();
-	}
-	else if (get_fbdl_pos() == LENGTH_OF_PACKET)
-	{
+    } else if (get_fbdl_pos() == LENGTH_OF_PACKET) {
 		// UART has an extra BYTE for checksum, IP doesn't need it.
-		if (inchar == fp_checksum)
-		{
+        if (inchar == fp_checksum) {
 			fbdl_live_commit();
 		}
 		sio_parse = &sio_newMsg;
 		fbdl_live_begin();
-	}
-	else
-	{
+    } else {
 		sio_parse = &sio_newMsg;
 		fbdl_live_begin();
 	}
@@ -336,8 +293,7 @@ void sio_fbdl_data(unsigned char inchar)
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
-void serial_output(char* format, ...)
-{
+void serial_output(char* format, ...) {
 	char telebuf[200];
 
 	va_list arglist;
@@ -353,18 +309,15 @@ void serial_output(char* format, ...)
 
 	int16_t start_index = end_index;
 	int16_t remaining = (SERIAL_BUFFER_SIZE - start_index);
-	if (remaining < len)
-	{
+    if (remaining < len) {
 		printf("SERBUF discarding %u bytes\r\n", len - remaining);
 	}
-	if (remaining > 1)
-	{
+    if (remaining > 1) {
 		strncpy((char*) (&serial_buffer[start_index]), telebuf, MIN(remaining, len));
 		end_index = start_index + MIN(remaining, len);
 		serial_buffer[end_index] = '\0';
 	}
-	if (sb_index == 0)
-	{
+    if (sb_index == 0) {
 		udb_serial_start_sending_data();
 	}
 	log_telemetry(telebuf, len);
@@ -374,52 +327,141 @@ void serial_output(char* format, ...)
 #else
 // add this text to the output buffer
 
-void serial_output(char* format, ...)
-{
+void serial_output(char* format, ...) {
 	va_list arglist;
 
 	va_start(arglist, format);
 
+#ifdef USE_RING_BUFFER
+    uint8_t buf[200];
+    int16_t len = vsnprintf((char*) buf, (size_t) ring_space(), format, arglist);
+    int status = queue_data((char*) buf, len);
+
+    if (status && (serial_interrupt_stopped == 1)) {
+        serial_interrupt_stopped = 0;
+        udb_serial_start_sending_data();
+    }
+#else
 	int16_t start_index = end_index;
 	int16_t remaining = SERIAL_BUFFER_SIZE - start_index;
 
-	if (remaining > 1)
-	{
+    if (remaining > 1) {
 		int16_t wrote = vsnprintf((char*) (&serial_buffer[start_index]), (size_t) remaining, format, arglist);
 		end_index = start_index + wrote;
 	}
 
-	if (sb_index == 0)
-	{
+    if (sb_index == 0) {
 		udb_serial_start_sending_data();
 	}
+#endif // USE_RING_BUFFER
 
 	va_end(arglist);
 }
 #endif // USE_TELELOG
 
-int16_t udb_serial_callback_get_byte_to_send(void)
-{
+#ifndef USE_RING_BUFFER
+
+int16_t udb_serial_callback_get_byte_to_send(void) {
 	uint8_t txchar = serial_buffer[ sb_index++ ];
 
-	if (txchar)
-	{
+    if (txchar) {
 		return txchar;
-	}
-	else
-	{
+    } else {
 		sb_index = 0;
 		end_index = 0;
 	}
 	return -1;
 }
+#else
+#include "ring_buffer.h"
+#include "filters.h"
+
+// to be used with OpenLog for software flow control
+// Warning: imcompatible with mavlink binary uplink
+extern boolean pauseSerial;
+#define SOFTWARE_FLOW_CONTROL 0
+
+// compiler built_in mechanism to set and restore IPL
+static int current_cpu_ipl;
+
+static inline void setAndSaveIPL(int newIPL) {
+    SET_AND_SAVE_CPU_IPL(current_cpu_ipl, newIPL);
+}
+
+static inline void restoreIPL() {
+    RESTORE_CPU_IPL(current_cpu_ipl);
+}
+
+// Return one character at a time, as requested.
+// Requests will stop after we return false.
+// called by _U2TXInterrupt at IPL5
+
+boolean udb_serial_callback_get_binary_to_send(char *c) {
+    boolean status = false;
+
+#if (SOFTWARE_FLOW_CONTROL != 0)
+    if (!pauseSerial)
+#endif
+    {
+        status = ring_get(c);
+    }
+
+    if (!status)
+        serial_interrupt_stopped = 1;
+
+    return status;
+}
+#endif  // USE_RING_BUFFER
+
+#if (SERIAL_OUTPUT_FORMAT == SERIAL_NMEA)
+extern int rmc_flag, nmea_flag;
+extern int16_t get_sog_gps();
+extern uint16_t get_cog_gps();
+extern long get_time_gps();
+
+void serial_output_nmea() {
+    if (nmea_flag) {
+        nmea_flag = 0;
+        serial_output("time: %li, sog: %i, cog: %u\r\n", get_time_gps(), get_sog_gps(), get_cog_gps());
+    }
+}
+#endif
 
 #if (SERIAL_OUTPUT_FORMAT == SERIAL_DEBUG)
+extern struct ADchannel udb_5v, udb_vcc;
+extern union int32_w2 accx_filt, accy_filt, accz_filt;
+extern int16_t roll_angle;
 
-void serial_output_8hz(void)
-{
-	serial_output("lat: %li, long: %li, alt: %li\r\nrmat: %i, %i, %i, %i, %i, %i, %i, %i, %i\r\n",
-								lat_gps.WW, long_gps.WW, alt_sl_gps.WW,
+// called at 40Hz
+
+void serial_output_stest() {
+    static int16_t telemetry_counter = 1;
+    switch (telemetry_counter) {
+            // The first lines of telemetry contain info about the compile-time settings from the options.h file
+        case 1:
+            serial_output("\r\nbatt V, accx_filt, accy_filt, accz_filt, roll_setpoint, roll_angle, roll_control, Zx, Zy, Zz\r\n");
+            break;
+        default:
+            // print: batt V, accx_filt, accy_filt, accz_filt, roll_setpoint, roll_angle, roll_control, Zx, Zy, Zz
+            serial_output("%06i, %06i, %06i, %06i, %06i, %06i, %06i, %06i, %06i, %06i\r\n",
+                    (uint16_t) (2 * 5499 * 3.3 * ((double) udb_vcc.value + 32768) / 65536),
+                    accx_filt.word.high, accy_filt.word.high, accz_filt.word.high,
+                    roll_setpoint, roll_angle, roll_control,
+                    rmat[6], rmat[7], rmat[8]);
+    }
+    if (telemetry_counter > 0) telemetry_counter--;
+}
+
+void serial_output_8hz(void) {
+    //	serial_output("lat: %li, long: %li, alt: %li\r\nrmat: %i, %i, %i, %i, %i, %i, %i, %i, %i\r\n",
+    //								lat_gps.WW, long_gps.WW, alt_sl_gps.WW,
+    //								rmat[0], rmat[1], rmat[2],
+    //								rmat[3], rmat[4], rmat[5],
+    //								rmat[6], rmat[7], rmat[8]);
+    serial_output("udb_5v: %i, batt V: %i, roll_setpoint: %i, roll_control: %i, rmat: %i, %i, %i, %i, %i, %i, %i, %i, %i\r\n",
+            (uint16_t) (((double) udb_5v.value + 32768) / 65.536),
+            (uint16_t) (2 * 5499 * 3.3 * ((double) udb_vcc.value + 32768) / 65536),
+            roll_setpoint, roll_control,
 								rmat[0], rmat[1], rmat[2],
 								rmat[3], rmat[4], rmat[5],
 								rmat[6], rmat[7], rmat[8]);
@@ -429,8 +471,7 @@ void serial_output_8hz(void)
 
 extern int16_t desiredHeight, waypointIndex;
 
-void serial_output_8hz(void)
-{
+void serial_output_8hz(void) {
 	uint16_t mode;
 	struct relative2D matrix_accum;
 	union longbbbb accum;
@@ -491,8 +532,7 @@ void serial_output_8hz(void)
 									waypointIndex, tofinish_line, (float) (voltage_milis.BB / 100.0),
 									(int16_t) ((udb_pwOut[THROTTLE_OUTPUT_CHANNEL] - udb_pwTrim[THROTTLE_OUTPUT_CHANNEL]) / 20),
 									earth_roll, earth_pitch, mode);
-	}
-	else if (udb_heartbeat_counter % 10 == 0) // Every 2 runs (5 heartbeat counts per 8Hz)
+    } else if (udb_heartbeat_counter % 10 == 0) // Every 2 runs (5 heartbeat counts per 8Hz)
 	{
 		serial_output("+++THH:%i,RLL:%li,PCH:%li,STT:%i,***\r\n",
 									(int16_t) ((udb_pwOut[THROTTLE_OUTPUT_CHANNEL] - udb_pwTrim[THROTTLE_OUTPUT_CHANNEL]) / 20),
@@ -504,8 +544,7 @@ void serial_output_8hz(void)
 
 extern int16_t waypointIndex;
 
-void serial_output_8hz(void)
-{
+void serial_output_8hz(void) {
 	static int16_t telemetry_counter = 8;
 	static int toggle = 0;
 #if (SERIAL_OUTPUT_FORMAT == SERIAL_UDB_EXTRA)
@@ -516,11 +555,10 @@ void serial_output_8hz(void)
 	static int16_t pwOut_save[NUM_OUTPUTS + 1];
 #elif (SERIAL_OUTPUT_FORMAT == SERIAL_UDB)          // Only run through this function twice per second, by skipping all but every 4 runs through it.
 	// Saves CPU and XBee power.
-	if (udb_heartbeat_counter % 20 != 0) return; // Every 4 runs (5 heartbeat counts per 8Hz)
+    if (udb_heartbeat_counter % 25 != 0) return; // 8Hz at heart rate of 200Hz
 #endif // SERIAL_OUTPUT_FORMAT
 
-	switch (telemetry_counter)
-	{
+    switch (telemetry_counter) {
 		// The first lines of telemetry contain info about the compile-time settings from the options.h file
 	case 8:
 		serial_output("\r\nF14:WIND_EST=%i:GPS_TYPE=%i:DR=%i:BOARD_TYPE=%i:AIRFRAME=%i:"
@@ -546,7 +584,7 @@ void serial_output_8hz(void)
 		break;
 	case 5:
 		serial_output("F4:R_STAB_A=%i:R_STAB_RD=%i:P_STAB=%i:Y_STAB_R=%i:Y_STAB_A=%i:AIL_NAV=%i:RUD_NAV=%i:AH_STAB=%i:AH_WP=%i:RACE=%i:\r\n",
-									ROLL_STABILIZATION_AILERONS, ROLL_STABILIZATION_RUDDER, PITCH_STABILIZATION, YAW_STABILIZATION_RUDDER, YAW_STABILIZATION_AILERON,
+                    ROLL_STABILIZATION_AILERONS, ROLL_STABILIZATION_RUDDER, PITCH_STABILIZATION, ROLL_CONTROL_RUDDER, YAW_STABILIZATION_AILERON,
 									AILERON_NAVIGATION, RUDDER_NAVIGATION, ALTITUDEHOLD_STABILIZED, ALTITUDEHOLD_WAYPOINT, RACING_MODE);
 		break;
 	case 4:
@@ -591,8 +629,7 @@ void serial_output_8hz(void)
 
 		toggle = !toggle;
 
-		if (toggle)
-		{
+            if (toggle) {
 			serial_output("F2:T%li:S%d%d%d:N%li:E%li:A%li:W%i:"
 										"a%i:b%i:c%i:d%i:e%i:f%i:g%i:h%i:i%i:"
 										"c%u:s%i:cpu%u:bmv%i:"
@@ -622,9 +659,7 @@ void serial_output_8hz(void)
 				pwIn_save[i] = udb_pwIn[i];
 			for (i = 0; i <= NUM_OUTPUTS; i++)
 				pwOut_save[i] = udb_pwOut[i];
-		}
-		else
-		{
+            } else {
 			int16_t i;
 			for (i = 1; i <= NUM_INPUTS; i++)
 				serial_output("p%ii%i:", i, pwIn_save[i]);
@@ -644,8 +679,7 @@ void serial_output_8hz(void)
 			serial_output("\r\n");
 		}
 #endif // SERIAL_OUTPUT_FORMAT
-		if (flags._.f13_print_req == 1)
-		{
+            if (flags._.f13_print_req == 1) {
 			// The F13 line of telemetry is printed when origin has been captured and inbetween F2 lines in SERIAL_UDB_EXTRA
 #if (SERIAL_OUTPUT_FORMAT == SERIAL_UDB_EXTRA)
 			if (udb_heartbeat_counter % 10 != 0) return;
@@ -656,8 +690,7 @@ void serial_output_8hz(void)
 		break;
 	}
 	}
-	if (telemetry_counter)
-	{
+    if (telemetry_counter) {
 		telemetry_counter--;
 	}
 #if (USE_TELELOG == 1)
@@ -667,8 +700,7 @@ void serial_output_8hz(void)
 
 #elif (SERIAL_OUTPUT_FORMAT == SERIAL_OSD_REMZIBI)
 
-void serial_output_8hz(void)
-{
+void serial_output_8hz(void) {
 	// TODO: Output interesting information for OSD.
 	// But first we'll have to implement a buffer for passthrough characters to avoid
 	// output corruption, or generate NMEA ourselves here.
@@ -707,34 +739,35 @@ void serial_output_8hz(void)
 }
  */
 
-void serial_output_8hz(void)
-{
-	if (udb_heartbeat_counter % 10 == 0) // Every 2 runs (5 heartbeat counts per 8Hz)
-	{
-		serial_output("MagOffset: %i, %i, %i\r\n"
-									"MagBody: %i, %i, %i\r\n"
-									"MagEarth: %i, %i, %i\r\n"
-									"MagGain: %i, %i, %i\r\n"
-									"Calib: %i, %i, %i\r\n"
-									"MagMessage: %i\r\n"
-									"TotalMsg: %i\r\n"
-									"I2CCON: %X, I2CSTAT: %X, I2ERROR: %X\r\n"
-									"\r\n",
+void serial_output_8hz(void) {
+    //    if (udb_heartbeat_counter % 10 == 0) // Every 2 runs (5 heartbeat counts per 8Hz)
+    //    {
+    //        serial_output("MagOffset: %i, %i, %i\r\n"
+    //                "MagBody: %i, %i, %i\r\n"
+    //                "MagEarth: %i, %i, %i\r\n"
+    //                "MagGain: %i, %i, %i\r\n"
+    //                "Calib: %i, %i, %i\r\n"
+    //                "MagMessage: %i\r\n"
+    //                "TotalMsg: %i\r\n"
+    //                "I2CCON: %X, I2CSTAT: %X, I2ERROR: %X\r\n"
+    //                "\r\n",
+    //                udb_magOffset[0] >> OFFSETSHIFT, udb_magOffset[1] >> OFFSETSHIFT, udb_magOffset[2] >> OFFSETSHIFT,
+    //                udb_magFieldBody[0], udb_magFieldBody[1], udb_magFieldBody[2],
+    //                magFieldEarth[0], magFieldEarth[1], magFieldEarth[2],
+    //                magGain[0], magGain[1], magGain[2],
+    //                rawMagCalib[0], rawMagCalib[1], rawMagCalib[2],
+    //                magMessage,
+    //                I2messages,
+    //                I2CCONREG, I2CSTATREG, I2ERROR);
+    serial_output("%i, %i, %i, %i, %i, %i\r\n",
 									udb_magOffset[0] >> OFFSETSHIFT, udb_magOffset[1] >> OFFSETSHIFT, udb_magOffset[2] >> OFFSETSHIFT,
-									udb_magFieldBody[0], udb_magFieldBody[1], udb_magFieldBody[2],
-									magFieldEarth[0], magFieldEarth[1], magFieldEarth[2],
-									magGain[0], magGain[1], magGain[2],
-									rawMagCalib[0], rawMagCalib[1], rawMagCalib[2],
-									magMessage,
-									I2messages,
-									I2CCONREG, I2CSTATREG, I2ERROR);
-	}
+            udb_magFieldBody[0], udb_magFieldBody[1], udb_magFieldBody[2]);
+    //    }
 }
 
 #elif (SERIAL_OUTPUT_FORMAT == SERIAL_CAM_TRACK)
 
-void serial_output_8hz(void)
-{
+void serial_output_8hz(void) {
 	uint8_t checksum = 0;
 	checksum += ((union intbb)(IMUlocationx._.W1))._.B0 + ((union intbb)(IMUlocationx._.W1))._.B1;
 	checksum += ((union intbb)(IMUlocationy._.W1))._.B0 + ((union intbb)(IMUlocationy._.W1))._.B1;
@@ -755,8 +788,7 @@ void serial_output_8hz(void)
 
 #else // If SERIAL_OUTPUT_FORMAT is set to SERIAL_NONE, or is not set
 
-void serial_output_8hz(void)
-{
+void serial_output_8hz(void) {
 }
 
 #endif

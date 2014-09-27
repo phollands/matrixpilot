@@ -35,6 +35,9 @@
 // Includes of all the data references required to build the parameter table.
 #include "gain_variables.h"             // Needed for access to internal DCM value"
 
+#if (SILSIM == 1)
+#pragma GCC diagnostic ignored "-fpermissive"
+#endif
 // callback type for data services user
 typedef void (*PT_callbackFunc)(boolean);
 

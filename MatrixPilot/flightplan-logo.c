@@ -1,4 +1,5 @@
 // This file is part of MatrixPilot.
+#include "options.h"
 //
 //    http://code.google.com/p/gentlenav/
 //
