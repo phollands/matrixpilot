@@ -27,7 +27,7 @@
 // note : it is possible to use other accelerometer ranges on the MPU6000
 #define SCALEGYRO           3.0016  // 500 degree/second range
 #if (ACCEL_RANGE == 4)
-#define SCALEACCEL          1.27    // 4 g range
+#define SCALEACCEL          1.29    // 4 g range
 #elif ( ACCEL_RANGE == 8)
 #define SCALEACCEL          2.578    // 8 g range
 #elif ( ACCEL_RANGE == 16)

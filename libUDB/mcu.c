@@ -267,10 +267,18 @@ void configureDigitalIO(void)	// AUAV3 board
 	TRISGbits.TRISG14 = 0;  // O5
 	TRISGbits.TRISG1 = 0;   // O6
 
-// Configure the DIGx pins as outputs for scope tracing
+        // Configure the DIGx pins as outputs for scope tracing
 	TRISAbits.TRISA6 = 0;   // DIG2
 	TRISAbits.TRISA7 = 0;   // DIG1
 	TRISEbits.TRISE1 = 0;   // DIG0
+
+        // any pin configured as an input which is not permanantly connected
+	// to a device should have an internal pullup or pulldown enabled
+
+	// CNPU bits enable input pin weak pull up resistors
+//	CNPUAbits.CNPUA6  = 1;          // DIG2
+//	CNPUAbits.CNPUA7  = 1;          // DIG1
+//	CNPUEbits.CNPUE1  = 1;          // DIG0
 }
 #else
 void configureDigitalIO(void) // UDB4 and UDB5 boards

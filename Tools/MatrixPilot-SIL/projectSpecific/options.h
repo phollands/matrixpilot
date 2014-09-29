@@ -109,6 +109,7 @@
 #define ROLL_CONTROL_RUDDER                 1
 #define PITCH_STABILIZATION                 1
 #define YAW_STABILIZATION_AILERON           0
+#define YAW_STABILIZATION_RUDDER            0
 
 // Aileron and Rudder Navigation
 // Set either of these to 0 to disable use of that control surface for navigation.
@@ -497,7 +498,7 @@
 // YAWKP_AILERON is the proportional feedback gain for ailerons in response to yaw error
 // YAWKD_AILERON is the derivative feedback gain for ailerons in response to yaw rotation
 // AILERON_BOOST is the additional gain multiplier for the manually commanded aileron deflection
-#define ROLLKP				0.1 //0.22
+#define ROLLKP				0.4 //0.22
 #define ROLLKD				0.1 //0.02
 #define YAWKP_AILERON		0.375 // 0.05
 #define YAWKD_AILERON		0.0 //0.11 //0.05
