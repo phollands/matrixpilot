@@ -622,18 +622,25 @@ END
 const struct logoInstructionDef instructions[] = {
 
 
-// Fly a .5km diameter, 5-pointed star with external loops at each point
+//// Fly a .5km diameter, 5-pointed star with external loops at each point
+//
+//	SET_ALT(30)
+//	FLAG_ON(F_NORMAL)
+//	//FLAG_ON(F_CROSS_TRACK)
+//        FD(500)
+//	REPEAT(10)
+//		FD(200)  // Forward 200 meters
+//
+//		REPEAT(72)	// 18 cycles
+//			LT(3) // Turn 12 degrees
+//			FD(5) // Forward 20 meters
+//		END
+//	END
 
-	SET_ALT(30)
-	FLAG_ON(F_NORMAL)
-	//FLAG_ON(F_CROSS_TRACK)
-        FD(500)
-	REPEAT(10)
-		FD(200)  // Forward 200 meters
 
-		REPEAT(72)	// 18 cycles
-			LT(3) // Turn 12 degrees
-			FD(5) // Forward 20 meters
+	// Fly a 200m square starting at the current location and altitude, in the current direction
+		REPEAT(8)
+			FD(50)
+			RT(45)
 		END
-	END
 } ;

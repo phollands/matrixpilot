@@ -20,6 +20,8 @@
 
 
 #include "defines.h"
+#include "heartbeat.h"
+extern fractional gplane[];
 
 #define HOVERYOFFSET ((int32_t)(HOVER_YAW_OFFSET*(RMAX/57.3)))
 
@@ -90,20 +92,23 @@ void normalYawCntrl(void)
 		if (canStabilizeInverted() && current_orientation == F_INVERTED)
 		{
 			yawNavDeflection = -yawNavDeflection;
-		}
+		} 
 	}
 	else
 	{
 		yawNavDeflection = 0;
 	}
 
+        gyroYawFeedback.WW = 0;
 	if (YAW_STABILIZATION_RUDDER && flags._.pitch_feedback)
 	{
 		gyroYawFeedback.WW = __builtin_mulus(yawkdrud, omegaAccum[2]);
-	}
-	else
-	{
-		gyroYawFeedback.WW = 0;
+		gyroYawFeedback._.W1 -= gplane[0] >> 7;
+#if (SILSIM == 1)
+                if ((udb_heartbeat_counter % HEARTBEAT_HZ) == 0) {
+                    printf("xacc feedback: %i\n", gplane[0]);
+                }
+#endif
 	}
 
 	rollStabilization.WW = 0; // default case is no roll rudder stabilization

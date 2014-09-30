@@ -110,12 +110,12 @@
 #define ROLL_CONTROL_RUDDER                 1
 #define PITCH_STABILIZATION                 1
 #define YAW_STABILIZATION_AILERON           0
-#define YAW_STABILIZATION_RUDDER            0
+#define YAW_STABILIZATION_RUDDER            1
 
 // Aileron and Rudder Navigation
 // Set either of these to 0 to disable use of that control surface for navigation.
 #define AILERON_NAVIGATION                  1
-#define RUDDER_NAVIGATION                   1
+#define RUDDER_NAVIGATION                   0
 
 // Cross track margin, in meters
 // This is used when the cross track option is attached to a waypoint
@@ -499,10 +499,10 @@
 // YAWKP_AILERON is the proportional feedback gain for ailerons in response to yaw error
 // YAWKD_AILERON is the derivative feedback gain for ailerons in response to yaw rotation
 // AILERON_BOOST is the additional gain multiplier for the manually commanded aileron deflection
-#define ROLLKP				0.8 //0.22
+#define ROLLKP				0.4 //0.22
 #define ROLLKD				0.0 //0.02
 #define YAWKP_AILERON		0.5 // 0.05
-#define YAWKD_AILERON		0.0 //0.11 //0.05
+#define YAWKD_AILERON		0.2 //0.11 //0.05
 #define AILERON_BOOST		0.5
 
 // Elevator/Pitch Control Gains
@@ -530,7 +530,7 @@
 // in stabilized or waypoint mode.  This mainly helps aileron-initiated turning while in stabilized.
 // RUDDER_BOOST is the additional gain multiplier for the manually commanded rudder deflection
 #define YAWKP_RUDDER				0.05 // 0.1
-#define YAWKD_RUDDER				0 //0.03 // 0.1
+#define YAWKD_RUDDER				0.01 //0.03 // 0.1
 #define ROLLKP_RUDDER				0.04
 #define ROLLKD_RUDDER				0 //0.05
 #define MANUAL_AILERON_RUDDER_MIX	0.0
