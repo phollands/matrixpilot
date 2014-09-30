@@ -106,6 +106,7 @@ struct dcm_flag_bits {
 
 #define CENTRISCALE ((uint16_t) ( 519168.0*GRAVITY / (RADPERSEC*GRAVITYM) ))
 // scale factor in multiplying omega times velocity to get centrifugal acceleration
+// ~32 * RMAX * g / (rps * gm)
 
 #define CENTRIFSAT ((int32_t) (GRAVITYM*RADPERSEC)/(GRAVITY*((int64_t)32)))
 // saturation limit for the centrifugal adjustment to avoid numeric overflow

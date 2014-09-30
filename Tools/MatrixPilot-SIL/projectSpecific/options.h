@@ -52,6 +52,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Set Up Board Type
 // See the MatrixPilot wiki for more details on different board types.
+// UDB4_BOARD also used for HILSIM/SILSIM
 #define BOARD_TYPE                          UDB4_BOARD
 //#define BOARD_TYPE                          UDB5_BOARD
 //#define BOARD_TYPE                          AUAV3_BOARD
@@ -125,7 +126,7 @@
 // holds the cross track error to smaller values.
 // 64 meters is probably the largest value you might use on a fast model jet (more than 50 meters/sec)
 // Use 32 meters for 20 to 50 meters/sec, and 16 meters for less than that.
-#define CROSS_TRACK_MARGIN                  32
+#define CROSS_TRACK_MARGIN                  64
 
 // Wind Gain Adjustment
 // This is an option for modulating the navigation gains in flight
@@ -175,7 +176,7 @@
 // the magnetometerOptions.h file, including declination and magnetometer type.
 #define MAG_YAW_DRIFT                       1
 
-#define MAG_YAW_ENABLE                      0
+#define MAG_YAW_ENABLE                      1
 #undef ENABLE_MAGOFFSET
 //#define ENABLE_MAGOFFSET
 #undef ENABLE_MAGALIGNMENT
@@ -498,9 +499,9 @@
 // YAWKP_AILERON is the proportional feedback gain for ailerons in response to yaw error
 // YAWKD_AILERON is the derivative feedback gain for ailerons in response to yaw rotation
 // AILERON_BOOST is the additional gain multiplier for the manually commanded aileron deflection
-#define ROLLKP				0.4 //0.22
-#define ROLLKD				0.1 //0.02
-#define YAWKP_AILERON		0.375 // 0.05
+#define ROLLKP				0.8 //0.22
+#define ROLLKD				0.0 //0.02
+#define YAWKP_AILERON		0.5 // 0.05
 #define YAWKD_AILERON		0.0 //0.11 //0.05
 #define AILERON_BOOST		0.5
 
@@ -510,7 +511,7 @@
 // RUDDER_ELEV_MIX is the degree of elevator adjustment for rudder and banking
 // ROLL_ELEV_MIX is the degree of elevator adjustment for aileron
 // ELEVATOR_BOOST is the additional gain multiplier for the manually commanded elevator deflection
-#define PITCHGAIN			0.08 // 0.150
+#define PITCHGAIN			0.4 // 0.150
 #define PITCHKD				0 //0.015 // 0.075
 #define RUDDER_ELEV_MIX		0.04
 #define ROLL_ELEV_MIX		0.8

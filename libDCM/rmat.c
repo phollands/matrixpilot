@@ -53,7 +53,7 @@ fractional spin_axis[] = { 0, 0, RMAX };
 #elif ( BOARD_TYPE == UDB4_BOARD )
 //Paul's gains for 6G accelerometers
 #define KPROLLPITCH (256*5)
-#define KIROLLPITCH (20400 / HEARTBEAT_HZ)
+#define KIROLLPITCH (10240 / HEARTBEAT_HZ)
 
 #else
 #error Unsupported BOARD_TYPE
@@ -218,7 +218,7 @@ void read_gyros(void) {
 void read_accel(void) {
 #if (HILSIM == 1)
 	gplane[0] = g_a_x_sim.BB;
-	gplane[1] = g_a_y_sim.BB; 
+	gplane[1] = g_a_y_sim.BB;
 	gplane[2] = g_a_z_sim.BB;
 #else
 	gplane[0] = XACCEL_VALUE;
@@ -246,21 +246,31 @@ void read_accel(void) {
 }
 
 static int16_t omegaSOG(int16_t omega, uint16_t speed) {
-	// multiplies omega times speed, and scales appropriately
-	// omega in radians per second, speed in cm per second
-	union longww working;
-	speed = speed >> 3;
-	working.WW = __builtin_mulsu(omega, speed);
-    if (((int16_t) working._.W1) > ((int16_t) CENTRIFSAT)) {
-		return RMAX;
-    } else if (((int16_t) working._.W1) < ((int16_t) - CENTRIFSAT)) {
-		return - RMAX;
+    // multiplies omega times speed, and scales appropriately
+    // omega in radians per second, speed in cm per second
+    union longww working, temp;
+
+    // this was speed >> 3
+    // experiment with its effect on centripetal acceleration adjustment
+    // >>3 observed roll oscillation of about +/-3 degrees when indicating level
+    //     a sustained 30 degree left bank resulted in an increase of about 5 degrees over 1 minute
+    //	   and a nose-high pitch error developed. Zeroing roll setpoint resulted in temporary return
+    //     to level followed by a return to 30 degree left bank.
+    // >>2 caused estimated roll to decay to zero in about 10 seconds
+    // >>4 caused rapid development of a serious error in pitch (estimate was too nose-high)
+    speed = speed >> 3;
+
+    temp.WW = __builtin_mulsu(omega, speed);
+    if (((int16_t) temp._.W1) > ((int16_t) CENTRIFSAT)) {
+        return RMAX;
+    } else if (((int16_t) temp._.W1) < ((int16_t) - CENTRIFSAT)) {
+        return -RMAX;
     } else {
-		working.WW = working.WW>>5;
-		working.WW = __builtin_mulsu(working._.W0, CENTRISCALE);
-		working.WW = working.WW<<5;
-		return working._.W1;
-	}
+        working.WW = temp.WW >> 5;
+        working.WW = __builtin_mulsu(working._.W0, CENTRISCALE);
+        working.WW = working.WW << 5;
+        return working._.W1;
+    }
 }
 
 static void adj_accel(void) {
