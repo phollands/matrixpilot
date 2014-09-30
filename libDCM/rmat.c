@@ -51,9 +51,9 @@ fractional spin_axis[] = { 0, 0, RMAX };
 #define KIROLLPITCH (ACCEL_RANGE * (3400 / HEARTBEAT_HZ))
 
 #elif ( BOARD_TYPE == UDB4_BOARD )
-//Paul's gains for 6G accelerometers
-#define KPROLLPITCH (256*5)
-#define KIROLLPITCH (10240 / HEARTBEAT_HZ)
+//Paul's gains for 6G accelerometers KP:(256*5), KI:(10240/HEARTBEAT_HZ)
+#define KPROLLPITCH (256*10)
+#define KIROLLPITCH (2560 / HEARTBEAT_HZ)
 
 #else
 #error Unsupported BOARD_TYPE
@@ -682,7 +682,7 @@ void udb_magnetometer_callback(void) {
 
 #endif // MAG_YAW_DRIFT
 
-#define MAXIMUM_SPIN_DCM_INTEGRAL 20.0 // degrees per second
+#define MAXIMUM_SPIN_DCM_INTEGRAL 10.0 // degrees per second
 
 static void PI_feedback(void) {
 	fractional errorRPScaled[3];
@@ -748,15 +748,15 @@ static void calibrate_gyros(void) {
 		spin_rate_over2 = spin_rate>>1;
 		VectorMultiply(3, omegacorrPweighted, spin_axis, omegacorrP); // includes 1/2
 
-		calib_accum = __builtin_mulsu(omegacorrPweighted[0], (uint16_t)(0.025*GGAIN/GYRO_CALIB_TAU));
+		calib_accum = __builtin_mulsu(omegacorrPweighted[0], (uint16_t)((1.0/HEARTBEAT_HZ)*GGAIN/GYRO_CALIB_TAU));
 		gain_change = __builtin_divsd(calib_accum, spin_rate_over2);
 		ggain[0] = adjust_gyro_gain(ggain[0], gain_change);
 
-		calib_accum = __builtin_mulsu(omegacorrPweighted[1], (uint16_t)(0.025*GGAIN/GYRO_CALIB_TAU));
+		calib_accum = __builtin_mulsu(omegacorrPweighted[1], (uint16_t)((1.0/HEARTBEAT_HZ)*GGAIN/GYRO_CALIB_TAU));
 		gain_change = __builtin_divsd(calib_accum, spin_rate_over2);
 		ggain[1] = adjust_gyro_gain(ggain[1], gain_change);
 
-		calib_accum = __builtin_mulsu(omegacorrPweighted[2], (uint16_t)(0.025*GGAIN/GYRO_CALIB_TAU));
+		calib_accum = __builtin_mulsu(omegacorrPweighted[2], (uint16_t)((1.0/HEARTBEAT_HZ)*GGAIN/GYRO_CALIB_TAU));
 		gain_change = __builtin_divsd(calib_accum, spin_rate_over2);
 		ggain[2] = adjust_gyro_gain(ggain[2], gain_change);
 	}
@@ -817,6 +817,14 @@ void dcm_run_imu_step(void) {
 #if (MAG_YAW_DRIFT == 0 || MAG_YAW_ENABLE == 0)
     // use GPS for yaw drift correction: this will overwrite errorYawplane
 	yaw_drift();                // local
+#endif
+#if (SILSIM == 1)
+	// print omegacorrP and omegacorrI
+	if ((udb_heartbeat_counter % HEARTBEAT_HZ) == 0) {
+		printf("ggain: %i, %i, %i, omegacorrI: %i, %i, %i\n",
+				ggain[0], ggain[1], ggain[2],
+				omegacorrI[0], omegacorrI[1], omegacorrI[2]);
+	}
 #endif
     // this routine uses globals errorRP and errorYawplane for yaw drift correction
 	PI_feedback();              // local

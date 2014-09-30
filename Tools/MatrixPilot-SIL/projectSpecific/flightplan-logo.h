@@ -631,9 +631,9 @@ const struct logoInstructionDef instructions[] = {
 	REPEAT(10)
 		FD(200)  // Forward 200 meters
 
-		REPEAT(18)
-			LT(12) // Turn 12 degrees
-			FD(20) // Forward 20 meters
+		REPEAT(72)	// 18 cycles
+			LT(3) // Turn 12 degrees
+			FD(5) // Forward 20 meters
 		END
 	END
 } ;
