@@ -1,0 +1,35 @@
+It looks like xacc/4 is not too high a gain for rudder feedback in log 2491,
+and log 2493 shows that xacc/16 has higher xacc values
+But navigation is bad with this feedback; it appears to turn away from waypoints
+in order to fly a wide circle around them.
+
+Question: why would navigation be broken by the addition of rudder in the direction
+of the commanded roll?
+	This will effectively increase the nav roll KP gain, which would agree with
+the observation that turns are more aggressive. If the increased gain results in
+nav instability, perhaps that explains the problem. Could try lowering the nav gain
+to see if things improve.
+
+	Also note that we now have (statically) positive feedback on the rudder; left bank
+while stationary results in left rudder, which will increase the left bank given
+the coupling between rudder input and roll. Dynamically, the commanded yaw should
+reduce the skid by rotating the centripetal force vector toward the y-z plane (y
+forward, z down). So lateral accel to right requires left rudder to correct skid.
+The static left bank does angle static acceleration to the right.
+... It is the centripetal force vector which we want to rotate parallel to the x
+axis. The desired result is (centrip - gravity) perpendicular to x axis or
+(centrip - gravity) dot x = 0, which is equivalent to an x component of zero.
+
+Do the logs contain any data to determine whether the nav gain is too high?
+	Would need to compare heading error with aileron output...
+navigate.c uses COG as actual heading, and compares it to desired_bearing_over_ground.
+The desired bearing isn't logged, so only the actual COG and ground track are available.
+
+Looks like cross-track gain is way too high; next flight put rudder = xacc and turn
+cross tracking off completely.  Then check to see whether yawkp_aileron is too high
+
+new mod to yawCntrl.c: flap switch up is manual rudder in all modes
+down is xacc feedback in all modes; gain is hover throttle [0, 1]
+Altered waypoints to one per corner with only 2 on runway. Bomb release point
+should be at widest point west of center.
+Also altered RTL WP to remove F_LAND and loiter 30m North and 30m high
