@@ -52,8 +52,10 @@ fractional spin_axis[] = { 0, 0, RMAX };
 
 #elif ( BOARD_TYPE == UDB4_BOARD )
 //Paul's gains for 6G accelerometers KP:(256*5), KI:(10240/HEARTBEAT_HZ)
-#define KPROLLPITCH (256*10)
-#define KIROLLPITCH (2560 / HEARTBEAT_HZ)
+#define KPROLLPITCH (256*5)
+#define KIROLLPITCH (10240 / HEARTBEAT_HZ)
+//#define KPROLLPITCH (256*10)
+//#define KIROLLPITCH (2560 / HEARTBEAT_HZ)
 
 #else
 #error Unsupported BOARD_TYPE

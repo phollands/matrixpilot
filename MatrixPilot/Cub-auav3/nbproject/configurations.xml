@@ -266,6 +266,7 @@
         <itemPath>../console.c</itemPath>
         <itemPath>../stack.S</itemPath>
         <itemPath>../ring_buffer.c</itemPath>
+        <itemPath>../helicalTurnCntrl.c</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"

@@ -111,7 +111,7 @@ void normalRollCntrl(void) {
     if (AILERON_NAVIGATION && flags._.GPS_steering) {
         // add to manual angle setpoint
         roll_setpoint += determine_navigation_deflection('a') << 3;
-	}
+    }
     // limit combined manual and nav roll setpoint to less than +/-90 degrees
     magClamp(&roll_setpoint, 16000);
 
@@ -154,22 +154,25 @@ void normalRollCntrl(void) {
         gyroYawFeedback.WW = 0;
 	}
 #else
-    if (ROLL_STABILIZATION_AILERONS && flags._.pitch_feedback) {
-        gyroRollFeedback.WW = __builtin_mulus(rollkd, omegaAccum[1]);
-        // Beware: -rmat6 is roll angle, so it must be added here
-        // NOT THE SAME as pitch which is (pitch_setpoint - rmat7)
-        rollAccum.WW = __builtin_mulsu(roll_setpoint + rmat6, rollkp);
-    } else {
-        // no stabilization; pass manual input through
-        rollAccum._.W1 = roll_manual;
-		gyroRollFeedback.WW = 0;
-	}
+        // control roll rate proportional to angle setpoint error
+        if (ROLL_STABILIZATION_AILERONS && flags._.pitch_feedback) {
+            int16_t desRate = roll_setpoint + rmat6;
+            gyroRollFeedback.WW = __builtin_mulus(rollkd, omegaAccum[1] - desRate);
+            // Beware: -rmat6 is roll angle, so it must be added here
+            // NOT THE SAME as pitch which is (pitch_setpoint - rmat7)
+            //            rollAccum.WW = __builtin_mulsu(roll_setpoint + rmat6, rollkp);
+            rollAccum.WW = 0;
+        } else {
+            // no stabilization; pass manual input through
+            rollAccum._.W1 = roll_manual;
+            gyroRollFeedback.WW = 0;
+        }
 
-    if (YAW_STABILIZATION_AILERON && flags._.pitch_feedback) {
-		gyroYawFeedback.WW = __builtin_mulus(yawkdail, omegaAccum2);
-    } else {
-		gyroYawFeedback.WW = 0;
-	}
+        if (YAW_STABILIZATION_AILERON && flags._.pitch_feedback) {
+                    gyroYawFeedback.WW = __builtin_mulus(yawkdail, omegaAccum2);
+        } else {
+                    gyroYawFeedback.WW = 0;
+        }
 #endif
 
     // roll_control is the final PD loop (no I term) output for roll:
