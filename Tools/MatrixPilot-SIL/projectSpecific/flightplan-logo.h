@@ -639,8 +639,9 @@ const struct logoInstructionDef instructions[] = {
 
 
 	// Fly a 200m square starting at the current location and altitude, in the current direction
-		REPEAT(8)
-			FD(50)
-			RT(45)
+		FLAG_ON(F_CROSS_TRACK)
+		REPEAT(6)
+			FD(300)
+			RT(60)
 		END
 } ;
