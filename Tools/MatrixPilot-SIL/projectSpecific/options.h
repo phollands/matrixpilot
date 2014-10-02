@@ -294,7 +294,7 @@
 // For any of these that evaluate to 1 (either hardcoded or by flipping a switch on the board,
 // as you define below), that servo will be sent reversed controls.
 #define AILERON_CHANNEL_REVERSED            1
-#define ELEVATOR_CHANNEL_REVERSED           1
+#define ELEVATOR_CHANNEL_REVERSED           0
 #define RUDDER_CHANNEL_REVERSED             0
 #define AILERON_SECONDARY_CHANNEL_REVERSED  0
 #define THROTTLE_CHANNEL_REVERSED           0
@@ -501,7 +501,7 @@
 // AILERON_BOOST is the additional gain multiplier for the manually commanded aileron deflection
 #define ROLLKP				0.4 //0.22
 #define ROLLKD				0.08 //0.02
-#define YAWKP_AILERON		0.5 // 0.05
+#define YAWKP_AILERON		0.35 // 0.05
 #define YAWKD_AILERON		0.2 //0.11 //0.05
 #define AILERON_BOOST		0.5
 
@@ -511,8 +511,8 @@
 // RUDDER_ELEV_MIX is the degree of elevator adjustment for rudder and banking
 // ROLL_ELEV_MIX is the degree of elevator adjustment for aileron
 // ELEVATOR_BOOST is the additional gain multiplier for the manually commanded elevator deflection
-#define PITCHGAIN			0.4 // 0.150
-#define PITCHKD				0 //0.015 // 0.075
+#define PITCHGAIN			0.2 // 0.150
+#define PITCHKD				0.05 //0.015 // 0.075
 #define RUDDER_ELEV_MIX		0.04
 #define ROLL_ELEV_MIX		0.8
 #define ELEVATOR_BOOST		0.5
@@ -645,7 +645,7 @@
 // when within HEIGHT_MARGIN of the target height.
 // Use ALT_HOLD_THROTTLE_MIN when above HEIGHT_MARGIN of the target height.
 // Throttle values are from 0.0 - 1.0.
-#define ALT_HOLD_THROTTLE_MIN 0.25
+#define ALT_HOLD_THROTTLE_MIN 0.35
 #define ALT_HOLD_THROTTLE_MAX                .85
 
 // Use ALT_HOLD_PITCH_MAX when below HEIGHT_MARGIN of the target height.

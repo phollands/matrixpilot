@@ -135,10 +135,11 @@ void normalPitchCntrl(void) {
 
     // pitch term (rmat7) of cross product (bottom row x omega)
     // pitchrate = rmat8 * omegaX - rmat6 * omegaZ
-    //    pitchAccum.WW = (__builtin_mulss(rmat8, omegagyro[0])
-    //            - __builtin_mulss(rmat6, omegagyro[2])) << 1;
+    pitchAccum.WW = (__builtin_mulss(rmat8, omegagyro[0])
+                - __builtin_mulss(rmat6, omegagyro[2])) << 1;
 
-    pitchrate = omegagyro[0];
+    // pitchrate = omegagyro[0];
+    pitchrate = pitchAccum.WW;
 
     if (!udb_flags._.radio_on && flags._.GPS_steering) {
         rtlkick = RTLKICK;
@@ -157,7 +158,7 @@ void normalPitchCntrl(void) {
 #else
         // pitchrate is omegaX
         pitchAccum.WW = __builtin_mulsu(pitch_setpoint - rmat7, pitchgain)
-                + __builtin_mulus(pitchkd, omegagyro[0]);
+                + __builtin_mulus(pitchkd, pitchrate);
         //        pitchAccum.WW = __builtin_mulsu(rmat7 - rtlkick + pitchAltitudeAdjust, pitchgain)
         //                + __builtin_mulus(pitchkd, pitchrate);
 #endif
