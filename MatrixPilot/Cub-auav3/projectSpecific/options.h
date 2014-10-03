@@ -104,9 +104,9 @@
 #define ROLL_STABILIZATION_RUDDER           0
 // experimental: use rudder to ...
 #define ROLL_CONTROL_RUDDER                 1
-#define YAW_STABILIZATION_RUDDER            0
 #define PITCH_STABILIZATION                 1
 #define YAW_STABILIZATION_AILERON           0
+#define YAW_STABILIZATION_RUDDER            1
 
 // Aileron and Rudder Navigation
 // Set either of these to 0 to disable use of that control surface for navigation.
@@ -128,7 +128,7 @@
 // This is an option for modulating the navigation gains in flight
 // to maintain a constant turn radius in heavy winds in waypoing mode.
 // Define WIND_GAIN_ADJUSTMENT as 1 to turn this feature on.
-#define WIND_GAIN_ADJUSTMENT                1
+#define WIND_GAIN_ADJUSTMENT                0
 
 // Altitude Hold
 // Use altitude hold in stabilized mode?  In waypoint mode?
@@ -171,6 +171,7 @@
 // If you select this option, you also need to set magnetometer options in
 // the magnetometerOptions.h file, including declination and magnetometer type.
 #define MAG_YAW_DRIFT                       1
+
 #define MAG_YAW_ENABLE                      1
 #undef ENABLE_MAGOFFSET
 //#define ENABLE_MAGOFFSET
@@ -499,10 +500,10 @@
 // YAWKP_AILERON determines the maximum bank angle setpoint as a fraction of +/- 90 degrees
 // YAWKD_AILERON is the derivative feedback gain for ailerons in response to yaw rotation
 // AILERON_BOOST is the additional gain multiplier for the manually commanded aileron deflection
-#define ROLLKP				0.1 //0.22
-#define ROLLKD				0.1 //0.02
-#define YAWKP_AILERON		0.375 // 0.05
-#define YAWKD_AILERON		0.0 //0.11 //0.05
+#define ROLLKP				0.4 //0.22
+#define ROLLKD				0.08 //0.02
+#define YAWKP_AILERON		0.35 // 0.05
+#define YAWKD_AILERON		0.2 //0.11 //0.05
 #define AILERON_BOOST		0.5
 
 // Elevator/Pitch Control Gains
@@ -512,9 +513,9 @@
 // ROLL_ELEV_MIX is the degree of elevator adjustment for aileron
 // ELEVATOR_BOOST is the additional gain multiplier for the manually commanded elevator deflection
 #define PITCHGAIN			0.2 // 0.150
-#define PITCHKD				0.1 //0.015 // 0.075
-#define RUDDER_ELEV_MIX		0.2
-#define ROLL_ELEV_MIX		1.0
+#define PITCHKD				0.05 //0.015 // 0.075
+#define RUDDER_ELEV_MIX		0.04
+#define ROLL_ELEV_MIX		0.8
 #define ELEVATOR_BOOST		0.5
 
 // Neutral pitch angle of the plane (in degrees) when flying inverted
@@ -529,9 +530,9 @@
 // MANUAL_AILERON_RUDDER_MIX is the fraction of manual aileron control to mix into the rudder when
 // in stabilized or waypoint mode.  This mainly helps aileron-initiated turning while in stabilized.
 // RUDDER_BOOST is the additional gain multiplier for the manually commanded rudder deflection
-#define YAWKP_RUDDER				0.2 // 0.1
-#define YAWKD_RUDDER				0 //0.03 // 0.1
-#define ROLLKP_RUDDER				0.1
+#define YAWKP_RUDDER				0.05 // 0.1
+#define YAWKD_RUDDER				0.01 //0.03 // 0.1
+#define ROLLKP_RUDDER				0.04
 #define ROLLKD_RUDDER				0 //0.05
 #define MANUAL_AILERON_RUDDER_MIX	0.0
 #define RUDDER_BOOST				0.5
@@ -638,7 +639,7 @@
 // The range of altitude within which to linearly vary the throttle
 // and pitch to maintain altitude.  A bigger value makes altitude hold
 // smoother, and is suggested for very fast planes.
-#define HEIGHT_MARGIN 5
+#define HEIGHT_MARGIN                        10
 
 // Use ALT_HOLD_THROTTLE_MAX when below HEIGHT_MARGIN of the target height.
 // Interpolate between ALT_HOLD_THROTTLE_MAX and ALT_HOLD_THROTTLE_MIN

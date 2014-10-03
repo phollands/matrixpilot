@@ -724,7 +724,7 @@
 //#define ID_VEHICLE_REGISTRATION "TW2-PDH-UK"
 //#define ID_LEAD_PILOT "Pete Hollands"
 //#define ID_DIY_DRONES_URL "http://www.diydrones.com/profile/PeterHollands"
-#define ID_VEHICLE_MODEL_NAME   "Addiction"
+#define ID_VEHICLE_MODEL_NAME   "Xplanes PT60"
 #define ID_VEHICLE_REGISTRATION "KD0AIJ"
 #define ID_LEAD_PILOT           "Mark Whitehorn"
 #define ID_DIY_DRONES_URL       "http://www.diydrones.com/profile/markw"
