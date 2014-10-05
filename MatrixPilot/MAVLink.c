@@ -1769,8 +1769,8 @@ void mavlink_output(void)
 	{
 #if (MAG_YAW_DRIFT == 1) // Magnetometer is connected
 		mavlink_msg_raw_imu_send(MAVLINK_COMM_0, systime_usec,
-			(int16_t)udb_xaccel.value, (int16_t)udb_yaccel.value, (int16_t)udb_zaccel.value,
-			(int16_t)udb_xrate.value, (int16_t)udb_yrate.value, (int16_t)udb_zrate.value,
+			(int16_t)gplane[0], (int16_t)gplane[1], (int16_t)gplane[2],
+			(int16_t)omegagyro[0], (int16_t)omegagyro[1], (int16_t)omegagyro[2],
 //			(int16_t)magFieldRaw[0], (int16_t)magFieldRaw[1], (int16_t)magFieldRaw[2],
 			(int16_t)udb_magFieldBody[0], (int16_t)udb_magFieldBody[1], (int16_t)udb_magFieldBody[2]);
 #else // magnetometer is not connected

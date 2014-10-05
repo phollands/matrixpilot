@@ -118,9 +118,82 @@ Bug??? using COF linker output format, linking with static lib VectorMatrix.a do
     to stabilizedS, not sure if this is the best choice...
         Also noted that disconnect/reconnect of LEA6 while nav_capable seems to
     break the GPS parser. It appears that commit_gps_data is never called after
-    reconnection.
+        reconnection. Not an issue: cycling power on the LEA6 causes it to revert to
+        NMEA mode, hence there are no longer ubx binary messages to parse.
     
-26 Sep 2014:
-    Got SILsim working again (Tools/MatrixPilot-SIL/matrixpilot) with Xplane9
+3 July 2014:
+    Roll axis angle setpoint flight tested at r3205 and corrections committed at r3220.
+    Flight test using project Cub-auav3: no magnetometer, aileron-only navigation indicated
+    a sign error in the navigation roll deflection. Need to retest using r3220, then:
+    Next task is to modify pitch axis.
     
+5 July 2014:
+    Looking at analog inputs for AUAV3: ACSP1 input voltage is reported in a mavlink
+    message, scaled to a max of 36.3V, current sense is mislabeled udb_5v, and does
+    not appear to be functional on the Cub
 
+7 July 2014:
+	ported ENABLE_MAGALIGNMENT option from MatrixPilotMulti
+	if undefined, magnetometer auto-alignment/offset code is bypassed
+	Increased GPS_SPEED_MIN from 1.5 to 3 m/sec; this should match
+	with max speed for using magnetometer if/when mag is enabled/disabled as a
+	function of ground speed.
+
+9 July 2014:
+	fixed timing bug in updateTriggerAction; was hardwired for 40Hz heartbeat
+	commented out first block of updateTriggerAction() since this seemed superfluous
+	Verified that trigger action works correctly for a low-going servo pulse
+
+12 July 2014: r3240
+	Ellipsoid fit method demonstrated to generate reasonable values for udb_magOffset[]
+	and magnetometer.c changed to subtract offsets before gain adjustments and rotation
+	into body frame. Auto udb_magOffset correction should work properly when initialized
+	to fitted values. Need to retest with ENABLE_MAGOFFSET defined.
+	Outstanding question:
+		Is the auto mag. alignment of any value for onboard magnetometer?
+
+15 July 2014:
+	remove a few more cascaded assignment statements and modify mavlink.c to output ??
+
+16 July 2014:
+	add option #define PRE_CALIBRATED to allow preflight specification of accelerometer
+	and gyro offsets. Decrease calibration pause from 10 seconds to 1 second if precalibrated.
+	Now using MPLAB X v2.10; note that current SVN is still unsupported, so integrated
+	SVN stuff is still useless. Also note that v2.15 didn't work for me, and I've forgotten
+	what the problem was...
+
+21 July 2014:
+	ground tested gpsParseNMEA.c with Navspark GL GPS module. GPS coordinates and HUD
+	looked OK using Andropilot for display.
+
+23 July 2014:
+	to support NavsparkGL module:
+	Add digit counting to NMEA RMC record SOG and COG fields; correctly decode one or two
+	digits to right of decimal; fail if not exactly 3 digits to left
+	Add new serial output format for validating NMEA parser: safely print GGA time value
+	and SOG, COG values on each call to commit_gps_data()
+
+24 July 2014:
+	change pitchCntrl.c to use angle setpoint in stabilize mode; correct handling of
+	AILERON_CHANNEL_REVERSED in rollCntrl.c
+
+25 July 2014:
+	clean up signs and servo reversal code in roll, pitch and yaw control, servomix files.
+	convert yaw to angle mode (PID loop operates on roll angle, instead of heading)
+
+3 August 2014:
+	Renamed TEST_SIMPLE_STABILIZATION to TEST_ACCX_STABILIZATION in rollCntrl.c
+	Added macro definition DISABLE_CENTRIPETAL_COMP, and altered rmat.c:run_imu_step
+	to skip call to adj_accel if defined. This eliminates use of GPS data
+	in the complementary filter attitude estimation, but leaves in yaw drift correction
+	based either on magnetometer or GPS COG.
+
+14 August 2014:
+	Parameterized MAVLink.c on HEARTRATE_HZ and modified timing code to handle
+	message rates up to HEARTRATE_HZ. The load spreading values still need work,
+	but the 5800 byte ring buffer without software flow control seems to be sufficient at
+	115.2K baud. Stream rate tested up to 200Hz.
+
+11 September 2014:
+	See Cub-auav3 project status for experiments at branch level with yawCntrl.c
+	Fixed bug in SBUS mode failsafe detection logic.

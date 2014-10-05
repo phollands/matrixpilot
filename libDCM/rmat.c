@@ -250,11 +250,10 @@ void read_accel(void) {
 static int16_t omegaSOG(int16_t omega, uint16_t speed) {
     // multiplies omega times speed, and scales appropriately
     // omega in radians per second, speed in cm per second
-    union longww working, temp;
+    union longww working;
 
-    // this was speed >> 3
-    // experiment with its effect on centripetal acceleration adjustment
-    // >>3 observed roll oscillation of about +/-3 degrees when indicating level
+    // experiment with effect of speed on centripetal acceleration adjustment
+    // speed >> 3: observed roll oscillation of about +/-3 degrees when indicating level
     //     a sustained 30 degree left bank resulted in an increase of about 5 degrees over 1 minute
     //	   and a nose-high pitch error developed. Zeroing roll setpoint resulted in temporary return
     //     to level followed by a return to 30 degree left bank.
@@ -262,13 +261,13 @@ static int16_t omegaSOG(int16_t omega, uint16_t speed) {
     // >>4 caused rapid development of a serious error in pitch (estimate was too nose-high)
     speed = speed >> 3;
 
-    temp.WW = __builtin_mulsu(omega, speed);
-    if (((int16_t) temp._.W1) > ((int16_t) CENTRIFSAT)) {
+    working.WW = __builtin_mulsu(omega, speed);
+    if (((int16_t) working._.W1) > ((int16_t) CENTRIFSAT)) {
         return RMAX;
-    } else if (((int16_t) temp._.W1) < ((int16_t) - CENTRIFSAT)) {
+    } else if (((int16_t) working._.W1) < ((int16_t) - CENTRIFSAT)) {
         return -RMAX;
     } else {
-        working.WW = temp.WW >> 5;
+        working.WW = working.WW >> 5;
         working.WW = __builtin_mulsu(working._.W0, CENTRISCALE);
         working.WW = working.WW << 5;
         return working._.W1;
@@ -684,7 +683,7 @@ void udb_magnetometer_callback(void) {
 
 #endif // MAG_YAW_DRIFT
 
-#define MAXIMUM_SPIN_DCM_INTEGRAL 10.0 // degrees per second
+#define MAXIMUM_SPIN_DCM_INTEGRAL 20.0 // degrees per second
 
 static void PI_feedback(void) {
 	fractional errorRPScaled[3];

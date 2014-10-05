@@ -103,7 +103,7 @@
 #define ROLL_STABILIZATION_AILERONS         1
 #define ROLL_STABILIZATION_RUDDER           0
 // experimental: use rudder to ...
-#define ROLL_CONTROL_RUDDER                 1
+#define ROLL_CONTROL_RUDDER                 0
 #define PITCH_STABILIZATION                 1
 #define YAW_STABILIZATION_AILERON           0
 #define YAW_STABILIZATION_RUDDER            1
@@ -172,7 +172,7 @@
 // the magnetometerOptions.h file, including declination and magnetometer type.
 #define MAG_YAW_DRIFT                       1
 
-#define MAG_YAW_ENABLE                      1
+#define MAG_YAW_ENABLE                      0
 #undef ENABLE_MAGOFFSET
 //#define ENABLE_MAGOFFSET
 #undef ENABLE_MAGALIGNMENT
@@ -530,9 +530,9 @@
 // MANUAL_AILERON_RUDDER_MIX is the fraction of manual aileron control to mix into the rudder when
 // in stabilized or waypoint mode.  This mainly helps aileron-initiated turning while in stabilized.
 // RUDDER_BOOST is the additional gain multiplier for the manually commanded rudder deflection
-#define YAWKP_RUDDER				0.05 // 0.1
-#define YAWKD_RUDDER				0.01 //0.03 // 0.1
-#define ROLLKP_RUDDER				0.04
+#define YAWKP_RUDDER				0.2 // 0.1
+#define YAWKD_RUDDER				0 //0.03 // 0.1
+#define ROLLKP_RUDDER				0.1
 #define ROLLKD_RUDDER				0 //0.05
 #define MANUAL_AILERON_RUDDER_MIX	0.0
 #define RUDDER_BOOST				0.5
@@ -639,7 +639,7 @@
 // The range of altitude within which to linearly vary the throttle
 // and pitch to maintain altitude.  A bigger value makes altitude hold
 // smoother, and is suggested for very fast planes.
-#define HEIGHT_MARGIN                        10
+#define HEIGHT_MARGIN                        20
 
 // Use ALT_HOLD_THROTTLE_MAX when below HEIGHT_MARGIN of the target height.
 // Interpolate between ALT_HOLD_THROTTLE_MAX and ALT_HOLD_THROTTLE_MIN

@@ -210,3 +210,17 @@
 	Use channel 7 (hover throttle rocker) to toggle xacc nulling with rudder
 	UP (above center) manual rudder in manual/stab, xacc null in auto
 	DOWN (4 clicks below center) xacc null in manual/stab, manual in auto
+
+2 October 2014:
+	modified FBW roll/pitch controls to rate-based proportional feedback
+	Tuned xaccel feedback using SILsim and PT60 airframe; amount of feedback
+	is very small to avoid oscillation. This control is currently PD feedback
+	of xaccel to rudder; probably would benefit from a change to controlling
+	yaw rate with rate demand a function of xaccel. Currently no lowpass filter
+	on xaccel in this version of code, but that would only reduce the system
+	bandwidth further. It may be that yaw damping is the best way to keep
+	xaccel near zero, but attempts to tune yawkd_rudder haven't improved
+	performance much. Simply mixing aileron into rudder to counter adverse
+	yaw may be the optimal approach.
+	Check crosstrack margin, height_margin, racing mode and racing throttle parameters
+	to improve Cub waypoint tracking.

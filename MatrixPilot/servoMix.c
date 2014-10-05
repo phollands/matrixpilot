@@ -67,12 +67,12 @@ void servoMix(void) {
 		temp = pwManual[RUDDER_INPUT_CHANNEL] + REVERSE_IF_NEEDED(RUDDER_CHANNEL_REVERSED, yaw_control - waggle);
 		udb_pwOut[RUDDER_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
 
-		if (pwManual[THROTTLE_INPUT_CHANNEL] == 0)
+		if (pwManual[THROTTLE_INPUT_CHANNEL] == 0) {
+				udb_pwOut[THROTTLE_OUTPUT_CHANNEL] = 0;
+		} else if (flags._.disable_throttle) // set throttle to launch ready
 		{
-			udb_pwOut[THROTTLE_OUTPUT_CHANNEL] = 0;
-		}
-		else
-		{
+        udb_pwOut[THROTTLE_OUTPUT_CHANNEL] = udb_pwTrim[THROTTLE_INPUT_CHANNEL] + CATAPULT_ARMED_THROTTLE;
+	    } else {
 			temp = pwManual[THROTTLE_INPUT_CHANNEL] + REVERSE_IF_NEEDED(THROTTLE_CHANNEL_REVERSED, throttle_control);
 			udb_pwOut[THROTTLE_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
 		}

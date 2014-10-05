@@ -104,9 +104,10 @@ void normalYawCntrl(void)
 	{
 		gyroYawFeedback.WW = __builtin_mulus(yawkdrud, omegaAccum[2]);
 		gyroYawFeedback._.W1 -= gplane[0] >> 7;
+//		gyroYawFeedback._.W1 = -gplane[0] >> 6;
 #if (SILSIM == 1)
-                if ((udb_heartbeat_counter % HEARTBEAT_HZ) == 0) {
-                    printf("xacc feedback: %i\n", gplane[0]);
+                if ((udb_heartbeat_counter % (HEARTBEAT_HZ/10)) == 0) {
+                    printf("xacc feedback: %i, total feedback: %i\n", -gplane[0] >> 6, gyroYawFeedback._.W1);
                 }
 #endif
 	}

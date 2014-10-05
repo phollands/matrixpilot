@@ -104,6 +104,7 @@ extern union dcm_fbts_word { struct dcm_flag_bits _; int16_t W; } dcm_flags;
 // Outside of libDCM, these should all be treated as read-only
 extern fractional rmat[];
 extern fractional omegaAccum[];
+extern fractional gplane[];
 extern fractional omegagyro[];
 extern fractional accelEarth[];
 
