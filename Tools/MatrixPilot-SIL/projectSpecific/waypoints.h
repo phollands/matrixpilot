@@ -18,14 +18,16 @@
 // You should have received a copy of the GNU General Public License
 // along with MatrixPilot.  If not, see <http://www.gnu.org/licenses/>.
 
-#pragma message "2000x1000m pattern at 100m"
+#if (HILSIM == 1)
+#include <stdlib.h>
+#endif
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Waypoint handling
 
 // Move on to the next waypoint when getting within this distance of the current goal (in meters)
-#define WAYPOINT_RADIUS 		50
+#define WAYPOINT_RADIUS 		10
 
 // Origin Location
 // When using relative waypoints, the default is to interpret those waypoints as relative to the
@@ -47,15 +49,11 @@
 // examine the telemetry after a flight, take a look in the .csv file, it will be easy to spot the
 // altitude, expressed in meters.
 
-#define USE_FIXED_ORIGIN		0
-#define FIXED_ORIGIN_LOCATION	{ -1223178100, 474634556, 98.0 }	// KSEA runway 16R
+// center of launch zone 40 4' 22.35"N 105 13' 48.88"W
+//#define FIXED_ORIGIN_LOCATION	{ -1052302444, 400728750, 1587.7 }
 
-// AAM East Field runway center 39°50'31.83"N  105°12'44.81"W
-//#define FIXED_ORIGIN_LOCATION	{ -1052124472, 398421750, 1808.0 }
-
-// AAM West Field runway center  39°50'31.97"N  105°13'10.17"W (105.2194917, 39.842213889)
-// altitude estimated from LEA-6 GPS readings in Polaris Ultra log2228
-//#define FIXED_ORIGIN_LOCATION	{ -1052194917, 398422138, 1820.0 }
+// AAM East Field runway west X
+//#define FIXED_ORIGIN_LOCATION	{ -1052136160, 398424410, 1812.0 }
 
 // bench location
 //#define FIXED_ORIGIN_LOCATION	{ -1050979310,  397501990, 1695.0 }
@@ -152,28 +150,46 @@
 //};
 
 //const struct waypointDef waypoints[] = {
-//    {{ 0, 500, 50}, F_CROSS_TRACK + F_TAKEOFF, CAM_VIEW_LAUNCH}, //Waypoint 0
-//    {{ 0, -1000, 50}, F_CROSS_TRACK + F_TAKEOFF, CAM_VIEW_LAUNCH}, //Waypoint 1
-//    {{ 0, -500, 5}, F_CROSS_TRACK + F_NORMAL, CAM_VIEW_LAUNCH}, //Waypoint 2
-//    // this results in a decent flare in the simulator
-//    {{ 0, 0, 500}, F_CROSS_TRACK + F_LAND, CAM_VIEW_LAUNCH}, //Waypoint 3
+//    {{  100,  0, 50}, F_NORMAL, CAM_VIEW_LAUNCH}, //Waypoint 0
+//    {{  100, 50, 50}, F_NORMAL, CAM_VIEW_LAUNCH}, //Waypoint 1
+//    {{ -100, 50, 50}, F_NORMAL, CAM_VIEW_LAUNCH}, //Waypoint 2
+//    {{ -100,  0, 50}, F_NORMAL, CAM_VIEW_LAUNCH}, //Waypoint 3
 //};
+// AAM West Field runway center  39ï¿½50'31.97"N  105ï¿½13'10.17"W (105.2194917, 39.842213889)
+#define USE_FIXED_ORIGIN		0
+#define FIXED_ORIGIN_LOCATION	{ -1052194917, 398422138, 1817.0 }
+
+////////////////////////////////////////////////////////////////////////////////
+// This is a lefthand pattern for takeoff to the east
 
 const struct waypointDef waypoints[] = {
-//    {{   0, 500, 50}, F_TAKEOFF, CAM_VIEW_LAUNCH}, //Waypoint 0
-//    {{ 500, 500, 50}, F_NORMAL, CAM_VIEW_LAUNCH}, //Waypoint 1
-//    {{ 500,   0, 50}, F_NORMAL, CAM_VIEW_LAUNCH}, //Waypoint 2
-//    {{   0,   0, 50}, F_NORMAL, CAM_VIEW_LAUNCH}, //Waypoint 3
-    {{   0, 500, 50}, F_CROSS_TRACK, CAM_VIEW_LAUNCH}, //Waypoint 0
-    {{ 500, 500, 50}, F_CROSS_TRACK, CAM_VIEW_LAUNCH}, //Waypoint 1
-    {{ 500,   0, 50}, F_CROSS_TRACK, CAM_VIEW_LAUNCH}, //Waypoint 2
-    {{   0,   0, 50}, F_CROSS_TRACK, CAM_VIEW_LAUNCH}, //Waypoint 3
+	{ { 84, 3, 20 } , F_CROSS_TRACK + F_TAKEOFF, CAM_VIEW_LAUNCH } , //Waypoint 1
+	{ { 83, 49, 30 } , F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 2
+	{ { -103, 53, 30 } , F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 3
+	{ { -103, 7, 25 } , F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 4
+	{ { -14, 4, 20 } , F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 5
+	{ { 15, 3, 20 } , F_CROSS_TRACK + F_TRIGGER , CAM_VIEW_LAUNCH } , //Waypoint 6
 };
 //const struct waypointDef waypoints[] = {
-//    {{   500, 500, 50}, F_TAKEOFF, CAM_VIEW_LAUNCH}, //Waypoint 0
-//    {{ 1000, 0, 50}, F_CROSS_TRACK, CAM_VIEW_LAUNCH}, //Waypoint 1
-//    {{ 500,  -500, 50}, F_CROSS_TRACK, CAM_VIEW_LAUNCH}, //Waypoint 2
-//    {{   0,  0, 50}, F_CROSS_TRACK, CAM_VIEW_LAUNCH}, //Waypoint 3
+//	{ { 51, 3, 20 } , F_TAKEOFF , CAM_VIEW_LAUNCH } , //Waypoint 1
+//	{ { 98, 2, 35 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 2
+//	{ { 109, 4, 35 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 3
+//	{ { 111, 18, 35 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 4
+//	{ { 110, 57, 35 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 5
+//	{ { 104, 62, 35 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 6
+//	{ { 94, 63, 35 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 7
+//	{ { -100, 68, 35 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 8
+//	{ { -109, 63, 30 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 9
+//	{ { -115, 50, 25 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 10
+//	{ { -114, 21, 20 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 11
+//	{ { -109, 11, 15 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 12
+//	{ { -99, 5, 15 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 13
+//	{ { -84, 5, 15 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 14
+//	{ { -67, 5, 15 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 15
+//	{ { -51, 4, 15 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 16
+//	{ { -28, 4, 15 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 17
+//	{ { -10, 5, 15 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 18
+//	{ { 9, 4, 15 } , F_NORMAL + F_TRIGGER , CAM_VIEW_LAUNCH } , //Waypoint 19
 //};
 
 
@@ -189,11 +205,7 @@ const struct waypointDef waypoints[] = {
 // and after flights, since turning off the transmitter will cause the throttle to come on.
 
 const struct waypointDef rtlWaypoints[] = {
-    {{   0, 1000, 50}, CAM_VIEW_LAUNCH}, //Waypoint start final
-    {{   0, 500, 20}, CAM_VIEW_LAUNCH}, //Waypoint mid final
-    {{   0, 0, 10}, CAM_VIEW_LAUNCH}, //Waypoint land
-    {{   0, -500, 5}, F_LAND, CAM_VIEW_LAUNCH}, //Waypoint land
-    {{   0, -1000, 50}, F_LAND, CAM_VIEW_LAUNCH}, //Waypoint land
+		{ { 0, 30,  30 } , F_LOITER, CAM_VIEW_LAUNCH }
 };
 
 

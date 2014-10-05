@@ -126,7 +126,7 @@
 // holds the cross track error to smaller values.
 // 64 meters is probably the largest value you might use on a fast model jet (more than 50 meters/sec)
 // Use 32 meters for 20 to 50 meters/sec, and 16 meters for less than that.
-#define CROSS_TRACK_MARGIN                  64
+#define CROSS_TRACK_MARGIN                  (24)
 
 // Wind Gain Adjustment
 // This is an option for modulating the navigation gains in flight
@@ -638,15 +638,15 @@
 // The range of altitude within which to linearly vary the throttle
 // and pitch to maintain altitude.  A bigger value makes altitude hold
 // smoother, and is suggested for very fast planes.
-#define HEIGHT_MARGIN                        10
+#define HEIGHT_MARGIN                        20
 
 // Use ALT_HOLD_THROTTLE_MAX when below HEIGHT_MARGIN of the target height.
 // Interpolate between ALT_HOLD_THROTTLE_MAX and ALT_HOLD_THROTTLE_MIN
 // when within HEIGHT_MARGIN of the target height.
 // Use ALT_HOLD_THROTTLE_MIN when above HEIGHT_MARGIN of the target height.
 // Throttle values are from 0.0 - 1.0.
-#define ALT_HOLD_THROTTLE_MIN 0.35
-#define ALT_HOLD_THROTTLE_MAX                .85
+#define ALT_HOLD_THROTTLE_MIN               0.0
+#define ALT_HOLD_THROTTLE_MAX                1.0
 
 // Use ALT_HOLD_PITCH_MAX when below HEIGHT_MARGIN of the target height.
 // Interpolate between ALT_HOLD_PITCH_MAX and ALT_HOLD_PITCH_MIN when
@@ -704,7 +704,7 @@
 // Set this to either FP_WAYPOINTS or FP_LOGO
 // The Waypoint definitions and options are located in the waypoints.h file.
 // The Logo flight plan definitions and options are located in the flightplan-logo.h file.
-#define FLIGHT_PLAN_TYPE                    FP_LOGO
+#define FLIGHT_PLAN_TYPE                    FP_WAYPOINTS
 
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -828,5 +828,9 @@
 
 // Set this to 1 to enable the Mass Storage Driver support over USB on AUAV3
 #define USE_MSD                             0
+// define this to enable catapult launch arming
+//#define CATAPULT_LAUNCH_ENABLE
+#undef CATAPULT_LAUNCH_ENABLE
+#define CATAPULT_ARMED_THROTTLE 600
 
 #endif

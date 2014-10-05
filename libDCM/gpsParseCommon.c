@@ -227,6 +227,7 @@ void udb_background_callback_triggered(void)
 
 #if (SILSIM != 1 && BOARD_TYPE == AUAV3_BOARD)
                 // assert digital out 2
+                _TRISA6 = 0;
                 DIG2 = 1;
 #endif
                 // repeat the location[] calculation in single precision floating point

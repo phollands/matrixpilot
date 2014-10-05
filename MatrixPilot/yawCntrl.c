@@ -103,6 +103,7 @@ void normalYawCntrl(void)
 	if (YAW_STABILIZATION_RUDDER && flags._.pitch_feedback)
 	{
 		gyroYawFeedback.WW = __builtin_mulus(yawkdrud, omegaAccum[2]);
+                // need to use a 16x16 multiply here instead of a shift
 		gyroYawFeedback._.W1 -= gplane[0] >> 7;
 //		gyroYawFeedback._.W1 = -gplane[0] >> 6;
 #if (SILSIM == 1)
