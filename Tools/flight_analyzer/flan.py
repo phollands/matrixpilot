@@ -1779,7 +1779,7 @@ def write_GE_accel_vectors(log_book,flight_origin,filename, flight_clock):
         print >> filename, """</roll>
       </Orientation>
       <Scale>"""
-        x_accel_mag = entry.IMUraw_xacc * (.0075 / 4096)
+        x_accel_mag = entry.IMUraw_xacc * (-.0075 / 4096)
         print >> filename, "<x>0.00125</x>"""
         print >> filename, "<y>", x_accel_mag,"</y>"
         print >> filename, """

@@ -1,7 +1,7 @@
 import re
 import sys
 import os
-
+import numpy as np
 
 try:
     sys.path.insert(0, os.path.join(os.getcwd(), '..', 'MAVLink', 'mavlink', 'pymavlink'))
@@ -15,6 +15,13 @@ def bstr(n): # n in range 0-7
     '''Convert number to 3 digit binary string'''
     return ''.join([str(n >> x & 1) for x in (2,1,0)])
 
+class boxcar:
+    # run a boxcar integrator on raw IMU data: length 250msec
+    index = 0
+    length = 25
+    buf = np.zeros((9, 25), dtype=int)
+    sums = np.zeros((9, 1), dtype=float)
+    
 class raw_mavlink_telemetry_file:
     """Model a mavlink file (one without local time stamps inserted)"""
     def __init__(self, filename, type_of_mavlink):
@@ -48,6 +55,7 @@ class raw_mavlink_telemetry_file:
                 if self.msg.get_type() == "SERIAL_UDB_EXTRA_F2_A":
                         self.last_F2_A_msg = self.msg
                         self.SUE_F2_A_needs_printing = True
+                        # print self.msg.sue_magFieldEarth0, ",", self.msg.sue_magFieldEarth1, ",", self.msg.sue_magFieldEarth2
                         continue
                 elif self.msg.get_type() == "SERIAL_UDB_EXTRA_F2_B":
                         try:
@@ -70,6 +78,18 @@ class raw_mavlink_telemetry_file:
                       self.msg.get_type() == 'SERIAL_UDB_EXTRA_F15' or \
                       self.msg.get_type() == 'SERIAL_UDB_EXTRA_F17':
                             return self.msg                
+                elif True and self.msg.get_type() == 'RAW_IMU':
+                    # C Code in MP is:-
+                    # mavlink_msg_raw_imu_send(MAVLINK_COMM_0, systime_usec,
+                    #       (int16_t)udb_xaccel.value, (int16_t)udb_yaccel.value, (int16_t)udb_zaccel.value,
+                    #       (int16_t)udb_xrate.value, (int16_t)udb_yrate.value, (int16_t)udb_zrate.value,
+                    #       //(int16_t)magFieldRaw[0], (int16_t)magFieldRaw[1], (int16_t)magFieldRaw[2],
+		            #       (int16_t)udb_magFieldBody[0], (int16_t)udb_magFieldBody[1], (int16_t)udb_magFieldBody[2]);
+                    # 
+                    return self.msg;
+                    # print self.msg.xacc,",",self.msg.yacc,",",self.msg.zacc, ",", \
+                    #       self.msg.xgyro,",",self.msg.ygyro,",",self.msg.zgyro, ",", \
+                    #       self.msg.xmag,",",self.msg.ymag,",",self.msg.zmag
                 else :
                         #print "Ignoring non SUE MAVLink message", self.msg.get_type()
                         pass
@@ -210,6 +230,15 @@ class base_telemetry :
         self.IMUvelocityx = 0
         self.IMUvelocityy = 0
         self.IMUvelocityz = 0
+        self.IMUraw_xacc = 0;
+        self.IMUraw_yacc = 0;
+        self.IMUraw_zacc = 0;
+        self.IMUraw_xgyro = 0;
+        self.IMUraw_ygyro = 0;
+        self.IMUraw_zgyro = 0;
+        self.IMUraw_xmag = 0;
+        self.IMUraw_ymag = 0;
+        self.IMUraw_zmag = 0;
         self.flags = 0
         self.sonar_direct = 0 # Direct distance in cm to sonar target
         self.alt_sonar    = 0 # Calculated altitude above ground of plane in cm
@@ -291,12 +320,18 @@ class mavlink_telemetry(base_telemetry):
                 self.IMUlocationx_W1 = int(telemetry_file.msg.sue_imu_location_x)
                 self.IMUlocationy_W1 = int(telemetry_file.msg.sue_imu_location_y)
                 self.IMUlocationz_W1 = int(telemetry_file.msg.sue_imu_location_z)
+                #print self.IMUlocationx_W1, ",", self.IMUlocationy_W1
                 self.sue_flags = int(telemetry_file.msg.sue_flags)
 
                 self.sue_osc_fails = int(telemetry_file.msg.sue_osc_fails)
                 self.IMUvelocityx = int(telemetry_file.msg.sue_imu_velocity_x)
                 self.IMUvelocityy = int(telemetry_file.msg.sue_imu_velocity_y)
                 self.IMUvelocityz = int(telemetry_file.msg.sue_imu_velocity_z)
+                
+                self.IMUraw_xacc = float(boxcar.sums[0]) / boxcar.length
+                self.IMUraw_yacc = float(boxcar.sums[1]) / boxcar.length
+                self.IMUraw_zacc = float(boxcar.sums[2]) / boxcar.length
+                
                 self.inline_waypoint_x = int(telemetry_file.msg.sue_waypoint_goal_x)
                 self.inline_waypoint_y = int(telemetry_file.msg.sue_waypoint_goal_y)
                 self.inline_waypoint_z = int(telemetry_file.msg.sue_waypoint_goal_z)
@@ -306,6 +341,56 @@ class mavlink_telemetry(base_telemetry):
                 return("F2")
             else :
                 return("F2_B message received without corresponding F2_A")
+                
+        # def raw_imu_encode(self, time_usec, xacc, yacc, zacc, xgyro, ygyro, zgyro, xmag, ymag, zmag):
+        elif telemetry_file.msg.get_type() == 'RAW_IMU':
+            #print "RAW_IMU time: ", telemetry_file.msg.time_usec
+            if hasattr(telemetry_file, 'last_F2_A_msg'):
+                self.tm_actual = float (telemetry_file.last_F2_A_msg.sue_time)
+                if ((self.tm_actual < max_tm_actual) and ( max_tm_actual > 604780000 )):
+                        # 604800000 is no. of milliseconds in a week. This extra precaution required because
+                        # occausionally the log file can have an entry with a time which precedes the previous entry.
+                        # The following seconds rollover fix only works for flights of less than 1 week
+                        # in length. So watch out when analyzing your global solar powered UAV flights.
+                        print "Executing code for GPS weekly seconds rollover"
+                        self.tm = self.tm_actual + max_tm_actual
+                elif (self.tm_actual < max_tm_actual) :
+                        self.tm = max_tm_actual
+                        # takes account of occassional time entry which precedes time of previous entry.
+                        # This can happen when EM406A first starts up near beginning of telemetry.
+                        # It is caused by a synchronisation issue between GPS time, and synthesized time
+                        # within MatrixPilot. It has been seen to occur once near startup time of the UDB.
+                else :
+                        self.tm = self.tm_actual
+                        
+                self.tm_actual = float (telemetry_file.msg.time_usec)
+
+                atts = np.zeros(boxcar.length)
+                
+                atts[0] = telemetry_file.msg.xacc
+                atts[1] = telemetry_file.msg.yacc
+                atts[2] = telemetry_file.msg.zacc
+                atts[3] = telemetry_file.msg.xgyro
+                atts[4] = telemetry_file.msg.ygyro
+                atts[5] = telemetry_file.msg.zgyro
+                atts[6] = telemetry_file.msg.xmag
+                atts[7] = telemetry_file.msg.ymag
+                atts[8] = telemetry_file.msg.zmag
+
+                # index of oldest value
+                boxcar.index += 1
+                boxcar.index %= boxcar.length 
+
+                for attIndex in range(0, 3):
+                    #print "boxIndex: ", boxcar.index, " new: ", atts[attIndex], " old: ", boxcar.buf[attIndex, boxcar.index]
+                    # add (new - oldest) value
+                    boxcar.sums[attIndex] += atts[attIndex] - boxcar.buf[attIndex, boxcar.index]
+                    #print "sum: ", boxcar.sums[attIndex]
+                    # save new value over oldest value
+                    boxcar.buf[attIndex, boxcar.index] = atts[attIndex]
+                    
+            return("RAW_IMU")
+            
         elif telemetry_file.msg.get_type() == 'SERIAL_UDB_EXTRA_F4' :
             self.roll_stabilization = int(telemetry_file.msg.sue_ROLL_STABILIZATION_AILERONS)
             #Following line probably needs adding to GE KML
@@ -366,6 +451,7 @@ class mavlink_telemetry(base_telemetry):
             self.origin_north = int(telemetry_file.msg.sue_lat_origin)
             self.origin_east = int(telemetry_file.msg.sue_lon_origin)
             self.origin_altitude = int(telemetry_file.msg.sue_alt_origin)
+            print "origin lat, lon, alt: ", self.origin_east, ",", self.origin_north, ",", self.origin_altitude
             
             return("F13")
 
@@ -590,7 +676,7 @@ class ascii_telemetry(base_telemetry):
                 try:
                     self.tm_actual = float (match.group(1))
                 except:
-                    print "Cortupt T: value (GPS Time) at line", line_no
+                    print "Corrupt T: value (GPS Time) at line", line_no
                     return "Error"
                 if ((self.tm_actual < max_tm_actual) and ( max_tm_actual > 604780000 )):
                     # 604800000 is no. of milliseconds in a week. This extra precaution required because
