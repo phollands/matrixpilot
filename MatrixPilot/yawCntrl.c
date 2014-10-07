@@ -48,6 +48,10 @@ extern fractional gplane[];
 	const uint16_t hoveryawkd	= (uint16_t)(HOVER_YAWKD*SCALEGYRO*RMAX);
 #endif
 
+#include "filters.h"
+union int32_w2 xacc_filt;
+int16_t xacc;
+extern fractional gplane[];
 void normalYawCntrl(void);
 void hoverYawCntrl(void);
 
@@ -81,6 +85,25 @@ void normalYawCntrl(void)
 	union longww gyroYawFeedback;
 	int16_t ail_rud_mix;
 
+        // lowpass filter the x accelerometer samples
+        // The MPU6000 applies a 42Hz digital lowpass filter, but we probably
+        // want just a few Hz of bandwidth for the accelerometer readings.
+        // Note that this is executed at HEARTBEAT_HZ = 200, so the 3dB point
+        // for lp2 with LPCB_45_HZ will be 4.5Hz
+        // scale value up such that 1g of lateral acceleration has magnitude 16K
+        xacc = -lp2(gplane[0], &xacc_filt, LPCB_45_HZ);
+        magClamp(&xacc, 16384/(ACCEL_RANGE)); // saturate at 16K
+        xacc *= (ACCEL_RANGE);
+
+        // channel 7 is xacc gain; 1/8 is too high
+        // so scale PWM range of [2000,4000] to [0,1/8]
+#if (SILSIM == 1)
+        float xgain = 1.0/32;
+#else
+        float xgain = ((float)(udb_pwIn[7] - 2000)) / (8 * 2000.0f);
+        if (xgain < 0) xgain = 0;
+#endif
+
 #ifdef TestGains
 	flags._.GPS_steering = 0; // turn off navigation
 	flags._.pitch_feedback = 1; // turn on stabilization
@@ -103,12 +126,12 @@ void normalYawCntrl(void)
 	if (YAW_STABILIZATION_RUDDER && flags._.pitch_feedback)
 	{
 		gyroYawFeedback.WW = __builtin_mulus(yawkdrud, omegaAccum[2]);
-                // need to use a 16x16 multiply here instead of a shift
-		gyroYawFeedback._.W1 -= gplane[0] >> 7;
-//		gyroYawFeedback._.W1 = -gplane[0] >> 6;
+//		gyroYawFeedback._.W1 -= gplane[0] >> 5;
+                int16_t xacc_scaled = xgain * gplane[0];
+		gyroYawFeedback._.W1 -= xacc_scaled;
 #if (SILSIM == 1)
                 if ((udb_heartbeat_counter % (HEARTBEAT_HZ/10)) == 0) {
-                    printf("xacc feedback: %i, total feedback: %i\n", -gplane[0] >> 6, gyroYawFeedback._.W1);
+                    printf("xacc feedback: %i, total feedback: %i\n", -xacc_scaled, gyroYawFeedback._.W1);
                 }
 #endif
 	}
