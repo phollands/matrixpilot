@@ -81,9 +81,7 @@ void yawCntrl(void)
 void normalYawCntrl(void)
 {
 	int16_t yawNavDeflection;
-	union longww rollStabilization;
 	union longww gyroYawFeedback;
-	int16_t ail_rud_mix;
 
         // lowpass filter the x accelerometer samples
         // The MPU6000 applies a 42Hz digital lowpass filter, but we probably
@@ -126,46 +124,20 @@ void normalYawCntrl(void)
 	if (YAW_STABILIZATION_RUDDER && flags._.pitch_feedback)
 	{
 		gyroYawFeedback.WW = __builtin_mulus(yawkdrud, omegaAccum[2]);
-//		gyroYawFeedback._.W1 -= gplane[0] >> 5;
-                int16_t xacc_scaled = xgain * gplane[0];
-		gyroYawFeedback._.W1 -= xacc_scaled;
 #if (SILSIM == 1)
+                int16_t xacc_scaled = xgain * gplane[0];
                 if ((udb_heartbeat_counter % (HEARTBEAT_HZ/10)) == 0) {
                     printf("xacc feedback: %i, total feedback: %i\n", -xacc_scaled, gyroYawFeedback._.W1);
                 }
+#else
+                int16_t xacc_scaled = -xgain * gplane[0];
 #endif
-	}
-
-	rollStabilization.WW = 0; // default case is no roll rudder stabilization
-	if (ROLL_STABILIZATION_RUDDER && flags._.pitch_feedback)
-	{
-		if (!desired_behavior._.inverted && !desired_behavior._.hover)  // normal
-		{
-			rollStabilization.WW = __builtin_mulsu(rmat[6] , rollkprud);
-		}
-		else if (desired_behavior._.inverted) // inverted
-		{
-			rollStabilization.WW = - __builtin_mulsu(rmat[6] , rollkprud);
-		}
-		rollStabilization.WW -= __builtin_mulus(rollkdrud , omegaAccum[1]);
-	}
-
-	if (flags._.pitch_feedback)
-	{
-		int16_t ail_offset = (udb_flags._.radio_on) ? (udb_pwIn[AILERON_INPUT_CHANNEL] - udb_pwTrim[AILERON_INPUT_CHANNEL]) : 0;
-		ail_rud_mix = MANUAL_AILERON_RUDDER_MIX * REVERSE_IF_NEEDED(AILERON_CHANNEL_REVERSED, ail_offset);
-		if (canStabilizeInverted() && current_orientation == F_INVERTED) ail_rud_mix = -ail_rud_mix;
-	}
-	else
-	{
-		ail_rud_mix = 0;
+		gyroYawFeedback._.W1 -= xacc_scaled;
 	}
 
 	yaw_control = (int32_t)yawNavDeflection 
-				- (int32_t)gyroYawFeedback._.W1 
-				+ (int32_t)rollStabilization._.W1 
-				+ ail_rud_mix;
-	// Servo reversing is handled in servoMix.c
+				- (int32_t)gyroYawFeedback._.W1;
+        // Servo reversing is handled in servoMix.c
 }
 
 void hoverYawCntrl(void)
