@@ -22,6 +22,7 @@
 #include "defines.h"
 #include "heartbeat.h"
 extern fractional gplane[];
+extern float xgain;
 
 #define HOVERYOFFSET ((int32_t)(HOVER_YAW_OFFSET*(RMAX/57.3)))
 
@@ -92,15 +93,6 @@ void normalYawCntrl(void)
         xacc = -lp2(gplane[0], &xacc_filt, LPCB_45_HZ);
         magClamp(&xacc, 16384/(ACCEL_RANGE)); // saturate at 16K
         xacc *= (ACCEL_RANGE);
-
-        // channel 7 is xacc gain; 1/8 is too high
-        // so scale PWM range of [2000,4000] to [0,1/8]
-#if (SILSIM == 1)
-        float xgain = 1.0/32;
-#else
-        float xgain = ((float)(udb_pwIn[7] - 2000)) / (8 * 2000.0f);
-        if (xgain < 0) xgain = 0;
-#endif
 
 #ifdef TestGains
 	flags._.GPS_steering = 0; // turn off navigation

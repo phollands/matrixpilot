@@ -29,6 +29,7 @@
 
 // these are the desired pitch/roll/yaw angles (in DCM radians x.xx format)
 int16_t pitch_setpoint, roll_setpoint, yaw_rate;
+float xgain = 0;
 
 // these are the final PWM outputs to the servos/ESC (2 * usec)
 int16_t pitch_control, roll_control, yaw_control, throttle_control;
@@ -80,7 +81,18 @@ void init_servoPrepare(void) // initialize the PWM
 
 void dcm_servo_callback_prepare_outputs(void) {
 #if (USE_SBUS_INPUT == 1)
-    if (sbusDAV) parseSbusData();
+    if (sbusDAV) {
+        parseSbusData();
+        #if (SILSIM == 1)
+            // hardwired xgain
+            xgain = 1.0/32;
+        #else
+            // channel 7 is xacc gain: scale PWM range of [2000,4000] to [0,1/8]
+            xgain = ((float)(udb_pwIn[7] - 2000)) / (8 * 2000.0f);
+            if (xgain < 0) xgain = 0;
+        #endif
+    }
+
 #endif
 
     if (dcm_flags._.calib_finished) {
