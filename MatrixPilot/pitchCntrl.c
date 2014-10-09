@@ -159,10 +159,6 @@ void normalPitchCntrl(void) {
         // pitchrate is omegaX
         int16_t desRate = pitch_setpoint - rmat7;
         pitchAccum.WW = __builtin_mulus(pitchkd, desRate);
-//        pitchAccum.WW = __builtin_mulsu(pitch_setpoint - rmat7, pitchgain)
-//                + __builtin_mulus(pitchkd, pitchrate);
-        //        pitchAccum.WW = __builtin_mulsu(rmat7 - rtlkick + pitchAltitudeAdjust, pitchgain)
-        //                + __builtin_mulus(pitchkd, pitchrate);
 #endif
     } else {
         // no stabilization; pass manual input through

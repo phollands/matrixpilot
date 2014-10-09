@@ -224,3 +224,11 @@
 	yaw may be the optimal approach.
 	Check crosstrack margin, height_margin, racing mode and racing throttle parameters
 	to improve Cub waypoint tracking.
+
+8 October 2014:
+	Successful WP flights without cross-tracking. Good accuracy on hitting WPs
+	and bomb release. No obvious dithering between waypoints. FBW controls were
+	controlling roll/pitch rates to maintain angle setpoints. Xaccel feedback
+	was on in 1st and 3rd flights, sign was wrong on 2nd flight, but feedback
+	was turned off before W2 (GE labeling). Wrong sign caused wide turn, missing
+	W1.
