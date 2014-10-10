@@ -30,11 +30,14 @@ import re
 import sys
 import os
 import stat
+import pylab as plt
+import numpy as np
 
 from matrixpilot_lib import ascii_telemetry
 from matrixpilot_lib import raw_mavlink_telemetry_file
 from matrixpilot_lib import ascii_telemetry_file
 from matrixpilot_lib import write_mavlink_to_serial_udb_extra
+from matrixpilot_lib import boxcar
 
 def walktree (top = ".", depthfirst = True):
     names = os.listdir(top)
@@ -1526,11 +1529,12 @@ class clock() :
     
     def synthesize(self,gps_time):
        """Create synthetic time between entries which have identical gps time"""
-       assumed_telemetry_time_delta = 20     # expected time difference between telemetry entries in ms
+       assumed_telemetry_time_delta = 250     # expected time difference between telemetry entries in ms
        if gps_time == self.last_gps_time :
            self.identical_gps_time_count += 1
-           if self.identical_gps_time_count > 13 :
-               print "Warning: More than 13 identical telemetry entries with identical time stamps"
+           print "self.identical_gps_time_count: %i\n" % self.identical_gps_time_count
+           if self.identical_gps_time_count > 4 :
+               print "Warning: More than 4 identical telemetry entries with identical time stamps"
                print "at gps time:", gps_time
            return(gps_time + assumed_telemetry_time_delta)
        else:
@@ -2013,6 +2017,8 @@ class origin() :
 class flight_log_book:
     def __init__(self) :
         self.entries = [] # an empty list of entries  at the beginning.
+        self.raw_imu = [] # list of raw IMU data records
+        self.filtered_imu = [] # list of filtered IMU data records
         self.F4 = "Empty"
         self.F5 = "Empty"
         self.F6 = "Empty"
@@ -2027,6 +2033,35 @@ class flight_log_book:
         self.rebase_time_to_race_time = False
         self.waypoints_in_telemetry = False
 
+    def plot_imu(self):
+        sys.argv = ['junk']
+        # fieldnames = ['time_usec', 'xacc', 'yacc', 'zacc', 'xgyro', 'ygyro', 'zgyro', 'xmag', 'ymag', 'zmag']
+        imudata = np.array(self.raw_imu)
+        imudata_filt = np.array(self.filtered_imu)
+        suedata = np.zeros((len(self.entries), 3))
+        index = 0
+        for entry in self.entries:
+            suedata[index, 0] = entry.tm_actual
+            suedata[index, 1] = entry.IMUraw_xacc
+            suedata[index, 2] = entry.pwm_output[4]
+            index+=1
+            
+        x = imudata[0:,0]
+        y = imudata[0:,1]
+        x1 = imudata_filt[0:,0]
+        y1 = imudata_filt[0:,1]
+        x2 = suedata[0:,0]
+        y2 = -20 * (suedata[0:,2] - 3000)
+        plt.figure(1)
+        plt.plot(x, y, 'or', label='xacc')
+        plt.plot(x1, y1, '-ob', label='xacc_filt')
+        plt.plot(x2, y2, '-og', label='rudder')
+        plt.xlabel('gps time')
+        plt.ylabel('xacc')
+        plt.grid()
+        plt.legend()
+        plt.show()
+    
 def calc_average_wind_speed(log_book):
     if log_book.racing_mode == 0 :
         print "Average wind speed is only calculated if racing_mode = 1\n" + \
@@ -2178,6 +2213,10 @@ def create_log_book(options) :
     log_book.accel_set = False         # No accel vector info in GE unless X accel arrives
     log_book.dead_reckoning = 0    # By default dead reckoning is assumed to be off until telemetry arrives
     log_book.primary_locator = GPS # Default is to use GPS for plotting plane position unless IMU info arrives
+    log_book.current_tow = -1 # base value for TOW, common timebase will be GPS TOW, with systime_usec
+    # converted to current_tow (msec) + (systime_usec/1000 - baseSystime))
+    log_book.baseSystime = -1  # this could be problematic, since systime_usec is type uint64_t
+    boxFilter = boxcar()
 
     # Create either a SERIAL_MAVLINK or SUE class for getting next telemetry record
     if options.telemetry_type == "SERIAL_MAVLINK_RAW" or  \
@@ -2228,12 +2267,35 @@ def create_log_book(options) :
                     log_book.waypoints_in_telemetry = True
                 log.tm = flight_clock.synthesize(log.tm) # interpolate time between identical entries
                 #print "type: ", log.log_format, " time: ", log.tm
+                log_book.current_tow = log.tm
+                log_book.baseSystime = -1
+#                 print("current_tow: %i\n" % log_book.current_tow)
                 
                 if (miss_out_counter > miss_out_interval) :# only store log every X times for large datasets
                     log_book.entries.append(log)
                     miss_out_counter = 0
         elif log.log_format == "RAW_IMU" : # raw IMU data is filtered and stored in telemetry record
-            log_book.accel_set = True
+            if (log_book.current_tow > 0):
+                log_book.accel_set = True
+                if (log_book.baseSystime < 0):
+                    log_book.baseSystime = msg.time_usec
+#                     print("baseSystime %i" % log_book.baseSystime)
+                    
+#                 commonTime = 560 + log_book.current_tow + (msg.time_usec - log_book.baseSystime)/1000
+                commonTime = log_book.current_tow + (msg.time_usec - log_book.baseSystime)/1000
+#                 print("commonTime %i" % commonTime)
+                entry = [commonTime, msg.xacc, msg.yacc, msg.zacc,
+                         msg.xgyro, msg.ygyro, msg.zgyro, 
+                         msg.xmag, msg.ymag, msg.zmag]
+                log_book.raw_imu.append(entry)
+                
+                filterTime = commonTime - 250
+                entry = [filterTime, float(boxcar.sums[0]) / boxcar.length, boxcar.sums[1], boxcar.sums[2]
+                         , boxcar.sums[3], boxcar.sums[4], boxcar.sums[5]
+                         , boxcar.sums[6], boxcar.sums[7], boxcar.sums[8]]
+                log_book.filtered_imu.append(entry)
+                
+            
         elif log.log_format == "F4" : # We have a type of options.h line
             # format of roll_stabilization has changed over time
             try:
@@ -2516,6 +2578,7 @@ def process_telemetry():
     if (options.telemetry_selector == 1):
         print "Analyzing telemetry and creating flight log book"
         log_book = create_log_book(options)
+        log_book.plot_imu()
         print "Writing to temporary telemetry kml file"
         kml_result = create_telemetry_kmz(options, log_book) 
     elif ((options.waypoint_selector ==1 ) and (options.telemetry_selector == 0)):

@@ -36,7 +36,7 @@ S'/home/markw/git/MatrixPilot/MatrixPilot/Cub-auav3/projectSpecific/waypoints_we
 p15
 sS'CSV_selector'
 p16
-I1
+I0
 sS'relocate'
 p17
 I0
@@ -46,7 +46,7 @@ S'/home/markw/Copy/flightlogs/Cub-auav3-fbw-tests/mw4/LOG02546.kmz'
 p19
 sS'waypoint_selector'
 p20
-I1
+I0
 sS'telemetry_selector'
 p21
 I1

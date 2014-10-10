@@ -17,11 +17,12 @@ def bstr(n): # n in range 0-7
 
 class boxcar:
     # run a boxcar integrator on raw IMU data: length 250msec
+    atts = np.zeros(9)   
     index = 0
     length = 25
     buf = np.zeros((9, 25), dtype=int)
     sums = np.zeros((9, 1), dtype=float)
-    
+        
 class raw_mavlink_telemetry_file:
     """Model a mavlink file (one without local time stamps inserted)"""
     def __init__(self, filename, type_of_mavlink):
@@ -158,7 +159,7 @@ class ascii_telemetry_file:
         self.f.close()
        
 
-class base_telemetry :
+class base_telemetry :    
     def __init__(self) :
         """Pattern match against a line of telemetry. max_tm_actual is the maximum
         actual time of week seen so far. It is required for processing a week rollover."""
@@ -329,8 +330,17 @@ class mavlink_telemetry(base_telemetry):
                 self.IMUvelocityz = int(telemetry_file.msg.sue_imu_velocity_z)
                 
                 self.IMUraw_xacc = float(boxcar.sums[0]) / boxcar.length
+#                 self.IMUraw_xacc = boxcar.atts[0]
                 self.IMUraw_yacc = float(boxcar.sums[1]) / boxcar.length
                 self.IMUraw_zacc = float(boxcar.sums[2]) / boxcar.length
+                
+                self.IMUraw_xgyro = float(boxcar.sums[3]) / boxcar.length
+                self.IMUraw_ygyro = float(boxcar.sums[4]) / boxcar.length
+                self.IMUraw_zgyro = float(boxcar.sums[5]) / boxcar.length
+                
+                self.IMUraw_xmag = float(boxcar.sums[6]) / boxcar.length
+                self.IMUraw_ymag = float(boxcar.sums[7]) / boxcar.length
+                self.IMUraw_zmag = float(boxcar.sums[8]) / boxcar.length
                 
                 self.inline_waypoint_x = int(telemetry_file.msg.sue_waypoint_goal_x)
                 self.inline_waypoint_y = int(telemetry_file.msg.sue_waypoint_goal_y)
@@ -346,48 +356,28 @@ class mavlink_telemetry(base_telemetry):
         elif telemetry_file.msg.get_type() == 'RAW_IMU':
             #print "RAW_IMU time: ", telemetry_file.msg.time_usec
             if hasattr(telemetry_file, 'last_F2_A_msg'):
-                self.tm_actual = float (telemetry_file.last_F2_A_msg.sue_time)
-                if ((self.tm_actual < max_tm_actual) and ( max_tm_actual > 604780000 )):
-                        # 604800000 is no. of milliseconds in a week. This extra precaution required because
-                        # occausionally the log file can have an entry with a time which precedes the previous entry.
-                        # The following seconds rollover fix only works for flights of less than 1 week
-                        # in length. So watch out when analyzing your global solar powered UAV flights.
-                        print "Executing code for GPS weekly seconds rollover"
-                        self.tm = self.tm_actual + max_tm_actual
-                elif (self.tm_actual < max_tm_actual) :
-                        self.tm = max_tm_actual
-                        # takes account of occassional time entry which precedes time of previous entry.
-                        # This can happen when EM406A first starts up near beginning of telemetry.
-                        # It is caused by a synchronisation issue between GPS time, and synthesized time
-                        # within MatrixPilot. It has been seen to occur once near startup time of the UDB.
-                else :
-                        self.tm = self.tm_actual
-                        
-                self.tm_actual = float (telemetry_file.msg.time_usec)
-
-                atts = np.zeros(boxcar.length)
                 
-                atts[0] = telemetry_file.msg.xacc
-                atts[1] = telemetry_file.msg.yacc
-                atts[2] = telemetry_file.msg.zacc
-                atts[3] = telemetry_file.msg.xgyro
-                atts[4] = telemetry_file.msg.ygyro
-                atts[5] = telemetry_file.msg.zgyro
-                atts[6] = telemetry_file.msg.xmag
-                atts[7] = telemetry_file.msg.ymag
-                atts[8] = telemetry_file.msg.zmag
-
+                boxcar.atts[0] = telemetry_file.msg.xacc
+                boxcar.atts[1] = telemetry_file.msg.yacc
+                boxcar.atts[2] = telemetry_file.msg.zacc
+                boxcar.atts[3] = telemetry_file.msg.xgyro
+                boxcar.atts[4] = telemetry_file.msg.ygyro
+                boxcar.atts[5] = telemetry_file.msg.zgyro
+                boxcar.atts[6] = telemetry_file.msg.xmag
+                boxcar.atts[7] = telemetry_file.msg.ymag
+                boxcar.atts[8] = telemetry_file.msg.zmag
+                
                 # index of oldest value
                 boxcar.index += 1
                 boxcar.index %= boxcar.length 
-
-                for attIndex in range(0, 3):
-                    #print "boxIndex: ", boxcar.index, " new: ", atts[attIndex], " old: ", boxcar.buf[attIndex, boxcar.index]
+ 
+                for attIndex in range(0, 9):
+                    #print "boxIndex: ", boxcar.index, " new: ", boxcar.atts[attIndex], " old: ", boxcar.buf[attIndex, boxcar.index]
                     # add (new - oldest) value
-                    boxcar.sums[attIndex] += atts[attIndex] - boxcar.buf[attIndex, boxcar.index]
+                    boxcar.sums[attIndex] += boxcar.atts[attIndex] - boxcar.buf[attIndex, boxcar.index]
                     #print "sum: ", boxcar.sums[attIndex]
                     # save new value over oldest value
-                    boxcar.buf[attIndex, boxcar.index] = atts[attIndex]
+                    boxcar.buf[attIndex, boxcar.index] = boxcar.atts[attIndex]
                     
             return("RAW_IMU")
             
