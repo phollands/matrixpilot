@@ -2038,24 +2038,36 @@ class flight_log_book:
         # fieldnames = ['time_usec', 'xacc', 'yacc', 'zacc', 'xgyro', 'ygyro', 'zgyro', 'xmag', 'ymag', 'zmag']
         imudata = np.array(self.raw_imu)
         imudata_filt = np.array(self.filtered_imu)
-        suedata = np.zeros((len(self.entries), 3))
+        suedata = np.zeros((len(self.entries), 7))
         index = 0
         for entry in self.entries:
-            suedata[index, 0] = entry.tm_actual
+            suedata[index, 0] = entry.tm
             suedata[index, 1] = entry.IMUraw_xacc
             suedata[index, 2] = entry.pwm_output[4]
+            suedata[index, 3] = entry.pwm_input[4]
+            suedata[index, 4] = entry.pwm_input[6]
+            suedata[index, 5] = entry.pwm_output[2]
+            
             index+=1
             
-        x = imudata[0:,0]
-        y = imudata[0:,1]
-        x1 = imudata_filt[0:,0]
-        y1 = imudata_filt[0:,1]
-        x2 = suedata[0:,0]
-        y2 = -20 * (suedata[0:,2] - 3000)
+        imu_t = imudata[0:,0]
+        raw_xacc = -imudata[0:,1]
+        imu_filt_t = imudata_filt[0:,0]
+        filt_xacc = -imudata_filt[0:,1]
+        filt_zacc = imudata_filt[0:,3]
+        sue_t = suedata[0:,0]
+        rudder_out = 20 * (suedata[0:,2] - 3000)
+        rudder_man = 20 * (suedata[0:,3] - 3000)
+        mode = 20 * (suedata[0:,4] - 3000)
+        aileron_out = 20 * (suedata[0:,5] - 3000)
         plt.figure(1)
-        plt.plot(x, y, 'or', label='xacc')
-        plt.plot(x1, y1, '-ob', label='xacc_filt')
-        plt.plot(x2, y2, '-og', label='rudder')
+        plt.plot(imu_t, raw_xacc, 'o', label='xacc')
+        plt.plot(imu_filt_t, filt_xacc, '-o', label='xacc_filt')
+        plt.plot(imu_filt_t, filt_zacc, 'o', label='zacc_filt')
+        plt.plot(sue_t, rudder_out, '-o', label='rudder_out')
+        plt.plot(sue_t, rudder_man, '-o', label='rudder_man')
+        plt.plot(sue_t, mode, '-o', label='mode')
+        plt.plot(sue_t, aileron_out, '-o', label='aileron_out')
         plt.xlabel('gps time')
         plt.ylabel('xacc')
         plt.grid()
@@ -2290,9 +2302,16 @@ def create_log_book(options) :
                 log_book.raw_imu.append(entry)
                 
                 filterTime = commonTime - 250
-                entry = [filterTime, float(boxcar.sums[0]) / boxcar.length, boxcar.sums[1], boxcar.sums[2]
-                         , boxcar.sums[3], boxcar.sums[4], boxcar.sums[5]
-                         , boxcar.sums[6], boxcar.sums[7], boxcar.sums[8]]
+                entry = [filterTime, 
+                         float(boxcar.sums[0]) / boxcar.length, 
+                         float(boxcar.sums[1]) / boxcar.length, 
+                         float(boxcar.sums[2]) / boxcar.length, 
+                         float(boxcar.sums[3]) / boxcar.length, 
+                         float(boxcar.sums[4]) / boxcar.length, 
+                         float(boxcar.sums[5]) / boxcar.length, 
+                         float(boxcar.sums[6]) / boxcar.length, 
+                         float(boxcar.sums[7]) / boxcar.length, 
+                         float(boxcar.sums[8]) / boxcar.length]
                 log_book.filtered_imu.append(entry)
                 
             
