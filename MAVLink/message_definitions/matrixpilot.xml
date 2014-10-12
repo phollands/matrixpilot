@@ -116,6 +116,7 @@
     <message id="170" name="SERIAL_UDB_EXTRA_F2_A">
       <description>Backwards compatible MAVLink version of SERIAL_UDB_EXTRA - F2: Format Part A</description>
       <field type="uint32_t" name="sue_time">Serial UDB Extra Time</field>
+      <field type="uint64_t" name="systime_usec">Serial UDB Extra systime</field>
       <field type="uint8_t" name="sue_status">Serial UDB Extra Status</field>
       <field type="int32_t" name="sue_latitude">Serial UDB Extra Latitude</field>
       <field type="int32_t" name="sue_longitude">Serial UDB Extra Longitude</field>
@@ -147,6 +148,7 @@
     <message id="171" name="SERIAL_UDB_EXTRA_F2_B">
       <description>Backwards compatible version of SERIAL_UDB_EXTRA - F2: Part B</description>
       <field type="uint32_t" name="sue_time">Serial UDB Extra Time</field>
+      <field type="uint64_t" name="systime_usec">Serial UDB Extra systime</field>
       <field type="int16_t" name="sue_pwm_input_1">Serial UDB Extra PWM Input Channel 1</field>
       <field type="int16_t" name="sue_pwm_input_2">Serial UDB Extra PWM Input Channel 2</field>
       <field type="int16_t" name="sue_pwm_input_3">Serial UDB Extra PWM Input Channel 3</field>

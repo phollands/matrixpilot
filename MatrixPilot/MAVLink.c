@@ -1866,7 +1866,7 @@ void mavlink_output(void)
 					}
 
 #if (MAG_YAW_DRIFT == 1)
-					mavlink_msg_serial_udb_extra_f2_a_send(MAVLINK_COMM_0, tow.WW,
+					mavlink_msg_serial_udb_extra_f2_a_send(MAVLINK_COMM_0, tow.WW, systime_usec,
 						((udb_flags._.radio_on << 2) + (dcm_flags._.nav_capable << 1) + flags._.GPS_steering),
 						lat_gps.WW, long_gps.WW, alt_sl_gps.WW, waypointIndex,
 						rmat[0], rmat[1], rmat[2], rmat[3], rmat[4], rmat[5], rmat[6], rmat[7], rmat[8],
@@ -1901,7 +1901,7 @@ void mavlink_output(void)
 						int16_t stack_free = 0;
 #endif
 
-						mavlink_msg_serial_udb_extra_f2_b_send(MAVLINK_COMM_0, tow.WW,
+						mavlink_msg_serial_udb_extra_f2_b_send(MAVLINK_COMM_0, tow.WW, systime_usec,
 							pwIn_save[1], pwIn_save[2], pwIn_save[3], pwIn_save[4], pwIn_save[5],
 							pwIn_save[6], pwIn_save[7], pwIn_save[8], pwIn_save[9], pwIn_save[10],
 							pwOut_save[1], pwOut_save[2], pwOut_save[3], pwOut_save[4], pwOut_save[5],

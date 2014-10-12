@@ -2034,14 +2034,14 @@ class flight_log_book:
         self.waypoints_in_telemetry = False
 
     def plot_imu(self):
-        sys.argv = ['junk']
+#         sys.argv = ['junk']
         # fieldnames = ['time_usec', 'xacc', 'yacc', 'zacc', 'xgyro', 'ygyro', 'zgyro', 'xmag', 'ymag', 'zmag']
         imudata = np.array(self.raw_imu)
         imudata_filt = np.array(self.filtered_imu)
         suedata = np.zeros((len(self.entries), 7))
         index = 0
         for entry in self.entries:
-            suedata[index, 0] = entry.tm
+            suedata[index, 0] = entry.systime_usec
             suedata[index, 1] = entry.IMUraw_xacc
             suedata[index, 2] = entry.pwm_output[4]
             suedata[index, 3] = entry.pwm_input[4]
@@ -2068,8 +2068,10 @@ class flight_log_book:
         plt.plot(sue_t, rudder_man, '-o', label='rudder_man')
         plt.plot(sue_t, mode, '-o', label='mode')
         plt.plot(sue_t, aileron_out, '-o', label='aileron_out')
-        plt.xlabel('gps time')
+        plt.xlabel('system time: usec')
         plt.ylabel('xacc')
+#         start, end = plt.axes().get_xlim()
+#         plt.axes().xaxis.set_ticks(np.arange(start, end, 200))
         plt.grid()
         plt.legend()
         plt.show()
@@ -2205,6 +2207,7 @@ def create_telemetry_kmz(options,log_book):
 def create_log_book(options) :
     """Parse the telemetryfile and create a virtual flight log book object"""
     raw_imu_cnt = 0
+    boxfilt = boxcar()
     
     # Set up Basic Initial Values for creating a log book.
     roll = 0  # only used with ardustation roll
@@ -2225,9 +2228,6 @@ def create_log_book(options) :
     log_book.accel_set = False         # No accel vector info in GE unless X accel arrives
     log_book.dead_reckoning = 0    # By default dead reckoning is assumed to be off until telemetry arrives
     log_book.primary_locator = GPS # Default is to use GPS for plotting plane position unless IMU info arrives
-    log_book.current_tow = -1 # base value for TOW, common timebase will be GPS TOW, with systime_usec
-    # converted to current_tow (msec) + (systime_usec/1000 - baseSystime))
-    log_book.baseSystime = -1  # this could be problematic, since systime_usec is type uint64_t
     boxFilter = boxcar()
 
     # Create either a SERIAL_MAVLINK or SUE class for getting next telemetry record
@@ -2280,39 +2280,31 @@ def create_log_book(options) :
                 log.tm = flight_clock.synthesize(log.tm) # interpolate time between identical entries
                 #print "type: ", log.log_format, " time: ", log.tm
                 log_book.current_tow = log.tm
-                log_book.baseSystime = -1
 #                 print("current_tow: %i\n" % log_book.current_tow)
                 
                 if (miss_out_counter > miss_out_interval) :# only store log every X times for large datasets
                     log_book.entries.append(log)
                     miss_out_counter = 0
         elif log.log_format == "RAW_IMU" : # raw IMU data is filtered and stored in telemetry record
-            if (log_book.current_tow > 0):
-                log_book.accel_set = True
-                if (log_book.baseSystime < 0):
-                    log_book.baseSystime = msg.time_usec
-#                     print("baseSystime %i" % log_book.baseSystime)
-                    
-#                 commonTime = 560 + log_book.current_tow + (msg.time_usec - log_book.baseSystime)/1000
-                commonTime = log_book.current_tow + (msg.time_usec - log_book.baseSystime)/1000
-#                 print("commonTime %i" % commonTime)
-                entry = [commonTime, msg.xacc, msg.yacc, msg.zacc,
-                         msg.xgyro, msg.ygyro, msg.zgyro, 
-                         msg.xmag, msg.ymag, msg.zmag]
-                log_book.raw_imu.append(entry)
+            log_book.accel_set = True
                 
-                filterTime = commonTime - 250
-                entry = [filterTime, 
-                         float(boxcar.sums[0]) / boxcar.length, 
-                         float(boxcar.sums[1]) / boxcar.length, 
-                         float(boxcar.sums[2]) / boxcar.length, 
-                         float(boxcar.sums[3]) / boxcar.length, 
-                         float(boxcar.sums[4]) / boxcar.length, 
-                         float(boxcar.sums[5]) / boxcar.length, 
-                         float(boxcar.sums[6]) / boxcar.length, 
-                         float(boxcar.sums[7]) / boxcar.length, 
-                         float(boxcar.sums[8]) / boxcar.length]
-                log_book.filtered_imu.append(entry)
+            entry = [msg.time_usec, msg.xacc, msg.yacc, msg.zacc,
+                     msg.xgyro, msg.ygyro, msg.zgyro, 
+                     msg.xmag, msg.ymag, msg.zmag]
+            log_book.raw_imu.append(entry)
+            
+            filterTime = msg.time_usec - 250000
+            entry = [filterTime, 
+                     float(boxcar.sums[0]) / boxcar.length, 
+                     float(boxcar.sums[1]) / boxcar.length, 
+                     float(boxcar.sums[2]) / boxcar.length, 
+                     float(boxcar.sums[3]) / boxcar.length, 
+                     float(boxcar.sums[4]) / boxcar.length, 
+                     float(boxcar.sums[5]) / boxcar.length, 
+                     float(boxcar.sums[6]) / boxcar.length, 
+                     float(boxcar.sums[7]) / boxcar.length, 
+                     float(boxcar.sums[8]) / boxcar.length]
+            log_book.filtered_imu.append(entry)
                 
             
         elif log.log_format == "F4" : # We have a type of options.h line

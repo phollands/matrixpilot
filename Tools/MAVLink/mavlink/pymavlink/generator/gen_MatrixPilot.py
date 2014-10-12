@@ -174,7 +174,7 @@ for target_name in target_files:
 ##### End of Main program to generate MAVLink C and Python files ####
 
 ##### Copy new XML message definitions to main trunk directories
-source_directory = "../../message_definitions/V1.0"
+source_directory = "../../message_definitions/v1.0"
 target_directory = "../../../../../MAVLink/message_definitions"
 if os.access(source_directory, os.R_OK):
     if os.access(target_directory, os.W_OK):

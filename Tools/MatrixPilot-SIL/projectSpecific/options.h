@@ -533,7 +533,7 @@
 #define YAWKD_RUDDER				0.01 //0.03 // 0.1
 #define ROLLKP_RUDDER				0.04
 #define ROLLKD_RUDDER				0 //0.05
-#define MANUAL_AILERON_RUDDER_MIX	0.0
+#define MANUAL_AILERON_RUDDER_MIX               0.5
 #define RUDDER_BOOST				0.5
 
 // Gains for Hovering

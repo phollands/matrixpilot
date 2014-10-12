@@ -124,8 +124,6 @@ void normalYawCntrl(void)
                 }
 #else
                 // acceleration data comes from the onboard sensor
-                // Note that the sign of x acceleration needs to be flipped here to
-                // get negative feedback, but not in SILSIM; this is confusing...
                 int16_t xacc_scaled = -xgain * XACCEL_VALUE;
 #endif
 		gyroYawFeedback._.W1 -= xacc_scaled;

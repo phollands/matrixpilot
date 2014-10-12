@@ -22,6 +22,21 @@ class boxcar:
     length = 25
     buf = np.zeros((9, 25), dtype=int)
     sums = np.zeros((9, 1), dtype=float)
+    
+    def update(self, data):
+        
+        # index of oldest value
+        self.index += 1
+        self.index %= self.length 
+        
+        for idx in range(0, 9):
+            #print "boxIndex: ", self.index, " new: ", self.atts[idx], " old: ", self.buf[idx, self.index]
+            # add (new - oldest) value
+            self.sums[idx] += data[idx] - self.buf[idx, self.index]
+            #print "sum: ", self.sums[idx]
+            # save new value over oldest value
+            self.buf[idx, self.index] = data[idx]
+
         
 class raw_mavlink_telemetry_file:
     """Model a mavlink file (one without local time stamps inserted)"""
@@ -171,6 +186,7 @@ class base_telemetry :
         self.tm_actual = float (0)    # Actual reported time of week from gps
         self.tm = float (0)           # self.tm takes account of weekly rollover of GPS seconds
                                       # and is synthesized if multiple entries are identical.
+        self.systime_usec = int(0)                                      
         self.status =    "0"
         self.latitude =  float(0)
         self.longitude = float(0)
@@ -268,6 +284,7 @@ class mavlink_telemetry(base_telemetry):
                 else :
                         self.tm = self.tm_actual
                 
+                self.systime_usec = int(telemetry_file.last_F2_A_msg.systime_usec)
                 self.status = bstr( telemetry_file.last_F2_A_msg.sue_status )
                 self.latitude = float(telemetry_file.last_F2_A_msg.sue_latitude)
                 self.longitude = float(telemetry_file.last_F2_A_msg.sue_longitude)

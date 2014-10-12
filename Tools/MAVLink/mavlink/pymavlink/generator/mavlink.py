@@ -679,10 +679,11 @@ class MAVLink_serial_udb_extra_f2_a_message(MAVLink_message):
         Backwards compatible MAVLink version of SERIAL_UDB_EXTRA - F2:
         Format Part A
         '''
-        def __init__(self, sue_time, sue_status, sue_latitude, sue_longitude, sue_altitude, sue_waypoint_index, sue_rmat0, sue_rmat1, sue_rmat2, sue_rmat3, sue_rmat4, sue_rmat5, sue_rmat6, sue_rmat7, sue_rmat8, sue_cog, sue_sog, sue_cpu_load, sue_voltage_milis, sue_air_speed_3DIMU, sue_estimated_wind_0, sue_estimated_wind_1, sue_estimated_wind_2, sue_magFieldEarth0, sue_magFieldEarth1, sue_magFieldEarth2, sue_svs, sue_hdop):
+        def __init__(self, sue_time, systime_usec, sue_status, sue_latitude, sue_longitude, sue_altitude, sue_waypoint_index, sue_rmat0, sue_rmat1, sue_rmat2, sue_rmat3, sue_rmat4, sue_rmat5, sue_rmat6, sue_rmat7, sue_rmat8, sue_cog, sue_sog, sue_cpu_load, sue_voltage_milis, sue_air_speed_3DIMU, sue_estimated_wind_0, sue_estimated_wind_1, sue_estimated_wind_2, sue_magFieldEarth0, sue_magFieldEarth1, sue_magFieldEarth2, sue_svs, sue_hdop):
                 MAVLink_message.__init__(self, MAVLINK_MSG_ID_SERIAL_UDB_EXTRA_F2_A, 'SERIAL_UDB_EXTRA_F2_A')
-                self._fieldnames = ['sue_time', 'sue_status', 'sue_latitude', 'sue_longitude', 'sue_altitude', 'sue_waypoint_index', 'sue_rmat0', 'sue_rmat1', 'sue_rmat2', 'sue_rmat3', 'sue_rmat4', 'sue_rmat5', 'sue_rmat6', 'sue_rmat7', 'sue_rmat8', 'sue_cog', 'sue_sog', 'sue_cpu_load', 'sue_voltage_milis', 'sue_air_speed_3DIMU', 'sue_estimated_wind_0', 'sue_estimated_wind_1', 'sue_estimated_wind_2', 'sue_magFieldEarth0', 'sue_magFieldEarth1', 'sue_magFieldEarth2', 'sue_svs', 'sue_hdop']
+                self._fieldnames = ['sue_time', 'systime_usec', 'sue_status', 'sue_latitude', 'sue_longitude', 'sue_altitude', 'sue_waypoint_index', 'sue_rmat0', 'sue_rmat1', 'sue_rmat2', 'sue_rmat3', 'sue_rmat4', 'sue_rmat5', 'sue_rmat6', 'sue_rmat7', 'sue_rmat8', 'sue_cog', 'sue_sog', 'sue_cpu_load', 'sue_voltage_milis', 'sue_air_speed_3DIMU', 'sue_estimated_wind_0', 'sue_estimated_wind_1', 'sue_estimated_wind_2', 'sue_magFieldEarth0', 'sue_magFieldEarth1', 'sue_magFieldEarth2', 'sue_svs', 'sue_hdop']
                 self.sue_time = sue_time
+                self.systime_usec = systime_usec
                 self.sue_status = sue_status
                 self.sue_latitude = sue_latitude
                 self.sue_longitude = sue_longitude
@@ -712,16 +713,17 @@ class MAVLink_serial_udb_extra_f2_a_message(MAVLink_message):
                 self.sue_hdop = sue_hdop
 
         def pack(self, mav):
-                return MAVLink_message.pack(self, mav, 150, struct.pack('<IiiiHhhhhhhhhhHhHhHhhhhhhhhB', self.sue_time, self.sue_latitude, self.sue_longitude, self.sue_altitude, self.sue_waypoint_index, self.sue_rmat0, self.sue_rmat1, self.sue_rmat2, self.sue_rmat3, self.sue_rmat4, self.sue_rmat5, self.sue_rmat6, self.sue_rmat7, self.sue_rmat8, self.sue_cog, self.sue_sog, self.sue_cpu_load, self.sue_voltage_milis, self.sue_air_speed_3DIMU, self.sue_estimated_wind_0, self.sue_estimated_wind_1, self.sue_estimated_wind_2, self.sue_magFieldEarth0, self.sue_magFieldEarth1, self.sue_magFieldEarth2, self.sue_svs, self.sue_hdop, self.sue_status))
+                return MAVLink_message.pack(self, mav, 253, struct.pack('<QIiiiHhhhhhhhhhHhHhHhhhhhhhhB', self.systime_usec, self.sue_time, self.sue_latitude, self.sue_longitude, self.sue_altitude, self.sue_waypoint_index, self.sue_rmat0, self.sue_rmat1, self.sue_rmat2, self.sue_rmat3, self.sue_rmat4, self.sue_rmat5, self.sue_rmat6, self.sue_rmat7, self.sue_rmat8, self.sue_cog, self.sue_sog, self.sue_cpu_load, self.sue_voltage_milis, self.sue_air_speed_3DIMU, self.sue_estimated_wind_0, self.sue_estimated_wind_1, self.sue_estimated_wind_2, self.sue_magFieldEarth0, self.sue_magFieldEarth1, self.sue_magFieldEarth2, self.sue_svs, self.sue_hdop, self.sue_status))
 
 class MAVLink_serial_udb_extra_f2_b_message(MAVLink_message):
         '''
         Backwards compatible version of SERIAL_UDB_EXTRA - F2: Part B
         '''
-        def __init__(self, sue_time, sue_pwm_input_1, sue_pwm_input_2, sue_pwm_input_3, sue_pwm_input_4, sue_pwm_input_5, sue_pwm_input_6, sue_pwm_input_7, sue_pwm_input_8, sue_pwm_input_9, sue_pwm_input_10, sue_pwm_output_1, sue_pwm_output_2, sue_pwm_output_3, sue_pwm_output_4, sue_pwm_output_5, sue_pwm_output_6, sue_pwm_output_7, sue_pwm_output_8, sue_pwm_output_9, sue_pwm_output_10, sue_imu_location_x, sue_imu_location_y, sue_imu_location_z, sue_flags, sue_osc_fails, sue_imu_velocity_x, sue_imu_velocity_y, sue_imu_velocity_z, sue_waypoint_goal_x, sue_waypoint_goal_y, sue_waypoint_goal_z, sue_memory_stack_free):
+        def __init__(self, sue_time, systime_usec, sue_pwm_input_1, sue_pwm_input_2, sue_pwm_input_3, sue_pwm_input_4, sue_pwm_input_5, sue_pwm_input_6, sue_pwm_input_7, sue_pwm_input_8, sue_pwm_input_9, sue_pwm_input_10, sue_pwm_output_1, sue_pwm_output_2, sue_pwm_output_3, sue_pwm_output_4, sue_pwm_output_5, sue_pwm_output_6, sue_pwm_output_7, sue_pwm_output_8, sue_pwm_output_9, sue_pwm_output_10, sue_imu_location_x, sue_imu_location_y, sue_imu_location_z, sue_flags, sue_osc_fails, sue_imu_velocity_x, sue_imu_velocity_y, sue_imu_velocity_z, sue_waypoint_goal_x, sue_waypoint_goal_y, sue_waypoint_goal_z, sue_memory_stack_free):
                 MAVLink_message.__init__(self, MAVLINK_MSG_ID_SERIAL_UDB_EXTRA_F2_B, 'SERIAL_UDB_EXTRA_F2_B')
-                self._fieldnames = ['sue_time', 'sue_pwm_input_1', 'sue_pwm_input_2', 'sue_pwm_input_3', 'sue_pwm_input_4', 'sue_pwm_input_5', 'sue_pwm_input_6', 'sue_pwm_input_7', 'sue_pwm_input_8', 'sue_pwm_input_9', 'sue_pwm_input_10', 'sue_pwm_output_1', 'sue_pwm_output_2', 'sue_pwm_output_3', 'sue_pwm_output_4', 'sue_pwm_output_5', 'sue_pwm_output_6', 'sue_pwm_output_7', 'sue_pwm_output_8', 'sue_pwm_output_9', 'sue_pwm_output_10', 'sue_imu_location_x', 'sue_imu_location_y', 'sue_imu_location_z', 'sue_flags', 'sue_osc_fails', 'sue_imu_velocity_x', 'sue_imu_velocity_y', 'sue_imu_velocity_z', 'sue_waypoint_goal_x', 'sue_waypoint_goal_y', 'sue_waypoint_goal_z', 'sue_memory_stack_free']
+                self._fieldnames = ['sue_time', 'systime_usec', 'sue_pwm_input_1', 'sue_pwm_input_2', 'sue_pwm_input_3', 'sue_pwm_input_4', 'sue_pwm_input_5', 'sue_pwm_input_6', 'sue_pwm_input_7', 'sue_pwm_input_8', 'sue_pwm_input_9', 'sue_pwm_input_10', 'sue_pwm_output_1', 'sue_pwm_output_2', 'sue_pwm_output_3', 'sue_pwm_output_4', 'sue_pwm_output_5', 'sue_pwm_output_6', 'sue_pwm_output_7', 'sue_pwm_output_8', 'sue_pwm_output_9', 'sue_pwm_output_10', 'sue_imu_location_x', 'sue_imu_location_y', 'sue_imu_location_z', 'sue_flags', 'sue_osc_fails', 'sue_imu_velocity_x', 'sue_imu_velocity_y', 'sue_imu_velocity_z', 'sue_waypoint_goal_x', 'sue_waypoint_goal_y', 'sue_waypoint_goal_z', 'sue_memory_stack_free']
                 self.sue_time = sue_time
+                self.systime_usec = systime_usec
                 self.sue_pwm_input_1 = sue_pwm_input_1
                 self.sue_pwm_input_2 = sue_pwm_input_2
                 self.sue_pwm_input_3 = sue_pwm_input_3
@@ -756,7 +758,7 @@ class MAVLink_serial_udb_extra_f2_b_message(MAVLink_message):
                 self.sue_memory_stack_free = sue_memory_stack_free
 
         def pack(self, mav):
-                return MAVLink_message.pack(self, mav, 169, struct.pack('<IIhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh', self.sue_time, self.sue_flags, self.sue_pwm_input_1, self.sue_pwm_input_2, self.sue_pwm_input_3, self.sue_pwm_input_4, self.sue_pwm_input_5, self.sue_pwm_input_6, self.sue_pwm_input_7, self.sue_pwm_input_8, self.sue_pwm_input_9, self.sue_pwm_input_10, self.sue_pwm_output_1, self.sue_pwm_output_2, self.sue_pwm_output_3, self.sue_pwm_output_4, self.sue_pwm_output_5, self.sue_pwm_output_6, self.sue_pwm_output_7, self.sue_pwm_output_8, self.sue_pwm_output_9, self.sue_pwm_output_10, self.sue_imu_location_x, self.sue_imu_location_y, self.sue_imu_location_z, self.sue_osc_fails, self.sue_imu_velocity_x, self.sue_imu_velocity_y, self.sue_imu_velocity_z, self.sue_waypoint_goal_x, self.sue_waypoint_goal_y, self.sue_waypoint_goal_z, self.sue_memory_stack_free))
+                return MAVLink_message.pack(self, mav, 100, struct.pack('<QIIhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh', self.systime_usec, self.sue_time, self.sue_flags, self.sue_pwm_input_1, self.sue_pwm_input_2, self.sue_pwm_input_3, self.sue_pwm_input_4, self.sue_pwm_input_5, self.sue_pwm_input_6, self.sue_pwm_input_7, self.sue_pwm_input_8, self.sue_pwm_input_9, self.sue_pwm_input_10, self.sue_pwm_output_1, self.sue_pwm_output_2, self.sue_pwm_output_3, self.sue_pwm_output_4, self.sue_pwm_output_5, self.sue_pwm_output_6, self.sue_pwm_output_7, self.sue_pwm_output_8, self.sue_pwm_output_9, self.sue_pwm_output_10, self.sue_imu_location_x, self.sue_imu_location_y, self.sue_imu_location_z, self.sue_osc_fails, self.sue_imu_velocity_x, self.sue_imu_velocity_y, self.sue_imu_velocity_z, self.sue_waypoint_goal_x, self.sue_waypoint_goal_y, self.sue_waypoint_goal_z, self.sue_memory_stack_free))
 
 class MAVLink_serial_udb_extra_f4_message(MAVLink_message):
         '''
@@ -2551,8 +2553,8 @@ mavlink_map = {
         MAVLINK_MSG_ID_FLEXIFUNCTION_DIRECTORY_ACK : ( '<HBBBBB', MAVLink_flexifunction_directory_ack_message, [1, 2, 3, 4, 5, 0], 218 ),
         MAVLINK_MSG_ID_FLEXIFUNCTION_COMMAND : ( '<BBB', MAVLink_flexifunction_command_message, [0, 1, 2], 133 ),
         MAVLINK_MSG_ID_FLEXIFUNCTION_COMMAND_ACK : ( '<HH', MAVLink_flexifunction_command_ack_message, [0, 1], 208 ),
-        MAVLINK_MSG_ID_SERIAL_UDB_EXTRA_F2_A : ( '<IiiiHhhhhhhhhhHhHhHhhhhhhhhB', MAVLink_serial_udb_extra_f2_a_message, [0, 27, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26], 150 ),
-        MAVLINK_MSG_ID_SERIAL_UDB_EXTRA_F2_B : ( '<IIhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh', MAVLink_serial_udb_extra_f2_b_message, [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 1, 25, 26, 27, 28, 29, 30, 31, 32], 169 ),
+        MAVLINK_MSG_ID_SERIAL_UDB_EXTRA_F2_A : ( '<QIiiiHhhhhhhhhhHhHhHhhhhhhhhB', MAVLink_serial_udb_extra_f2_a_message, [1, 0, 28, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27], 253 ),
+        MAVLINK_MSG_ID_SERIAL_UDB_EXTRA_F2_B : ( '<QIIhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh', MAVLink_serial_udb_extra_f2_b_message, [1, 0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 2, 26, 27, 28, 29, 30, 31, 32, 33], 100 ),
         MAVLINK_MSG_ID_SERIAL_UDB_EXTRA_F4 : ( '<BBBBBBBBBB', MAVLink_serial_udb_extra_f4_message, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 191 ),
         MAVLINK_MSG_ID_SERIAL_UDB_EXTRA_F5 : ( '<ffffff', MAVLink_serial_udb_extra_f5_message, [0, 1, 2, 3, 4, 5], 121 ),
         MAVLINK_MSG_ID_SERIAL_UDB_EXTRA_F6 : ( '<fffff', MAVLink_serial_udb_extra_f6_message, [0, 1, 2, 3, 4], 54 ),
@@ -3053,12 +3055,13 @@ class MAVLink(object):
                 '''
                 return self.send(self.flexifunction_command_ack_encode(command_type, result))
             
-        def serial_udb_extra_f2_a_encode(self, sue_time, sue_status, sue_latitude, sue_longitude, sue_altitude, sue_waypoint_index, sue_rmat0, sue_rmat1, sue_rmat2, sue_rmat3, sue_rmat4, sue_rmat5, sue_rmat6, sue_rmat7, sue_rmat8, sue_cog, sue_sog, sue_cpu_load, sue_voltage_milis, sue_air_speed_3DIMU, sue_estimated_wind_0, sue_estimated_wind_1, sue_estimated_wind_2, sue_magFieldEarth0, sue_magFieldEarth1, sue_magFieldEarth2, sue_svs, sue_hdop):
+        def serial_udb_extra_f2_a_encode(self, sue_time, systime_usec, sue_status, sue_latitude, sue_longitude, sue_altitude, sue_waypoint_index, sue_rmat0, sue_rmat1, sue_rmat2, sue_rmat3, sue_rmat4, sue_rmat5, sue_rmat6, sue_rmat7, sue_rmat8, sue_cog, sue_sog, sue_cpu_load, sue_voltage_milis, sue_air_speed_3DIMU, sue_estimated_wind_0, sue_estimated_wind_1, sue_estimated_wind_2, sue_magFieldEarth0, sue_magFieldEarth1, sue_magFieldEarth2, sue_svs, sue_hdop):
                 '''
                 Backwards compatible MAVLink version of SERIAL_UDB_EXTRA - F2: Format
                 Part A
 
                 sue_time                  : Serial UDB Extra Time (uint32_t)
+                systime_usec              : Serial UDB Extra systime (uint64_t)
                 sue_status                : Serial UDB Extra Status (uint8_t)
                 sue_latitude              : Serial UDB Extra Latitude (int32_t)
                 sue_longitude             : Serial UDB Extra Longitude (int32_t)
@@ -3088,16 +3091,17 @@ class MAVLink(object):
                 sue_hdop                  : Serial UDB Extra GPS Horizontal Dilution of Precision (int16_t)
 
                 '''
-                msg = MAVLink_serial_udb_extra_f2_a_message(sue_time, sue_status, sue_latitude, sue_longitude, sue_altitude, sue_waypoint_index, sue_rmat0, sue_rmat1, sue_rmat2, sue_rmat3, sue_rmat4, sue_rmat5, sue_rmat6, sue_rmat7, sue_rmat8, sue_cog, sue_sog, sue_cpu_load, sue_voltage_milis, sue_air_speed_3DIMU, sue_estimated_wind_0, sue_estimated_wind_1, sue_estimated_wind_2, sue_magFieldEarth0, sue_magFieldEarth1, sue_magFieldEarth2, sue_svs, sue_hdop)
+                msg = MAVLink_serial_udb_extra_f2_a_message(sue_time, systime_usec, sue_status, sue_latitude, sue_longitude, sue_altitude, sue_waypoint_index, sue_rmat0, sue_rmat1, sue_rmat2, sue_rmat3, sue_rmat4, sue_rmat5, sue_rmat6, sue_rmat7, sue_rmat8, sue_cog, sue_sog, sue_cpu_load, sue_voltage_milis, sue_air_speed_3DIMU, sue_estimated_wind_0, sue_estimated_wind_1, sue_estimated_wind_2, sue_magFieldEarth0, sue_magFieldEarth1, sue_magFieldEarth2, sue_svs, sue_hdop)
                 msg.pack(self)
                 return msg
             
-        def serial_udb_extra_f2_a_send(self, sue_time, sue_status, sue_latitude, sue_longitude, sue_altitude, sue_waypoint_index, sue_rmat0, sue_rmat1, sue_rmat2, sue_rmat3, sue_rmat4, sue_rmat5, sue_rmat6, sue_rmat7, sue_rmat8, sue_cog, sue_sog, sue_cpu_load, sue_voltage_milis, sue_air_speed_3DIMU, sue_estimated_wind_0, sue_estimated_wind_1, sue_estimated_wind_2, sue_magFieldEarth0, sue_magFieldEarth1, sue_magFieldEarth2, sue_svs, sue_hdop):
+        def serial_udb_extra_f2_a_send(self, sue_time, systime_usec, sue_status, sue_latitude, sue_longitude, sue_altitude, sue_waypoint_index, sue_rmat0, sue_rmat1, sue_rmat2, sue_rmat3, sue_rmat4, sue_rmat5, sue_rmat6, sue_rmat7, sue_rmat8, sue_cog, sue_sog, sue_cpu_load, sue_voltage_milis, sue_air_speed_3DIMU, sue_estimated_wind_0, sue_estimated_wind_1, sue_estimated_wind_2, sue_magFieldEarth0, sue_magFieldEarth1, sue_magFieldEarth2, sue_svs, sue_hdop):
                 '''
                 Backwards compatible MAVLink version of SERIAL_UDB_EXTRA - F2: Format
                 Part A
 
                 sue_time                  : Serial UDB Extra Time (uint32_t)
+                systime_usec              : Serial UDB Extra systime (uint64_t)
                 sue_status                : Serial UDB Extra Status (uint8_t)
                 sue_latitude              : Serial UDB Extra Latitude (int32_t)
                 sue_longitude             : Serial UDB Extra Longitude (int32_t)
@@ -3127,13 +3131,14 @@ class MAVLink(object):
                 sue_hdop                  : Serial UDB Extra GPS Horizontal Dilution of Precision (int16_t)
 
                 '''
-                return self.send(self.serial_udb_extra_f2_a_encode(sue_time, sue_status, sue_latitude, sue_longitude, sue_altitude, sue_waypoint_index, sue_rmat0, sue_rmat1, sue_rmat2, sue_rmat3, sue_rmat4, sue_rmat5, sue_rmat6, sue_rmat7, sue_rmat8, sue_cog, sue_sog, sue_cpu_load, sue_voltage_milis, sue_air_speed_3DIMU, sue_estimated_wind_0, sue_estimated_wind_1, sue_estimated_wind_2, sue_magFieldEarth0, sue_magFieldEarth1, sue_magFieldEarth2, sue_svs, sue_hdop))
+                return self.send(self.serial_udb_extra_f2_a_encode(sue_time, systime_usec, sue_status, sue_latitude, sue_longitude, sue_altitude, sue_waypoint_index, sue_rmat0, sue_rmat1, sue_rmat2, sue_rmat3, sue_rmat4, sue_rmat5, sue_rmat6, sue_rmat7, sue_rmat8, sue_cog, sue_sog, sue_cpu_load, sue_voltage_milis, sue_air_speed_3DIMU, sue_estimated_wind_0, sue_estimated_wind_1, sue_estimated_wind_2, sue_magFieldEarth0, sue_magFieldEarth1, sue_magFieldEarth2, sue_svs, sue_hdop))
             
-        def serial_udb_extra_f2_b_encode(self, sue_time, sue_pwm_input_1, sue_pwm_input_2, sue_pwm_input_3, sue_pwm_input_4, sue_pwm_input_5, sue_pwm_input_6, sue_pwm_input_7, sue_pwm_input_8, sue_pwm_input_9, sue_pwm_input_10, sue_pwm_output_1, sue_pwm_output_2, sue_pwm_output_3, sue_pwm_output_4, sue_pwm_output_5, sue_pwm_output_6, sue_pwm_output_7, sue_pwm_output_8, sue_pwm_output_9, sue_pwm_output_10, sue_imu_location_x, sue_imu_location_y, sue_imu_location_z, sue_flags, sue_osc_fails, sue_imu_velocity_x, sue_imu_velocity_y, sue_imu_velocity_z, sue_waypoint_goal_x, sue_waypoint_goal_y, sue_waypoint_goal_z, sue_memory_stack_free):
+        def serial_udb_extra_f2_b_encode(self, sue_time, systime_usec, sue_pwm_input_1, sue_pwm_input_2, sue_pwm_input_3, sue_pwm_input_4, sue_pwm_input_5, sue_pwm_input_6, sue_pwm_input_7, sue_pwm_input_8, sue_pwm_input_9, sue_pwm_input_10, sue_pwm_output_1, sue_pwm_output_2, sue_pwm_output_3, sue_pwm_output_4, sue_pwm_output_5, sue_pwm_output_6, sue_pwm_output_7, sue_pwm_output_8, sue_pwm_output_9, sue_pwm_output_10, sue_imu_location_x, sue_imu_location_y, sue_imu_location_z, sue_flags, sue_osc_fails, sue_imu_velocity_x, sue_imu_velocity_y, sue_imu_velocity_z, sue_waypoint_goal_x, sue_waypoint_goal_y, sue_waypoint_goal_z, sue_memory_stack_free):
                 '''
                 Backwards compatible version of SERIAL_UDB_EXTRA - F2: Part B
 
                 sue_time                  : Serial UDB Extra Time (uint32_t)
+                systime_usec              : Serial UDB Extra systime (uint64_t)
                 sue_pwm_input_1           : Serial UDB Extra PWM Input Channel 1 (int16_t)
                 sue_pwm_input_2           : Serial UDB Extra PWM Input Channel 2 (int16_t)
                 sue_pwm_input_3           : Serial UDB Extra PWM Input Channel 3 (int16_t)
@@ -3168,15 +3173,16 @@ class MAVLink(object):
                 sue_memory_stack_free        : Serial UDB Extra Stack Memory Free (int16_t)
 
                 '''
-                msg = MAVLink_serial_udb_extra_f2_b_message(sue_time, sue_pwm_input_1, sue_pwm_input_2, sue_pwm_input_3, sue_pwm_input_4, sue_pwm_input_5, sue_pwm_input_6, sue_pwm_input_7, sue_pwm_input_8, sue_pwm_input_9, sue_pwm_input_10, sue_pwm_output_1, sue_pwm_output_2, sue_pwm_output_3, sue_pwm_output_4, sue_pwm_output_5, sue_pwm_output_6, sue_pwm_output_7, sue_pwm_output_8, sue_pwm_output_9, sue_pwm_output_10, sue_imu_location_x, sue_imu_location_y, sue_imu_location_z, sue_flags, sue_osc_fails, sue_imu_velocity_x, sue_imu_velocity_y, sue_imu_velocity_z, sue_waypoint_goal_x, sue_waypoint_goal_y, sue_waypoint_goal_z, sue_memory_stack_free)
+                msg = MAVLink_serial_udb_extra_f2_b_message(sue_time, systime_usec, sue_pwm_input_1, sue_pwm_input_2, sue_pwm_input_3, sue_pwm_input_4, sue_pwm_input_5, sue_pwm_input_6, sue_pwm_input_7, sue_pwm_input_8, sue_pwm_input_9, sue_pwm_input_10, sue_pwm_output_1, sue_pwm_output_2, sue_pwm_output_3, sue_pwm_output_4, sue_pwm_output_5, sue_pwm_output_6, sue_pwm_output_7, sue_pwm_output_8, sue_pwm_output_9, sue_pwm_output_10, sue_imu_location_x, sue_imu_location_y, sue_imu_location_z, sue_flags, sue_osc_fails, sue_imu_velocity_x, sue_imu_velocity_y, sue_imu_velocity_z, sue_waypoint_goal_x, sue_waypoint_goal_y, sue_waypoint_goal_z, sue_memory_stack_free)
                 msg.pack(self)
                 return msg
             
-        def serial_udb_extra_f2_b_send(self, sue_time, sue_pwm_input_1, sue_pwm_input_2, sue_pwm_input_3, sue_pwm_input_4, sue_pwm_input_5, sue_pwm_input_6, sue_pwm_input_7, sue_pwm_input_8, sue_pwm_input_9, sue_pwm_input_10, sue_pwm_output_1, sue_pwm_output_2, sue_pwm_output_3, sue_pwm_output_4, sue_pwm_output_5, sue_pwm_output_6, sue_pwm_output_7, sue_pwm_output_8, sue_pwm_output_9, sue_pwm_output_10, sue_imu_location_x, sue_imu_location_y, sue_imu_location_z, sue_flags, sue_osc_fails, sue_imu_velocity_x, sue_imu_velocity_y, sue_imu_velocity_z, sue_waypoint_goal_x, sue_waypoint_goal_y, sue_waypoint_goal_z, sue_memory_stack_free):
+        def serial_udb_extra_f2_b_send(self, sue_time, systime_usec, sue_pwm_input_1, sue_pwm_input_2, sue_pwm_input_3, sue_pwm_input_4, sue_pwm_input_5, sue_pwm_input_6, sue_pwm_input_7, sue_pwm_input_8, sue_pwm_input_9, sue_pwm_input_10, sue_pwm_output_1, sue_pwm_output_2, sue_pwm_output_3, sue_pwm_output_4, sue_pwm_output_5, sue_pwm_output_6, sue_pwm_output_7, sue_pwm_output_8, sue_pwm_output_9, sue_pwm_output_10, sue_imu_location_x, sue_imu_location_y, sue_imu_location_z, sue_flags, sue_osc_fails, sue_imu_velocity_x, sue_imu_velocity_y, sue_imu_velocity_z, sue_waypoint_goal_x, sue_waypoint_goal_y, sue_waypoint_goal_z, sue_memory_stack_free):
                 '''
                 Backwards compatible version of SERIAL_UDB_EXTRA - F2: Part B
 
                 sue_time                  : Serial UDB Extra Time (uint32_t)
+                systime_usec              : Serial UDB Extra systime (uint64_t)
                 sue_pwm_input_1           : Serial UDB Extra PWM Input Channel 1 (int16_t)
                 sue_pwm_input_2           : Serial UDB Extra PWM Input Channel 2 (int16_t)
                 sue_pwm_input_3           : Serial UDB Extra PWM Input Channel 3 (int16_t)
@@ -3211,7 +3217,7 @@ class MAVLink(object):
                 sue_memory_stack_free        : Serial UDB Extra Stack Memory Free (int16_t)
 
                 '''
-                return self.send(self.serial_udb_extra_f2_b_encode(sue_time, sue_pwm_input_1, sue_pwm_input_2, sue_pwm_input_3, sue_pwm_input_4, sue_pwm_input_5, sue_pwm_input_6, sue_pwm_input_7, sue_pwm_input_8, sue_pwm_input_9, sue_pwm_input_10, sue_pwm_output_1, sue_pwm_output_2, sue_pwm_output_3, sue_pwm_output_4, sue_pwm_output_5, sue_pwm_output_6, sue_pwm_output_7, sue_pwm_output_8, sue_pwm_output_9, sue_pwm_output_10, sue_imu_location_x, sue_imu_location_y, sue_imu_location_z, sue_flags, sue_osc_fails, sue_imu_velocity_x, sue_imu_velocity_y, sue_imu_velocity_z, sue_waypoint_goal_x, sue_waypoint_goal_y, sue_waypoint_goal_z, sue_memory_stack_free))
+                return self.send(self.serial_udb_extra_f2_b_encode(sue_time, systime_usec, sue_pwm_input_1, sue_pwm_input_2, sue_pwm_input_3, sue_pwm_input_4, sue_pwm_input_5, sue_pwm_input_6, sue_pwm_input_7, sue_pwm_input_8, sue_pwm_input_9, sue_pwm_input_10, sue_pwm_output_1, sue_pwm_output_2, sue_pwm_output_3, sue_pwm_output_4, sue_pwm_output_5, sue_pwm_output_6, sue_pwm_output_7, sue_pwm_output_8, sue_pwm_output_9, sue_pwm_output_10, sue_imu_location_x, sue_imu_location_y, sue_imu_location_z, sue_flags, sue_osc_fails, sue_imu_velocity_x, sue_imu_velocity_y, sue_imu_velocity_z, sue_waypoint_goal_x, sue_waypoint_goal_y, sue_waypoint_goal_z, sue_memory_stack_free))
             
         def serial_udb_extra_f4_encode(self, sue_ROLL_STABILIZATION_AILERONS, sue_ROLL_STABILIZATION_RUDDER, sue_PITCH_STABILIZATION, sue_YAW_STABILIZATION_RUDDER, sue_YAW_STABILIZATION_AILERON, sue_AILERON_NAVIGATION, sue_RUDDER_NAVIGATION, sue_ALTITUDEHOLD_STABILIZED, sue_ALTITUDEHOLD_WAYPOINT, sue_RACING_MODE):
                 '''

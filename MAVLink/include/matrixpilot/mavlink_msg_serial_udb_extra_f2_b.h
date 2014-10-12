@@ -4,6 +4,7 @@
 
 typedef struct __mavlink_serial_udb_extra_f2_b_t
 {
+ uint64_t systime_usec; ///< Serial UDB Extra systime
  uint32_t sue_time; ///< Serial UDB Extra Time
  uint32_t sue_flags; ///< Serial UDB Extra Status Flags
  int16_t sue_pwm_input_1; ///< Serial UDB Extra PWM Input Channel 1
@@ -39,47 +40,48 @@ typedef struct __mavlink_serial_udb_extra_f2_b_t
  int16_t sue_memory_stack_free; ///< Serial UDB Extra Stack Memory Free
 } mavlink_serial_udb_extra_f2_b_t;
 
-#define MAVLINK_MSG_ID_SERIAL_UDB_EXTRA_F2_B_LEN 70
-#define MAVLINK_MSG_ID_171_LEN 70
+#define MAVLINK_MSG_ID_SERIAL_UDB_EXTRA_F2_B_LEN 78
+#define MAVLINK_MSG_ID_171_LEN 78
 
 
 
 #define MAVLINK_MESSAGE_INFO_SERIAL_UDB_EXTRA_F2_B { \
 	"SERIAL_UDB_EXTRA_F2_B", \
-	33, \
-	{  { "sue_time", NULL, MAVLINK_TYPE_UINT32_T, 0, 0, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_time) }, \
-         { "sue_flags", NULL, MAVLINK_TYPE_UINT32_T, 0, 4, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_flags) }, \
-         { "sue_pwm_input_1", NULL, MAVLINK_TYPE_INT16_T, 0, 8, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_1) }, \
-         { "sue_pwm_input_2", NULL, MAVLINK_TYPE_INT16_T, 0, 10, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_2) }, \
-         { "sue_pwm_input_3", NULL, MAVLINK_TYPE_INT16_T, 0, 12, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_3) }, \
-         { "sue_pwm_input_4", NULL, MAVLINK_TYPE_INT16_T, 0, 14, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_4) }, \
-         { "sue_pwm_input_5", NULL, MAVLINK_TYPE_INT16_T, 0, 16, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_5) }, \
-         { "sue_pwm_input_6", NULL, MAVLINK_TYPE_INT16_T, 0, 18, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_6) }, \
-         { "sue_pwm_input_7", NULL, MAVLINK_TYPE_INT16_T, 0, 20, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_7) }, \
-         { "sue_pwm_input_8", NULL, MAVLINK_TYPE_INT16_T, 0, 22, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_8) }, \
-         { "sue_pwm_input_9", NULL, MAVLINK_TYPE_INT16_T, 0, 24, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_9) }, \
-         { "sue_pwm_input_10", NULL, MAVLINK_TYPE_INT16_T, 0, 26, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_10) }, \
-         { "sue_pwm_output_1", NULL, MAVLINK_TYPE_INT16_T, 0, 28, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_1) }, \
-         { "sue_pwm_output_2", NULL, MAVLINK_TYPE_INT16_T, 0, 30, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_2) }, \
-         { "sue_pwm_output_3", NULL, MAVLINK_TYPE_INT16_T, 0, 32, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_3) }, \
-         { "sue_pwm_output_4", NULL, MAVLINK_TYPE_INT16_T, 0, 34, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_4) }, \
-         { "sue_pwm_output_5", NULL, MAVLINK_TYPE_INT16_T, 0, 36, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_5) }, \
-         { "sue_pwm_output_6", NULL, MAVLINK_TYPE_INT16_T, 0, 38, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_6) }, \
-         { "sue_pwm_output_7", NULL, MAVLINK_TYPE_INT16_T, 0, 40, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_7) }, \
-         { "sue_pwm_output_8", NULL, MAVLINK_TYPE_INT16_T, 0, 42, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_8) }, \
-         { "sue_pwm_output_9", NULL, MAVLINK_TYPE_INT16_T, 0, 44, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_9) }, \
-         { "sue_pwm_output_10", NULL, MAVLINK_TYPE_INT16_T, 0, 46, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_10) }, \
-         { "sue_imu_location_x", NULL, MAVLINK_TYPE_INT16_T, 0, 48, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_imu_location_x) }, \
-         { "sue_imu_location_y", NULL, MAVLINK_TYPE_INT16_T, 0, 50, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_imu_location_y) }, \
-         { "sue_imu_location_z", NULL, MAVLINK_TYPE_INT16_T, 0, 52, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_imu_location_z) }, \
-         { "sue_osc_fails", NULL, MAVLINK_TYPE_INT16_T, 0, 54, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_osc_fails) }, \
-         { "sue_imu_velocity_x", NULL, MAVLINK_TYPE_INT16_T, 0, 56, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_imu_velocity_x) }, \
-         { "sue_imu_velocity_y", NULL, MAVLINK_TYPE_INT16_T, 0, 58, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_imu_velocity_y) }, \
-         { "sue_imu_velocity_z", NULL, MAVLINK_TYPE_INT16_T, 0, 60, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_imu_velocity_z) }, \
-         { "sue_waypoint_goal_x", NULL, MAVLINK_TYPE_INT16_T, 0, 62, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_waypoint_goal_x) }, \
-         { "sue_waypoint_goal_y", NULL, MAVLINK_TYPE_INT16_T, 0, 64, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_waypoint_goal_y) }, \
-         { "sue_waypoint_goal_z", NULL, MAVLINK_TYPE_INT16_T, 0, 66, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_waypoint_goal_z) }, \
-         { "sue_memory_stack_free", NULL, MAVLINK_TYPE_INT16_T, 0, 68, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_memory_stack_free) }, \
+	34, \
+	{  { "systime_usec", NULL, MAVLINK_TYPE_UINT64_T, 0, 0, offsetof(mavlink_serial_udb_extra_f2_b_t, systime_usec) }, \
+         { "sue_time", NULL, MAVLINK_TYPE_UINT32_T, 0, 8, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_time) }, \
+         { "sue_flags", NULL, MAVLINK_TYPE_UINT32_T, 0, 12, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_flags) }, \
+         { "sue_pwm_input_1", NULL, MAVLINK_TYPE_INT16_T, 0, 16, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_1) }, \
+         { "sue_pwm_input_2", NULL, MAVLINK_TYPE_INT16_T, 0, 18, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_2) }, \
+         { "sue_pwm_input_3", NULL, MAVLINK_TYPE_INT16_T, 0, 20, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_3) }, \
+         { "sue_pwm_input_4", NULL, MAVLINK_TYPE_INT16_T, 0, 22, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_4) }, \
+         { "sue_pwm_input_5", NULL, MAVLINK_TYPE_INT16_T, 0, 24, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_5) }, \
+         { "sue_pwm_input_6", NULL, MAVLINK_TYPE_INT16_T, 0, 26, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_6) }, \
+         { "sue_pwm_input_7", NULL, MAVLINK_TYPE_INT16_T, 0, 28, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_7) }, \
+         { "sue_pwm_input_8", NULL, MAVLINK_TYPE_INT16_T, 0, 30, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_8) }, \
+         { "sue_pwm_input_9", NULL, MAVLINK_TYPE_INT16_T, 0, 32, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_9) }, \
+         { "sue_pwm_input_10", NULL, MAVLINK_TYPE_INT16_T, 0, 34, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_input_10) }, \
+         { "sue_pwm_output_1", NULL, MAVLINK_TYPE_INT16_T, 0, 36, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_1) }, \
+         { "sue_pwm_output_2", NULL, MAVLINK_TYPE_INT16_T, 0, 38, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_2) }, \
+         { "sue_pwm_output_3", NULL, MAVLINK_TYPE_INT16_T, 0, 40, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_3) }, \
+         { "sue_pwm_output_4", NULL, MAVLINK_TYPE_INT16_T, 0, 42, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_4) }, \
+         { "sue_pwm_output_5", NULL, MAVLINK_TYPE_INT16_T, 0, 44, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_5) }, \
+         { "sue_pwm_output_6", NULL, MAVLINK_TYPE_INT16_T, 0, 46, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_6) }, \
+         { "sue_pwm_output_7", NULL, MAVLINK_TYPE_INT16_T, 0, 48, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_7) }, \
+         { "sue_pwm_output_8", NULL, MAVLINK_TYPE_INT16_T, 0, 50, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_8) }, \
+         { "sue_pwm_output_9", NULL, MAVLINK_TYPE_INT16_T, 0, 52, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_9) }, \
+         { "sue_pwm_output_10", NULL, MAVLINK_TYPE_INT16_T, 0, 54, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_pwm_output_10) }, \
+         { "sue_imu_location_x", NULL, MAVLINK_TYPE_INT16_T, 0, 56, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_imu_location_x) }, \
+         { "sue_imu_location_y", NULL, MAVLINK_TYPE_INT16_T, 0, 58, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_imu_location_y) }, \
+         { "sue_imu_location_z", NULL, MAVLINK_TYPE_INT16_T, 0, 60, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_imu_location_z) }, \
+         { "sue_osc_fails", NULL, MAVLINK_TYPE_INT16_T, 0, 62, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_osc_fails) }, \
+         { "sue_imu_velocity_x", NULL, MAVLINK_TYPE_INT16_T, 0, 64, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_imu_velocity_x) }, \
+         { "sue_imu_velocity_y", NULL, MAVLINK_TYPE_INT16_T, 0, 66, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_imu_velocity_y) }, \
+         { "sue_imu_velocity_z", NULL, MAVLINK_TYPE_INT16_T, 0, 68, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_imu_velocity_z) }, \
+         { "sue_waypoint_goal_x", NULL, MAVLINK_TYPE_INT16_T, 0, 70, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_waypoint_goal_x) }, \
+         { "sue_waypoint_goal_y", NULL, MAVLINK_TYPE_INT16_T, 0, 72, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_waypoint_goal_y) }, \
+         { "sue_waypoint_goal_z", NULL, MAVLINK_TYPE_INT16_T, 0, 74, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_waypoint_goal_z) }, \
+         { "sue_memory_stack_free", NULL, MAVLINK_TYPE_INT16_T, 0, 76, offsetof(mavlink_serial_udb_extra_f2_b_t, sue_memory_stack_free) }, \
          } \
 }
 
@@ -91,6 +93,7 @@ typedef struct __mavlink_serial_udb_extra_f2_b_t
  * @param msg The MAVLink message to compress the data into
  *
  * @param sue_time Serial UDB Extra Time
+ * @param systime_usec Serial UDB Extra systime
  * @param sue_pwm_input_1 Serial UDB Extra PWM Input Channel 1
  * @param sue_pwm_input_2 Serial UDB Extra PWM Input Channel 2
  * @param sue_pwm_input_3 Serial UDB Extra PWM Input Channel 3
@@ -126,47 +129,49 @@ typedef struct __mavlink_serial_udb_extra_f2_b_t
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_serial_udb_extra_f2_b_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
-						       uint32_t sue_time, int16_t sue_pwm_input_1, int16_t sue_pwm_input_2, int16_t sue_pwm_input_3, int16_t sue_pwm_input_4, int16_t sue_pwm_input_5, int16_t sue_pwm_input_6, int16_t sue_pwm_input_7, int16_t sue_pwm_input_8, int16_t sue_pwm_input_9, int16_t sue_pwm_input_10, int16_t sue_pwm_output_1, int16_t sue_pwm_output_2, int16_t sue_pwm_output_3, int16_t sue_pwm_output_4, int16_t sue_pwm_output_5, int16_t sue_pwm_output_6, int16_t sue_pwm_output_7, int16_t sue_pwm_output_8, int16_t sue_pwm_output_9, int16_t sue_pwm_output_10, int16_t sue_imu_location_x, int16_t sue_imu_location_y, int16_t sue_imu_location_z, uint32_t sue_flags, int16_t sue_osc_fails, int16_t sue_imu_velocity_x, int16_t sue_imu_velocity_y, int16_t sue_imu_velocity_z, int16_t sue_waypoint_goal_x, int16_t sue_waypoint_goal_y, int16_t sue_waypoint_goal_z, int16_t sue_memory_stack_free)
+						       uint32_t sue_time, uint64_t systime_usec, int16_t sue_pwm_input_1, int16_t sue_pwm_input_2, int16_t sue_pwm_input_3, int16_t sue_pwm_input_4, int16_t sue_pwm_input_5, int16_t sue_pwm_input_6, int16_t sue_pwm_input_7, int16_t sue_pwm_input_8, int16_t sue_pwm_input_9, int16_t sue_pwm_input_10, int16_t sue_pwm_output_1, int16_t sue_pwm_output_2, int16_t sue_pwm_output_3, int16_t sue_pwm_output_4, int16_t sue_pwm_output_5, int16_t sue_pwm_output_6, int16_t sue_pwm_output_7, int16_t sue_pwm_output_8, int16_t sue_pwm_output_9, int16_t sue_pwm_output_10, int16_t sue_imu_location_x, int16_t sue_imu_location_y, int16_t sue_imu_location_z, uint32_t sue_flags, int16_t sue_osc_fails, int16_t sue_imu_velocity_x, int16_t sue_imu_velocity_y, int16_t sue_imu_velocity_z, int16_t sue_waypoint_goal_x, int16_t sue_waypoint_goal_y, int16_t sue_waypoint_goal_z, int16_t sue_memory_stack_free)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
-	char buf[70];
-	_mav_put_uint32_t(buf, 0, sue_time);
-	_mav_put_uint32_t(buf, 4, sue_flags);
-	_mav_put_int16_t(buf, 8, sue_pwm_input_1);
-	_mav_put_int16_t(buf, 10, sue_pwm_input_2);
-	_mav_put_int16_t(buf, 12, sue_pwm_input_3);
-	_mav_put_int16_t(buf, 14, sue_pwm_input_4);
-	_mav_put_int16_t(buf, 16, sue_pwm_input_5);
-	_mav_put_int16_t(buf, 18, sue_pwm_input_6);
-	_mav_put_int16_t(buf, 20, sue_pwm_input_7);
-	_mav_put_int16_t(buf, 22, sue_pwm_input_8);
-	_mav_put_int16_t(buf, 24, sue_pwm_input_9);
-	_mav_put_int16_t(buf, 26, sue_pwm_input_10);
-	_mav_put_int16_t(buf, 28, sue_pwm_output_1);
-	_mav_put_int16_t(buf, 30, sue_pwm_output_2);
-	_mav_put_int16_t(buf, 32, sue_pwm_output_3);
-	_mav_put_int16_t(buf, 34, sue_pwm_output_4);
-	_mav_put_int16_t(buf, 36, sue_pwm_output_5);
-	_mav_put_int16_t(buf, 38, sue_pwm_output_6);
-	_mav_put_int16_t(buf, 40, sue_pwm_output_7);
-	_mav_put_int16_t(buf, 42, sue_pwm_output_8);
-	_mav_put_int16_t(buf, 44, sue_pwm_output_9);
-	_mav_put_int16_t(buf, 46, sue_pwm_output_10);
-	_mav_put_int16_t(buf, 48, sue_imu_location_x);
-	_mav_put_int16_t(buf, 50, sue_imu_location_y);
-	_mav_put_int16_t(buf, 52, sue_imu_location_z);
-	_mav_put_int16_t(buf, 54, sue_osc_fails);
-	_mav_put_int16_t(buf, 56, sue_imu_velocity_x);
-	_mav_put_int16_t(buf, 58, sue_imu_velocity_y);
-	_mav_put_int16_t(buf, 60, sue_imu_velocity_z);
-	_mav_put_int16_t(buf, 62, sue_waypoint_goal_x);
-	_mav_put_int16_t(buf, 64, sue_waypoint_goal_y);
-	_mav_put_int16_t(buf, 66, sue_waypoint_goal_z);
-	_mav_put_int16_t(buf, 68, sue_memory_stack_free);
+	char buf[78];
+	_mav_put_uint64_t(buf, 0, systime_usec);
+	_mav_put_uint32_t(buf, 8, sue_time);
+	_mav_put_uint32_t(buf, 12, sue_flags);
+	_mav_put_int16_t(buf, 16, sue_pwm_input_1);
+	_mav_put_int16_t(buf, 18, sue_pwm_input_2);
+	_mav_put_int16_t(buf, 20, sue_pwm_input_3);
+	_mav_put_int16_t(buf, 22, sue_pwm_input_4);
+	_mav_put_int16_t(buf, 24, sue_pwm_input_5);
+	_mav_put_int16_t(buf, 26, sue_pwm_input_6);
+	_mav_put_int16_t(buf, 28, sue_pwm_input_7);
+	_mav_put_int16_t(buf, 30, sue_pwm_input_8);
+	_mav_put_int16_t(buf, 32, sue_pwm_input_9);
+	_mav_put_int16_t(buf, 34, sue_pwm_input_10);
+	_mav_put_int16_t(buf, 36, sue_pwm_output_1);
+	_mav_put_int16_t(buf, 38, sue_pwm_output_2);
+	_mav_put_int16_t(buf, 40, sue_pwm_output_3);
+	_mav_put_int16_t(buf, 42, sue_pwm_output_4);
+	_mav_put_int16_t(buf, 44, sue_pwm_output_5);
+	_mav_put_int16_t(buf, 46, sue_pwm_output_6);
+	_mav_put_int16_t(buf, 48, sue_pwm_output_7);
+	_mav_put_int16_t(buf, 50, sue_pwm_output_8);
+	_mav_put_int16_t(buf, 52, sue_pwm_output_9);
+	_mav_put_int16_t(buf, 54, sue_pwm_output_10);
+	_mav_put_int16_t(buf, 56, sue_imu_location_x);
+	_mav_put_int16_t(buf, 58, sue_imu_location_y);
+	_mav_put_int16_t(buf, 60, sue_imu_location_z);
+	_mav_put_int16_t(buf, 62, sue_osc_fails);
+	_mav_put_int16_t(buf, 64, sue_imu_velocity_x);
+	_mav_put_int16_t(buf, 66, sue_imu_velocity_y);
+	_mav_put_int16_t(buf, 68, sue_imu_velocity_z);
+	_mav_put_int16_t(buf, 70, sue_waypoint_goal_x);
+	_mav_put_int16_t(buf, 72, sue_waypoint_goal_y);
+	_mav_put_int16_t(buf, 74, sue_waypoint_goal_z);
+	_mav_put_int16_t(buf, 76, sue_memory_stack_free);
 
-        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, 70);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, 78);
 #else
 	mavlink_serial_udb_extra_f2_b_t packet;
+	packet.systime_usec = systime_usec;
 	packet.sue_time = sue_time;
 	packet.sue_flags = sue_flags;
 	packet.sue_pwm_input_1 = sue_pwm_input_1;
@@ -201,11 +206,11 @@ static inline uint16_t mavlink_msg_serial_udb_extra_f2_b_pack(uint8_t system_id,
 	packet.sue_waypoint_goal_z = sue_waypoint_goal_z;
 	packet.sue_memory_stack_free = sue_memory_stack_free;
 
-        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, 70);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, 78);
 #endif
 
 	msg->msgid = MAVLINK_MSG_ID_SERIAL_UDB_EXTRA_F2_B;
-	return mavlink_finalize_message(msg, system_id, component_id, 70, 169);
+	return mavlink_finalize_message(msg, system_id, component_id, 78, 100);
 }
 
 /**
@@ -215,6 +220,7 @@ static inline uint16_t mavlink_msg_serial_udb_extra_f2_b_pack(uint8_t system_id,
  * @param chan The MAVLink channel this message was sent over
  * @param msg The MAVLink message to compress the data into
  * @param sue_time Serial UDB Extra Time
+ * @param systime_usec Serial UDB Extra systime
  * @param sue_pwm_input_1 Serial UDB Extra PWM Input Channel 1
  * @param sue_pwm_input_2 Serial UDB Extra PWM Input Channel 2
  * @param sue_pwm_input_3 Serial UDB Extra PWM Input Channel 3
@@ -251,47 +257,49 @@ static inline uint16_t mavlink_msg_serial_udb_extra_f2_b_pack(uint8_t system_id,
  */
 static inline uint16_t mavlink_msg_serial_udb_extra_f2_b_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
 							   mavlink_message_t* msg,
-						           uint32_t sue_time,int16_t sue_pwm_input_1,int16_t sue_pwm_input_2,int16_t sue_pwm_input_3,int16_t sue_pwm_input_4,int16_t sue_pwm_input_5,int16_t sue_pwm_input_6,int16_t sue_pwm_input_7,int16_t sue_pwm_input_8,int16_t sue_pwm_input_9,int16_t sue_pwm_input_10,int16_t sue_pwm_output_1,int16_t sue_pwm_output_2,int16_t sue_pwm_output_3,int16_t sue_pwm_output_4,int16_t sue_pwm_output_5,int16_t sue_pwm_output_6,int16_t sue_pwm_output_7,int16_t sue_pwm_output_8,int16_t sue_pwm_output_9,int16_t sue_pwm_output_10,int16_t sue_imu_location_x,int16_t sue_imu_location_y,int16_t sue_imu_location_z,uint32_t sue_flags,int16_t sue_osc_fails,int16_t sue_imu_velocity_x,int16_t sue_imu_velocity_y,int16_t sue_imu_velocity_z,int16_t sue_waypoint_goal_x,int16_t sue_waypoint_goal_y,int16_t sue_waypoint_goal_z,int16_t sue_memory_stack_free)
+						           uint32_t sue_time,uint64_t systime_usec,int16_t sue_pwm_input_1,int16_t sue_pwm_input_2,int16_t sue_pwm_input_3,int16_t sue_pwm_input_4,int16_t sue_pwm_input_5,int16_t sue_pwm_input_6,int16_t sue_pwm_input_7,int16_t sue_pwm_input_8,int16_t sue_pwm_input_9,int16_t sue_pwm_input_10,int16_t sue_pwm_output_1,int16_t sue_pwm_output_2,int16_t sue_pwm_output_3,int16_t sue_pwm_output_4,int16_t sue_pwm_output_5,int16_t sue_pwm_output_6,int16_t sue_pwm_output_7,int16_t sue_pwm_output_8,int16_t sue_pwm_output_9,int16_t sue_pwm_output_10,int16_t sue_imu_location_x,int16_t sue_imu_location_y,int16_t sue_imu_location_z,uint32_t sue_flags,int16_t sue_osc_fails,int16_t sue_imu_velocity_x,int16_t sue_imu_velocity_y,int16_t sue_imu_velocity_z,int16_t sue_waypoint_goal_x,int16_t sue_waypoint_goal_y,int16_t sue_waypoint_goal_z,int16_t sue_memory_stack_free)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
-	char buf[70];
-	_mav_put_uint32_t(buf, 0, sue_time);
-	_mav_put_uint32_t(buf, 4, sue_flags);
-	_mav_put_int16_t(buf, 8, sue_pwm_input_1);
-	_mav_put_int16_t(buf, 10, sue_pwm_input_2);
-	_mav_put_int16_t(buf, 12, sue_pwm_input_3);
-	_mav_put_int16_t(buf, 14, sue_pwm_input_4);
-	_mav_put_int16_t(buf, 16, sue_pwm_input_5);
-	_mav_put_int16_t(buf, 18, sue_pwm_input_6);
-	_mav_put_int16_t(buf, 20, sue_pwm_input_7);
-	_mav_put_int16_t(buf, 22, sue_pwm_input_8);
-	_mav_put_int16_t(buf, 24, sue_pwm_input_9);
-	_mav_put_int16_t(buf, 26, sue_pwm_input_10);
-	_mav_put_int16_t(buf, 28, sue_pwm_output_1);
-	_mav_put_int16_t(buf, 30, sue_pwm_output_2);
-	_mav_put_int16_t(buf, 32, sue_pwm_output_3);
-	_mav_put_int16_t(buf, 34, sue_pwm_output_4);
-	_mav_put_int16_t(buf, 36, sue_pwm_output_5);
-	_mav_put_int16_t(buf, 38, sue_pwm_output_6);
-	_mav_put_int16_t(buf, 40, sue_pwm_output_7);
-	_mav_put_int16_t(buf, 42, sue_pwm_output_8);
-	_mav_put_int16_t(buf, 44, sue_pwm_output_9);
-	_mav_put_int16_t(buf, 46, sue_pwm_output_10);
-	_mav_put_int16_t(buf, 48, sue_imu_location_x);
-	_mav_put_int16_t(buf, 50, sue_imu_location_y);
-	_mav_put_int16_t(buf, 52, sue_imu_location_z);
-	_mav_put_int16_t(buf, 54, sue_osc_fails);
-	_mav_put_int16_t(buf, 56, sue_imu_velocity_x);
-	_mav_put_int16_t(buf, 58, sue_imu_velocity_y);
-	_mav_put_int16_t(buf, 60, sue_imu_velocity_z);
-	_mav_put_int16_t(buf, 62, sue_waypoint_goal_x);
-	_mav_put_int16_t(buf, 64, sue_waypoint_goal_y);
-	_mav_put_int16_t(buf, 66, sue_waypoint_goal_z);
-	_mav_put_int16_t(buf, 68, sue_memory_stack_free);
+	char buf[78];
+	_mav_put_uint64_t(buf, 0, systime_usec);
+	_mav_put_uint32_t(buf, 8, sue_time);
+	_mav_put_uint32_t(buf, 12, sue_flags);
+	_mav_put_int16_t(buf, 16, sue_pwm_input_1);
+	_mav_put_int16_t(buf, 18, sue_pwm_input_2);
+	_mav_put_int16_t(buf, 20, sue_pwm_input_3);
+	_mav_put_int16_t(buf, 22, sue_pwm_input_4);
+	_mav_put_int16_t(buf, 24, sue_pwm_input_5);
+	_mav_put_int16_t(buf, 26, sue_pwm_input_6);
+	_mav_put_int16_t(buf, 28, sue_pwm_input_7);
+	_mav_put_int16_t(buf, 30, sue_pwm_input_8);
+	_mav_put_int16_t(buf, 32, sue_pwm_input_9);
+	_mav_put_int16_t(buf, 34, sue_pwm_input_10);
+	_mav_put_int16_t(buf, 36, sue_pwm_output_1);
+	_mav_put_int16_t(buf, 38, sue_pwm_output_2);
+	_mav_put_int16_t(buf, 40, sue_pwm_output_3);
+	_mav_put_int16_t(buf, 42, sue_pwm_output_4);
+	_mav_put_int16_t(buf, 44, sue_pwm_output_5);
+	_mav_put_int16_t(buf, 46, sue_pwm_output_6);
+	_mav_put_int16_t(buf, 48, sue_pwm_output_7);
+	_mav_put_int16_t(buf, 50, sue_pwm_output_8);
+	_mav_put_int16_t(buf, 52, sue_pwm_output_9);
+	_mav_put_int16_t(buf, 54, sue_pwm_output_10);
+	_mav_put_int16_t(buf, 56, sue_imu_location_x);
+	_mav_put_int16_t(buf, 58, sue_imu_location_y);
+	_mav_put_int16_t(buf, 60, sue_imu_location_z);
+	_mav_put_int16_t(buf, 62, sue_osc_fails);
+	_mav_put_int16_t(buf, 64, sue_imu_velocity_x);
+	_mav_put_int16_t(buf, 66, sue_imu_velocity_y);
+	_mav_put_int16_t(buf, 68, sue_imu_velocity_z);
+	_mav_put_int16_t(buf, 70, sue_waypoint_goal_x);
+	_mav_put_int16_t(buf, 72, sue_waypoint_goal_y);
+	_mav_put_int16_t(buf, 74, sue_waypoint_goal_z);
+	_mav_put_int16_t(buf, 76, sue_memory_stack_free);
 
-        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, 70);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, 78);
 #else
 	mavlink_serial_udb_extra_f2_b_t packet;
+	packet.systime_usec = systime_usec;
 	packet.sue_time = sue_time;
 	packet.sue_flags = sue_flags;
 	packet.sue_pwm_input_1 = sue_pwm_input_1;
@@ -326,11 +334,11 @@ static inline uint16_t mavlink_msg_serial_udb_extra_f2_b_pack_chan(uint8_t syste
 	packet.sue_waypoint_goal_z = sue_waypoint_goal_z;
 	packet.sue_memory_stack_free = sue_memory_stack_free;
 
-        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, 70);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, 78);
 #endif
 
 	msg->msgid = MAVLINK_MSG_ID_SERIAL_UDB_EXTRA_F2_B;
-	return mavlink_finalize_message_chan(msg, system_id, component_id, chan, 70, 169);
+	return mavlink_finalize_message_chan(msg, system_id, component_id, chan, 78, 100);
 }
 
 /**
@@ -343,7 +351,7 @@ static inline uint16_t mavlink_msg_serial_udb_extra_f2_b_pack_chan(uint8_t syste
  */
 static inline uint16_t mavlink_msg_serial_udb_extra_f2_b_encode(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg, const mavlink_serial_udb_extra_f2_b_t* serial_udb_extra_f2_b)
 {
-	return mavlink_msg_serial_udb_extra_f2_b_pack(system_id, component_id, msg, serial_udb_extra_f2_b->sue_time, serial_udb_extra_f2_b->sue_pwm_input_1, serial_udb_extra_f2_b->sue_pwm_input_2, serial_udb_extra_f2_b->sue_pwm_input_3, serial_udb_extra_f2_b->sue_pwm_input_4, serial_udb_extra_f2_b->sue_pwm_input_5, serial_udb_extra_f2_b->sue_pwm_input_6, serial_udb_extra_f2_b->sue_pwm_input_7, serial_udb_extra_f2_b->sue_pwm_input_8, serial_udb_extra_f2_b->sue_pwm_input_9, serial_udb_extra_f2_b->sue_pwm_input_10, serial_udb_extra_f2_b->sue_pwm_output_1, serial_udb_extra_f2_b->sue_pwm_output_2, serial_udb_extra_f2_b->sue_pwm_output_3, serial_udb_extra_f2_b->sue_pwm_output_4, serial_udb_extra_f2_b->sue_pwm_output_5, serial_udb_extra_f2_b->sue_pwm_output_6, serial_udb_extra_f2_b->sue_pwm_output_7, serial_udb_extra_f2_b->sue_pwm_output_8, serial_udb_extra_f2_b->sue_pwm_output_9, serial_udb_extra_f2_b->sue_pwm_output_10, serial_udb_extra_f2_b->sue_imu_location_x, serial_udb_extra_f2_b->sue_imu_location_y, serial_udb_extra_f2_b->sue_imu_location_z, serial_udb_extra_f2_b->sue_flags, serial_udb_extra_f2_b->sue_osc_fails, serial_udb_extra_f2_b->sue_imu_velocity_x, serial_udb_extra_f2_b->sue_imu_velocity_y, serial_udb_extra_f2_b->sue_imu_velocity_z, serial_udb_extra_f2_b->sue_waypoint_goal_x, serial_udb_extra_f2_b->sue_waypoint_goal_y, serial_udb_extra_f2_b->sue_waypoint_goal_z, serial_udb_extra_f2_b->sue_memory_stack_free);
+	return mavlink_msg_serial_udb_extra_f2_b_pack(system_id, component_id, msg, serial_udb_extra_f2_b->sue_time, serial_udb_extra_f2_b->systime_usec, serial_udb_extra_f2_b->sue_pwm_input_1, serial_udb_extra_f2_b->sue_pwm_input_2, serial_udb_extra_f2_b->sue_pwm_input_3, serial_udb_extra_f2_b->sue_pwm_input_4, serial_udb_extra_f2_b->sue_pwm_input_5, serial_udb_extra_f2_b->sue_pwm_input_6, serial_udb_extra_f2_b->sue_pwm_input_7, serial_udb_extra_f2_b->sue_pwm_input_8, serial_udb_extra_f2_b->sue_pwm_input_9, serial_udb_extra_f2_b->sue_pwm_input_10, serial_udb_extra_f2_b->sue_pwm_output_1, serial_udb_extra_f2_b->sue_pwm_output_2, serial_udb_extra_f2_b->sue_pwm_output_3, serial_udb_extra_f2_b->sue_pwm_output_4, serial_udb_extra_f2_b->sue_pwm_output_5, serial_udb_extra_f2_b->sue_pwm_output_6, serial_udb_extra_f2_b->sue_pwm_output_7, serial_udb_extra_f2_b->sue_pwm_output_8, serial_udb_extra_f2_b->sue_pwm_output_9, serial_udb_extra_f2_b->sue_pwm_output_10, serial_udb_extra_f2_b->sue_imu_location_x, serial_udb_extra_f2_b->sue_imu_location_y, serial_udb_extra_f2_b->sue_imu_location_z, serial_udb_extra_f2_b->sue_flags, serial_udb_extra_f2_b->sue_osc_fails, serial_udb_extra_f2_b->sue_imu_velocity_x, serial_udb_extra_f2_b->sue_imu_velocity_y, serial_udb_extra_f2_b->sue_imu_velocity_z, serial_udb_extra_f2_b->sue_waypoint_goal_x, serial_udb_extra_f2_b->sue_waypoint_goal_y, serial_udb_extra_f2_b->sue_waypoint_goal_z, serial_udb_extra_f2_b->sue_memory_stack_free);
 }
 
 /**
@@ -351,6 +359,7 @@ static inline uint16_t mavlink_msg_serial_udb_extra_f2_b_encode(uint8_t system_i
  * @param chan MAVLink channel to send the message
  *
  * @param sue_time Serial UDB Extra Time
+ * @param systime_usec Serial UDB Extra systime
  * @param sue_pwm_input_1 Serial UDB Extra PWM Input Channel 1
  * @param sue_pwm_input_2 Serial UDB Extra PWM Input Channel 2
  * @param sue_pwm_input_3 Serial UDB Extra PWM Input Channel 3
@@ -386,47 +395,49 @@ static inline uint16_t mavlink_msg_serial_udb_extra_f2_b_encode(uint8_t system_i
  */
 #ifdef MAVLINK_USE_CONVENIENCE_FUNCTIONS
 
-static inline void mavlink_msg_serial_udb_extra_f2_b_send(mavlink_channel_t chan, uint32_t sue_time, int16_t sue_pwm_input_1, int16_t sue_pwm_input_2, int16_t sue_pwm_input_3, int16_t sue_pwm_input_4, int16_t sue_pwm_input_5, int16_t sue_pwm_input_6, int16_t sue_pwm_input_7, int16_t sue_pwm_input_8, int16_t sue_pwm_input_9, int16_t sue_pwm_input_10, int16_t sue_pwm_output_1, int16_t sue_pwm_output_2, int16_t sue_pwm_output_3, int16_t sue_pwm_output_4, int16_t sue_pwm_output_5, int16_t sue_pwm_output_6, int16_t sue_pwm_output_7, int16_t sue_pwm_output_8, int16_t sue_pwm_output_9, int16_t sue_pwm_output_10, int16_t sue_imu_location_x, int16_t sue_imu_location_y, int16_t sue_imu_location_z, uint32_t sue_flags, int16_t sue_osc_fails, int16_t sue_imu_velocity_x, int16_t sue_imu_velocity_y, int16_t sue_imu_velocity_z, int16_t sue_waypoint_goal_x, int16_t sue_waypoint_goal_y, int16_t sue_waypoint_goal_z, int16_t sue_memory_stack_free)
+static inline void mavlink_msg_serial_udb_extra_f2_b_send(mavlink_channel_t chan, uint32_t sue_time, uint64_t systime_usec, int16_t sue_pwm_input_1, int16_t sue_pwm_input_2, int16_t sue_pwm_input_3, int16_t sue_pwm_input_4, int16_t sue_pwm_input_5, int16_t sue_pwm_input_6, int16_t sue_pwm_input_7, int16_t sue_pwm_input_8, int16_t sue_pwm_input_9, int16_t sue_pwm_input_10, int16_t sue_pwm_output_1, int16_t sue_pwm_output_2, int16_t sue_pwm_output_3, int16_t sue_pwm_output_4, int16_t sue_pwm_output_5, int16_t sue_pwm_output_6, int16_t sue_pwm_output_7, int16_t sue_pwm_output_8, int16_t sue_pwm_output_9, int16_t sue_pwm_output_10, int16_t sue_imu_location_x, int16_t sue_imu_location_y, int16_t sue_imu_location_z, uint32_t sue_flags, int16_t sue_osc_fails, int16_t sue_imu_velocity_x, int16_t sue_imu_velocity_y, int16_t sue_imu_velocity_z, int16_t sue_waypoint_goal_x, int16_t sue_waypoint_goal_y, int16_t sue_waypoint_goal_z, int16_t sue_memory_stack_free)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
-	char buf[70];
-	_mav_put_uint32_t(buf, 0, sue_time);
-	_mav_put_uint32_t(buf, 4, sue_flags);
-	_mav_put_int16_t(buf, 8, sue_pwm_input_1);
-	_mav_put_int16_t(buf, 10, sue_pwm_input_2);
-	_mav_put_int16_t(buf, 12, sue_pwm_input_3);
-	_mav_put_int16_t(buf, 14, sue_pwm_input_4);
-	_mav_put_int16_t(buf, 16, sue_pwm_input_5);
-	_mav_put_int16_t(buf, 18, sue_pwm_input_6);
-	_mav_put_int16_t(buf, 20, sue_pwm_input_7);
-	_mav_put_int16_t(buf, 22, sue_pwm_input_8);
-	_mav_put_int16_t(buf, 24, sue_pwm_input_9);
-	_mav_put_int16_t(buf, 26, sue_pwm_input_10);
-	_mav_put_int16_t(buf, 28, sue_pwm_output_1);
-	_mav_put_int16_t(buf, 30, sue_pwm_output_2);
-	_mav_put_int16_t(buf, 32, sue_pwm_output_3);
-	_mav_put_int16_t(buf, 34, sue_pwm_output_4);
-	_mav_put_int16_t(buf, 36, sue_pwm_output_5);
-	_mav_put_int16_t(buf, 38, sue_pwm_output_6);
-	_mav_put_int16_t(buf, 40, sue_pwm_output_7);
-	_mav_put_int16_t(buf, 42, sue_pwm_output_8);
-	_mav_put_int16_t(buf, 44, sue_pwm_output_9);
-	_mav_put_int16_t(buf, 46, sue_pwm_output_10);
-	_mav_put_int16_t(buf, 48, sue_imu_location_x);
-	_mav_put_int16_t(buf, 50, sue_imu_location_y);
-	_mav_put_int16_t(buf, 52, sue_imu_location_z);
-	_mav_put_int16_t(buf, 54, sue_osc_fails);
-	_mav_put_int16_t(buf, 56, sue_imu_velocity_x);
-	_mav_put_int16_t(buf, 58, sue_imu_velocity_y);
-	_mav_put_int16_t(buf, 60, sue_imu_velocity_z);
-	_mav_put_int16_t(buf, 62, sue_waypoint_goal_x);
-	_mav_put_int16_t(buf, 64, sue_waypoint_goal_y);
-	_mav_put_int16_t(buf, 66, sue_waypoint_goal_z);
-	_mav_put_int16_t(buf, 68, sue_memory_stack_free);
+	char buf[78];
+	_mav_put_uint64_t(buf, 0, systime_usec);
+	_mav_put_uint32_t(buf, 8, sue_time);
+	_mav_put_uint32_t(buf, 12, sue_flags);
+	_mav_put_int16_t(buf, 16, sue_pwm_input_1);
+	_mav_put_int16_t(buf, 18, sue_pwm_input_2);
+	_mav_put_int16_t(buf, 20, sue_pwm_input_3);
+	_mav_put_int16_t(buf, 22, sue_pwm_input_4);
+	_mav_put_int16_t(buf, 24, sue_pwm_input_5);
+	_mav_put_int16_t(buf, 26, sue_pwm_input_6);
+	_mav_put_int16_t(buf, 28, sue_pwm_input_7);
+	_mav_put_int16_t(buf, 30, sue_pwm_input_8);
+	_mav_put_int16_t(buf, 32, sue_pwm_input_9);
+	_mav_put_int16_t(buf, 34, sue_pwm_input_10);
+	_mav_put_int16_t(buf, 36, sue_pwm_output_1);
+	_mav_put_int16_t(buf, 38, sue_pwm_output_2);
+	_mav_put_int16_t(buf, 40, sue_pwm_output_3);
+	_mav_put_int16_t(buf, 42, sue_pwm_output_4);
+	_mav_put_int16_t(buf, 44, sue_pwm_output_5);
+	_mav_put_int16_t(buf, 46, sue_pwm_output_6);
+	_mav_put_int16_t(buf, 48, sue_pwm_output_7);
+	_mav_put_int16_t(buf, 50, sue_pwm_output_8);
+	_mav_put_int16_t(buf, 52, sue_pwm_output_9);
+	_mav_put_int16_t(buf, 54, sue_pwm_output_10);
+	_mav_put_int16_t(buf, 56, sue_imu_location_x);
+	_mav_put_int16_t(buf, 58, sue_imu_location_y);
+	_mav_put_int16_t(buf, 60, sue_imu_location_z);
+	_mav_put_int16_t(buf, 62, sue_osc_fails);
+	_mav_put_int16_t(buf, 64, sue_imu_velocity_x);
+	_mav_put_int16_t(buf, 66, sue_imu_velocity_y);
+	_mav_put_int16_t(buf, 68, sue_imu_velocity_z);
+	_mav_put_int16_t(buf, 70, sue_waypoint_goal_x);
+	_mav_put_int16_t(buf, 72, sue_waypoint_goal_y);
+	_mav_put_int16_t(buf, 74, sue_waypoint_goal_z);
+	_mav_put_int16_t(buf, 76, sue_memory_stack_free);
 
-	_mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_SERIAL_UDB_EXTRA_F2_B, buf, 70, 169);
+	_mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_SERIAL_UDB_EXTRA_F2_B, buf, 78, 100);
 #else
 	mavlink_serial_udb_extra_f2_b_t packet;
+	packet.systime_usec = systime_usec;
 	packet.sue_time = sue_time;
 	packet.sue_flags = sue_flags;
 	packet.sue_pwm_input_1 = sue_pwm_input_1;
@@ -461,7 +472,7 @@ static inline void mavlink_msg_serial_udb_extra_f2_b_send(mavlink_channel_t chan
 	packet.sue_waypoint_goal_z = sue_waypoint_goal_z;
 	packet.sue_memory_stack_free = sue_memory_stack_free;
 
-	_mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_SERIAL_UDB_EXTRA_F2_B, (const char *)&packet, 70, 169);
+	_mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_SERIAL_UDB_EXTRA_F2_B, (const char *)&packet, 78, 100);
 #endif
 }
 
@@ -477,7 +488,17 @@ static inline void mavlink_msg_serial_udb_extra_f2_b_send(mavlink_channel_t chan
  */
 static inline uint32_t mavlink_msg_serial_udb_extra_f2_b_get_sue_time(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint32_t(msg,  0);
+	return _MAV_RETURN_uint32_t(msg,  8);
+}
+
+/**
+ * @brief Get field systime_usec from serial_udb_extra_f2_b message
+ *
+ * @return Serial UDB Extra systime
+ */
+static inline uint64_t mavlink_msg_serial_udb_extra_f2_b_get_systime_usec(const mavlink_message_t* msg)
+{
+	return _MAV_RETURN_uint64_t(msg,  0);
 }
 
 /**
@@ -487,7 +508,7 @@ static inline uint32_t mavlink_msg_serial_udb_extra_f2_b_get_sue_time(const mavl
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_1(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  8);
+	return _MAV_RETURN_int16_t(msg,  16);
 }
 
 /**
@@ -497,7 +518,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_1(cons
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_2(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  10);
+	return _MAV_RETURN_int16_t(msg,  18);
 }
 
 /**
@@ -507,7 +528,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_2(cons
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_3(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  12);
+	return _MAV_RETURN_int16_t(msg,  20);
 }
 
 /**
@@ -517,7 +538,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_3(cons
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_4(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  14);
+	return _MAV_RETURN_int16_t(msg,  22);
 }
 
 /**
@@ -527,7 +548,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_4(cons
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_5(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  16);
+	return _MAV_RETURN_int16_t(msg,  24);
 }
 
 /**
@@ -537,7 +558,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_5(cons
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_6(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  18);
+	return _MAV_RETURN_int16_t(msg,  26);
 }
 
 /**
@@ -547,7 +568,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_6(cons
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_7(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  20);
+	return _MAV_RETURN_int16_t(msg,  28);
 }
 
 /**
@@ -557,7 +578,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_7(cons
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_8(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  22);
+	return _MAV_RETURN_int16_t(msg,  30);
 }
 
 /**
@@ -567,7 +588,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_8(cons
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_9(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  24);
+	return _MAV_RETURN_int16_t(msg,  32);
 }
 
 /**
@@ -577,7 +598,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_9(cons
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_10(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  26);
+	return _MAV_RETURN_int16_t(msg,  34);
 }
 
 /**
@@ -587,7 +608,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_10(con
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_1(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  28);
+	return _MAV_RETURN_int16_t(msg,  36);
 }
 
 /**
@@ -597,7 +618,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_1(con
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_2(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  30);
+	return _MAV_RETURN_int16_t(msg,  38);
 }
 
 /**
@@ -607,7 +628,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_2(con
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_3(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  32);
+	return _MAV_RETURN_int16_t(msg,  40);
 }
 
 /**
@@ -617,7 +638,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_3(con
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_4(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  34);
+	return _MAV_RETURN_int16_t(msg,  42);
 }
 
 /**
@@ -627,7 +648,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_4(con
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_5(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  36);
+	return _MAV_RETURN_int16_t(msg,  44);
 }
 
 /**
@@ -637,7 +658,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_5(con
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_6(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  38);
+	return _MAV_RETURN_int16_t(msg,  46);
 }
 
 /**
@@ -647,7 +668,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_6(con
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_7(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  40);
+	return _MAV_RETURN_int16_t(msg,  48);
 }
 
 /**
@@ -657,7 +678,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_7(con
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_8(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  42);
+	return _MAV_RETURN_int16_t(msg,  50);
 }
 
 /**
@@ -667,7 +688,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_8(con
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_9(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  44);
+	return _MAV_RETURN_int16_t(msg,  52);
 }
 
 /**
@@ -677,7 +698,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_9(con
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_10(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  46);
+	return _MAV_RETURN_int16_t(msg,  54);
 }
 
 /**
@@ -687,7 +708,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_output_10(co
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_imu_location_x(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  48);
+	return _MAV_RETURN_int16_t(msg,  56);
 }
 
 /**
@@ -697,7 +718,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_imu_location_x(c
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_imu_location_y(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  50);
+	return _MAV_RETURN_int16_t(msg,  58);
 }
 
 /**
@@ -707,7 +728,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_imu_location_y(c
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_imu_location_z(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  52);
+	return _MAV_RETURN_int16_t(msg,  60);
 }
 
 /**
@@ -717,7 +738,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_imu_location_z(c
  */
 static inline uint32_t mavlink_msg_serial_udb_extra_f2_b_get_sue_flags(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint32_t(msg,  4);
+	return _MAV_RETURN_uint32_t(msg,  12);
 }
 
 /**
@@ -727,7 +748,7 @@ static inline uint32_t mavlink_msg_serial_udb_extra_f2_b_get_sue_flags(const mav
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_osc_fails(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  54);
+	return _MAV_RETURN_int16_t(msg,  62);
 }
 
 /**
@@ -737,7 +758,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_osc_fails(const 
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_imu_velocity_x(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  56);
+	return _MAV_RETURN_int16_t(msg,  64);
 }
 
 /**
@@ -747,7 +768,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_imu_velocity_x(c
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_imu_velocity_y(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  58);
+	return _MAV_RETURN_int16_t(msg,  66);
 }
 
 /**
@@ -757,7 +778,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_imu_velocity_y(c
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_imu_velocity_z(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  60);
+	return _MAV_RETURN_int16_t(msg,  68);
 }
 
 /**
@@ -767,7 +788,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_imu_velocity_z(c
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_waypoint_goal_x(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  62);
+	return _MAV_RETURN_int16_t(msg,  70);
 }
 
 /**
@@ -777,7 +798,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_waypoint_goal_x(
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_waypoint_goal_y(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  64);
+	return _MAV_RETURN_int16_t(msg,  72);
 }
 
 /**
@@ -787,7 +808,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_waypoint_goal_y(
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_waypoint_goal_z(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  66);
+	return _MAV_RETURN_int16_t(msg,  74);
 }
 
 /**
@@ -797,7 +818,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_waypoint_goal_z(
  */
 static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_memory_stack_free(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_int16_t(msg,  68);
+	return _MAV_RETURN_int16_t(msg,  76);
 }
 
 /**
@@ -809,6 +830,7 @@ static inline int16_t mavlink_msg_serial_udb_extra_f2_b_get_sue_memory_stack_fre
 static inline void mavlink_msg_serial_udb_extra_f2_b_decode(const mavlink_message_t* msg, mavlink_serial_udb_extra_f2_b_t* serial_udb_extra_f2_b)
 {
 #if MAVLINK_NEED_BYTE_SWAP
+	serial_udb_extra_f2_b->systime_usec = mavlink_msg_serial_udb_extra_f2_b_get_systime_usec(msg);
 	serial_udb_extra_f2_b->sue_time = mavlink_msg_serial_udb_extra_f2_b_get_sue_time(msg);
 	serial_udb_extra_f2_b->sue_flags = mavlink_msg_serial_udb_extra_f2_b_get_sue_flags(msg);
 	serial_udb_extra_f2_b->sue_pwm_input_1 = mavlink_msg_serial_udb_extra_f2_b_get_sue_pwm_input_1(msg);
@@ -843,6 +865,6 @@ static inline void mavlink_msg_serial_udb_extra_f2_b_decode(const mavlink_messag
 	serial_udb_extra_f2_b->sue_waypoint_goal_z = mavlink_msg_serial_udb_extra_f2_b_get_sue_waypoint_goal_z(msg);
 	serial_udb_extra_f2_b->sue_memory_stack_free = mavlink_msg_serial_udb_extra_f2_b_get_sue_memory_stack_free(msg);
 #else
-	memcpy(serial_udb_extra_f2_b, _MAV_PAYLOAD(msg), 70);
+	memcpy(serial_udb_extra_f2_b, _MAV_PAYLOAD(msg), 78);
 #endif
 }
