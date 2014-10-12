@@ -295,7 +295,7 @@
 // as you define below), that servo will be sent reversed controls.
 #define AILERON_CHANNEL_REVERSED            1
 #define ELEVATOR_CHANNEL_REVERSED           0
-#define RUDDER_CHANNEL_REVERSED             0
+#define RUDDER_CHANNEL_REVERSED             1
 #define AILERON_SECONDARY_CHANNEL_REVERSED  0
 #define THROTTLE_CHANNEL_REVERSED           0
 #define CAMERA_PITCH_CHANNEL_REVERSED       0
@@ -529,7 +529,7 @@
 // MANUAL_AILERON_RUDDER_MIX is the fraction of manual aileron control to mix into the rudder when
 // in stabilized or waypoint mode.  This mainly helps aileron-initiated turning while in stabilized.
 // RUDDER_BOOST is the additional gain multiplier for the manually commanded rudder deflection
-#define YAWKP_RUDDER				0.05 // 0.1
+#define YAWKP_RUDDER				0.1 // 0.1
 #define YAWKD_RUDDER				0.01 //0.03 // 0.1
 #define ROLLKP_RUDDER				0.04
 #define ROLLKD_RUDDER				0 //0.05

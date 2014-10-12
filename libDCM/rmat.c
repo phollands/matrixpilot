@@ -235,9 +235,10 @@ void read_accel(void) {
 		dcm_flags._.launch_detected = 1;
 	}
 #endif
-	// transform gplane from body frame to earth frame
-	// x component in earth frame is earth x unit vector (rmat[0,1,2]) dotted with gplane
-	//FIXME: But why are the y and z components negated?
+        // transform gplane from body frame to GPS earth frame:
+        // 1) acc ( in UDB earth frame ) = -R*gplane + ( gravity vector in earth frame)
+        // 2) rotate to GPS earth frame: flip the signs of the UDB earth x and z values
+        // x component in UDB earth frame is earth x unit vector (rmat[0,1,2]) dotted with -gplane
 	accelEarth[0] =  VectorDotProduct(3, &rmat[0], gplane)<<1;
 	accelEarth[1] = - VectorDotProduct(3, &rmat[3], gplane)<<1;
 	accelEarth[2] = -((int16_t)GRAVITY) + (VectorDotProduct(3, &rmat[6], gplane)<<1);

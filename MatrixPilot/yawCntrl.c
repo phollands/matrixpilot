@@ -21,7 +21,7 @@
 
 #include "defines.h"
 #include "heartbeat.h"
-extern fractional gplane[];
+#include "libDCM_internal.h"
 extern float xgain;
 
 #define HOVERYOFFSET ((int32_t)(HOVER_YAW_OFFSET*(RMAX/57.3)))
@@ -116,13 +116,17 @@ void normalYawCntrl(void)
 	if (YAW_STABILIZATION_RUDDER && flags._.pitch_feedback)
 	{
 		gyroYawFeedback.WW = __builtin_mulus(yawkdrud, omegaAccum[2]);
-#if (SILSIM == 1)
-                int16_t xacc_scaled = xgain * gplane[0];
+#if (HILSIM == 1)
+                // acceleration data comes from the Xplane plugin
+                int16_t xacc_scaled = -(1.0/16) * (float)g_a_x_sim.BB;
                 if ((udb_heartbeat_counter % (HEARTBEAT_HZ/10)) == 0) {
-                    printf("xacc feedback: %i, total feedback: %i\n", -xacc_scaled, gyroYawFeedback._.W1);
+                    printf("xacc: %i, xacc feedback: %i, total feedback: %i\n", g_a_x_sim.BB, xacc_scaled, gyroYawFeedback._.W1);
                 }
 #else
-                int16_t xacc_scaled = -xgain * gplane[0];
+                // acceleration data comes from the onboard sensor
+                // Note that the sign of x acceleration needs to be flipped here to
+                // get negative feedback, but not in SILSIM; this is confusing...
+                int16_t xacc_scaled = -xgain * XACCEL_VALUE;
 #endif
 		gyroYawFeedback._.W1 -= xacc_scaled;
 	}
