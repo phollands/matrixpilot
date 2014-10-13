@@ -2052,6 +2052,11 @@ class flight_log_book:
             
         imu_t = imudata[0:,0]
         raw_xacc = -imudata[0:,1]
+        raw_yacc = -imudata[0:,2]
+        raw_zacc = -imudata[0:,3]
+        raw_accmag = np.zeros((len(self.raw_imu), 1))
+        for i in np.arange(len(self.raw_imu)):
+            raw_accmag[i] = sqrt(pow(raw_xacc[i], 2) + pow(raw_yacc[i], 2) + pow(raw_zacc[i], 2))
         imu_filt_t = imudata_filt[0:,0]
         filt_xacc = -imudata_filt[0:,1]
         filt_zacc = imudata_filt[0:,3]
@@ -2060,21 +2065,32 @@ class flight_log_book:
         rudder_man = 20 * (suedata[0:,3] - 3000)
         mode = 20 * (suedata[0:,4] - 3000)
         aileron_out = 20 * (suedata[0:,5] - 3000)
+        
         plt.figure(1)
-        plt.plot(imu_t, raw_xacc, 'o', label='xacc')
-        plt.plot(imu_filt_t, filt_xacc, '-o', label='xacc_filt')
-        plt.plot(imu_filt_t, filt_zacc, 'o', label='zacc_filt')
+        plt.title('''markw's custom plot''')
+        plt.plot(imu_t, raw_xacc, 'o', mew=0.0, label='xacc')
+        plt.plot(imu_filt_t, filt_xacc, '-o', mew=0.0, label='xacc_filt')
+        plt.plot(imu_filt_t, filt_zacc, 'o', mew=0.0, label='zacc_filt')
         plt.plot(sue_t, rudder_out, '-o', label='rudder_out')
         plt.plot(sue_t, rudder_man, '-o', label='rudder_man')
         plt.plot(sue_t, mode, '-o', label='mode')
         plt.plot(sue_t, aileron_out, '-o', label='aileron_out')
         plt.xlabel('system time: usec')
         plt.ylabel('xacc')
-#         start, end = plt.axes().get_xlim()
-#         plt.axes().xaxis.set_ticks(np.arange(start, end, 200))
         plt.grid()
         plt.legend()
-        plt.show()
+    
+        plt.figure(2)
+        plt.title('raw accelerometer data')
+        plt.plot(imu_t, raw_xacc, '-o', mew=0.0, label='xacc')
+        plt.plot(imu_t, raw_yacc, '-o', mew=0.0, label='yacc')
+        plt.plot(imu_t, raw_zacc, '-o', mew=0.0, label='zacc')
+        plt.plot(imu_t, raw_accmag, '-o', mew=0.0, label='mag')
+        plt.xlabel('system time: usec')
+        plt.ylabel('acc')
+        plt.grid()
+        plt.legend()
+        plt.show(block=False)
     
 def calc_average_wind_speed(log_book):
     if log_book.racing_mode == 0 :
