@@ -25,7 +25,6 @@
 
 // Common data rates
 #define MAVLINK_RATE_RC_CHAN                0   // RC_CHANNELS_SCALED, RC_CHANNELS_RAW, SERVO_OUTPUT_RAW |
-#define MAVLINK_RATE_IMU_RAW                0   // ATTITUDE_CONTROLLER_OUTPUT, POSITION_CONTROLLER_OUTPUT, NAV_CONTROLLER_OUTPUT. |
 #define MAVLINK_RATE_POSITION               8   // LOCAL_POSITION, GLOBAL_POSITION/GLOBAL_POSITION_INT messages. |
 #define MAVLINK_RATE_RAW_IMU               50   // IMU_RAW packets
 #define MAVLINK_RATE_RAW_GPS                4   // GPS_RAW packets
