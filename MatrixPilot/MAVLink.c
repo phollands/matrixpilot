@@ -1733,7 +1733,7 @@ void mavlink_output(void)
 
 
 	// RC CHANNELS
-	// Channel values shifted left by 1, to divide by two, so values reflect PWM pulses in microseconds.
+	// Channel values shifted right by 1, to divide by two, so values reflect PWM pulses in microseconds.
 	// mavlink_msg_rc_channels_raw_send(mavlink_channel_t chan, uint16_t chan1_raw, uint16_t chan2_raw,
 	//	uint16_t chan3_raw, uint16_t chan4_raw, uint16_t chan5_raw, uint16_t chan6_raw, uint16_t chan7_raw,
 	//	uint16_t chan8_raw, uint8_t rssi)
@@ -1756,9 +1756,25 @@ void mavlink_output(void)
 				(uint8_t)255); // 255 denotes not in use
 #endif
 	}
-	// mavlink_msg_rc_channels_raw_send(mavlink_channel_t chan, uint32_t time_boot_ms, uint8_t port, uint16_t chan1_raw, uint16_t chan2_raw, uint16_t chan3_raw, uint16_t chan4_raw,
-	//	uint16_t chan5_raw, uint16_t chan6_raw, uint16_t chan7_raw, uint16_t chan8_raw, uint8_t rssi)
-	// RAW SENSORS - ACCELOREMETERS and GYROS
+
+	// SERVO OUTPUTS
+	// Channel values shifted right by 1, to divide by two, so values reflect PWM pulses in microseconds.
+	spread_transmission_load = 26;
+	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_RC_CHANNELS], mavlink_counter + spread_transmission_load))
+	{
+		mavlink_msg_servo_output_raw_send(MAVLINK_COMM_0, msec,
+				(uint16_t)((udb_pwOut[0]) >> 1),
+				(uint16_t)((udb_pwOut[1]) >> 1),
+				(uint16_t)((udb_pwOut[2]) >> 1),
+				(uint16_t)((udb_pwOut[3]) >> 1),
+				(uint16_t)((udb_pwOut[4]) >> 1),
+				(uint16_t)((udb_pwOut[5]) >> 1),
+				(uint16_t)((udb_pwOut[6]) >> 1),
+				(uint16_t)((udb_pwOut[7]) >> 1),
+				(uint8_t) 0);
+	}
+
+        // RAW SENSORS - ACCELOREMETERS and GYROS
 	// It is expected that these values are graphed to allow users to check basic sensor operation,
 	// and to graph noise on the signals. As this code is for testing and graphing basic hardware, it uses
 	// raw sensor data, not corrected for offsets or mounting orientation.
