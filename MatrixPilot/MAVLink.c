@@ -161,6 +161,7 @@ extern struct ADchannel udb_5v;
 extern struct ADchannel udb_rssi;
 
 extern long barometer_altitude;        // above sea level altitude - ASL (millimeters)
+extern fractional accelerometer[];
 
 union intbb voltage_milis = {0};
 uint8_t mavlink_counter = 0;
@@ -1785,7 +1786,7 @@ void mavlink_output(void)
 	{
 #if (MAG_YAW_DRIFT == 1) // Magnetometer is connected
 		mavlink_msg_raw_imu_send(MAVLINK_COMM_0, systime_usec,
-			(int16_t)gplane[0], (int16_t)gplane[1], (int16_t)gplane[2],
+			(int16_t)accelerometer[0], (int16_t)accelerometer[1], (int16_t)accelerometer[2],
 			(int16_t)omegagyro[0], (int16_t)omegagyro[1], (int16_t)omegagyro[2],
 //			(int16_t)magFieldRaw[0], (int16_t)magFieldRaw[1], (int16_t)magFieldRaw[2],
 			(int16_t)udb_magFieldBody[0], (int16_t)udb_magFieldBody[1], (int16_t)udb_magFieldBody[2]);

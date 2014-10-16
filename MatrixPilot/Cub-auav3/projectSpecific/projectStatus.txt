@@ -241,6 +241,6 @@
 	The airspeed averaged over 1 second around the release is 10.6 m/sec.
 	This implies that the release occurred 10.6 * (13/30) = 4.6 meters early.
 	That is 5.4 meters past the edge of the WP, indicating that the IMU location
-	lags by 5.4 / 10.6 = 0.51 seconds. Since gpsParseCommon.c is applying a
-	one-interval = 0.25 seconds, this indicates that reporting lag for the LEA6H is
+	lags by 5.4 / 10.6 = 0.51 seconds. Since gpsParseCommon.c is compensating for
+	one interval = 0.25 seconds, this indicates that reporting lag for the LEA6H is
 	about 0.75 seconds for straight & level flight.
