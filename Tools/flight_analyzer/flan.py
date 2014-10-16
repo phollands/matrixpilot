@@ -1947,7 +1947,7 @@ class origin() :
         # STANDY_PAUSE is from defines.h of MatrixPilot. It determines
         # how long the plane waits after getting a nav_valid from the GPS
         # before storing the origin.
-        debug = 1
+        debug = 0
 
         STANDBY_PAUSE = 48
         background_timer_resolution = 0.5
@@ -1976,7 +1976,7 @@ class origin() :
                 self.latitude =  entry.latitude
                 self.longitude = entry.longitude
                 self.altitude =  entry.altitude
-                if debug: print "Origin: Lat:",self.latitude,"Lon:",self.longitude,"Atl:",self.altitude
+                print "Origin: Lat:",self.latitude,"Lon:",self.longitude,"Atl:",self.altitude
                 break
         return(True) # Success
 
@@ -2257,8 +2257,6 @@ def create_log_book(options) :
     # Process the telemetry file
     for msg in t: # msg is either a line of ascii, or a mavlink message
         record_no += 1
-        #if raw_imu_cnt > 10:
-        #    break
         log  = t.parse(msg, record_no, max_tm_actual)
         if log.log_format == "HKGCS_BLANK_LINE" : # blank line in Happy Killmore's GCS
             continue  # Go fetch another line
@@ -2395,7 +2393,7 @@ def create_log_book(options) :
             pitch = log.pitch
         else :
             print "Warning: Log Format received:", log.log_format
-            break
+#             break
         
     initial_points = 10 # no. log entries to find origin at start if no F13 format line
     
@@ -2605,7 +2603,7 @@ def process_telemetry():
     if (options.telemetry_selector == 1):
         print "Analyzing telemetry and creating flight log book"
         log_book = create_log_book(options)
-        log_book.plot_imu()
+#         log_book.plot_imu()
         print "Writing to temporary telemetry kml file"
         kml_result = create_telemetry_kmz(options, log_book) 
     elif ((options.waypoint_selector ==1 ) and (options.telemetry_selector == 0)):

@@ -103,68 +103,64 @@ class flight_log_book:
         self.waypoints_in_telemetry = False
 
     def plot_imu(self):
-    #         sys.argv = ['junk']
+        
+        f2a_t = np.zeros([len(self.f2a), 1])
+        altdata = np.zeros([len(self.f2a), 1])
+        sogdata = np.zeros([len(self.f2a), 1])
+        recN = 0
+        for msg in self.f2a:
+            f2a_t[recN] = msg.systime_usec / 1.0e6
+            altdata[recN] = msg.sue_altitude - 181700
+            sogdata[recN] = msg.sue_sog
+            recN += 1
+            
+        
         # fieldnames = ['time_usec', 'xacc', 'yacc', 'zacc', 'xgyro', 'ygyro', 'zgyro', 'xmag', 'ymag', 'zmag']
         imudata = np.array(self.raw_imu)
         imudata_filt = np.array(self.filtered_imu)
+        
         pwmIn = np.array(self.rc_channels)
         pwmOut = np.array(self.servo_out)
-#         pwmIn = np.zeros((len(self.f2b), 9))
-#         pwmOut = np.zeros((len(self.f2b), 9))
-#         index = 0
-#         for entry in self.f2b:
-#             pwmIn[index, 0] = entry.systime_usec
-#             pwmIn[index, 1] = entry.sue_pwm_input_1
-#             pwmIn[index, 2] = entry.sue_pwm_input_2
-#             pwmIn[index, 3] = entry.sue_pwm_input_3
-#             pwmIn[index, 4] = entry.sue_pwm_input_4
-#             pwmIn[index, 5] = entry.sue_pwm_input_5
-#             pwmIn[index, 6] = entry.sue_pwm_input_6
-#             pwmIn[index, 7] = entry.sue_pwm_input_7
-#             pwmIn[index, 8] = entry.sue_pwm_input_8
-# 
-#             pwmOut[index, 0] = entry.systime_usec
-#             pwmOut[index, 1] = entry.sue_pwm_output_1
-#             pwmOut[index, 2] = entry.sue_pwm_output_2
-#             pwmOut[index, 3] = entry.sue_pwm_output_3
-#             pwmOut[index, 4] = entry.sue_pwm_output_4
-#             pwmOut[index, 5] = entry.sue_pwm_output_5
-#             pwmOut[index, 6] = entry.sue_pwm_output_6
-#             pwmOut[index, 7] = entry.sue_pwm_output_7
-#             pwmOut[index, 8] = entry.sue_pwm_output_8
-#                 
-#             index+=1
+        attdata = np.array(self.attitude)
+        
+        att_t = attdata[0:,0] / 1.0e6
+        roll = attdata[0:,1]
+        pitch = attdata[0:,2] * 20
+        yaw = attdata[0:,3]
 
-        imu_t = imudata[0:,0]
-        raw_xacc = -imudata[0:,1]
-        raw_yacc = -imudata[0:,2]
-        raw_zacc = -imudata[0:,3]
+        imu_t = imudata[0:,0] / 1.0e6
+        raw_xacc = imudata[0:,1]
+        raw_yacc = imudata[0:,2]
+        raw_zacc = imudata[0:,3]
+        raw_zgyro = imudata[0:,6]
         raw_accmag = np.zeros((len(self.raw_imu), 1))
         for i in np.arange(len(self.raw_imu)):
             raw_accmag[i] = math.sqrt(math.pow(raw_xacc[i], 2) + 
                                       math.pow(raw_yacc[i], 2) + 
                                       math.pow(raw_zacc[i], 2))
-        imu_filt_t = imudata_filt[0:,0]
+        imu_filt_t = imudata_filt[0:,0] / 1.0e6
         filt_xacc = -imudata_filt[0:,1]
         filt_zacc = imudata_filt[0:,3]
         
-        pwmIn_t = pwmIn[0:, 0]
-        pwmOut_t = pwmOut[0:, 0]
-        rudder_out = 20 * (pwmOut[0:,4] - 1500)
+        pwmIn_t = pwmIn[0:, 0] / 1.0e6
+        pwmOut_t = pwmOut[0:, 0] / 1.0e6
         rudder_man = 20 * (pwmIn[0:,4] - 1500)
         mode = 20 * (pwmIn[0:,6] - 1500)
+        rudder_out = 20 * (pwmOut[0:,4] - 1500)
         aileron_out = 20 * (pwmOut[0:,2] - 1500)
+        throttle_out = 20 * (pwmOut[0:,1] - 1500)
+        bomb_out = 20 * (pwmOut[0:,5] - 1500)
         
         plt.figure(1)
         plt.title('''markw's custom plot''')
         plt.plot(imu_t, raw_xacc, 'o', mew=0.0, label='xacc')
         plt.plot(imu_filt_t, filt_xacc, '-o', mew=0.0, label='xacc_filt')
         plt.plot(imu_filt_t, filt_zacc, 'o', mew=0.0, label='zacc_filt')
-        plt.plot(pwmOut_t, rudder_out, '-o', label='rudder_out')
-        plt.plot(pwmIn_t, rudder_man, '-o', label='rudder_man')
-        plt.plot(pwmIn_t, mode, '-o', label='mode')
-        plt.plot(pwmOut_t, aileron_out, '-o', label='aileron_out')
-        plt.xlabel('system time: usec')
+        plt.plot(pwmOut_t, rudder_out, '-o', mew=0.0, label='rudder_out')
+        plt.plot(pwmIn_t, rudder_man, '-o', mew=0.0, label='rudder_man')
+        plt.plot(pwmIn_t, mode, '-o', mew=0.0, label='mode')
+        plt.plot(pwmOut_t, aileron_out, '-o', mew=0.0, label='aileron_out')
+        plt.xlabel('system time: sec')
         plt.ylabel('xacc')
         plt.grid()
         plt.legend()
@@ -172,10 +168,30 @@ class flight_log_book:
         plt.figure(2)
         plt.title('raw accelerometer data')
         plt.plot(imu_t, raw_xacc, '-o', mew=0.0, label='xacc')
-        plt.plot(imu_t, raw_yacc, '-o', mew=0.0, label='yacc')
-        plt.plot(imu_t, raw_zacc, '-o', mew=0.0, label='zacc')
+#         plt.plot(imu_t, raw_yacc, '-o', mew=0.0, label='yacc')
+#         plt.plot(imu_t, raw_zacc, '-o', mew=0.0, label='zacc')
         plt.plot(imu_t, raw_accmag, '-o', mew=0.0, label='mag')
-        plt.xlabel('system time: usec')
+        plt.plot(imu_t, raw_zgyro, '-o', mew=0.0, label='yaw rate')
+
+        plt.plot(pwmOut_t, throttle_out, '-o', mew=0.0, label='throttle')
+        plt.plot(pwmOut_t, rudder_out, '-o', mew=0.0, label='rudder_out')
+        plt.plot(pwmOut_t, bomb_out, '-o', mew=0.0, label='bomb release')
+        plt.plot(att_t, pitch, '-o', mew=0.0, label='pitch')
+        plt.plot(f2a_t, altdata, '-o', mew=0.0, label='altitude cm')
+        plt.plot(f2a_t, sogdata, '-o', mew=0.0, label='SOG cm/sec')
+        
+        plt.xlabel('system time: sec')
+        plt.ylabel('acc')
+        plt.grid()
+        plt.legend()
+        
+        plt.figure(3)
+        plt.title('Sport Cub: adverse yaw')
+        plt.plot(imu_t, raw_zgyro, '-o', mew=0.0, label='yaw rate')
+        plt.plot(pwmOut_t, aileron_out, '-o', mew=0.0, label='aileron_out')
+        plt.plot(pwmOut_t, rudder_out, '-o', mew=0.0, label='rudder_out')
+        
+        plt.xlabel('system time: sec')
         plt.ylabel('acc')
         plt.grid()
         plt.legend()
@@ -206,10 +222,10 @@ if __name__=="__main__":
             elif hasattr(msg, 'time_usec'):
                 last_timestamp = msg.time_usec
                     
-#             print "type: %s, timestamp: %i" % (msg.get_type(), last_timestamp)
+            print "timestamp: %i, type: %s" % (last_timestamp, msg.get_type())
                 
             if msg.get_type() == 'ATTITUDE':
-                entry = [msg.time_boot_ms, 
+                entry = [1000 * msg.time_boot_ms, 
                          msg.roll * 180/math.pi, 
                          msg.pitch * 180/math.pi, 
                          msg.yaw * 180/math.pi]

@@ -130,6 +130,9 @@ static union longww gyroCorrectionIntegral[] = {
 // accumulator for computing adjusted omega:
 fractional omegaAccum[] = { 0, 0, 0 };
 
+// acceleration, as measured in plane coordinate system
+fractional accelerometer[] = { 0, 0, 0 };
+
 // gravity, as measured in plane coordinate system
 #ifdef INITIALIZE_VERTICAL // VTOL vertical initialization
 fractional gplane[] = { 0, -GRAVITY, 0 };
@@ -227,6 +230,10 @@ void read_accel(void) {
 	gplane[1] = YACCEL_VALUE;
 	gplane[2] = ZACCEL_VALUE;
 #endif
+        // save the accelerometer values for this cycle (gplane is modified elsewhere)
+        accelerometer[0] = gplane[0];
+        accelerometer[1] = gplane[1];
+        accelerometer[2] = gplane[2];
 
 #ifdef CATAPULT_LAUNCH_ENABLE
 	// Danger Will Robinson! forward acceleration is negative!
