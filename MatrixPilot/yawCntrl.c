@@ -51,8 +51,7 @@ extern float xgain;
 
 #include "filters.h"
 union int32_w2 xacc_filt;
-int16_t xacc;
-extern fractional gplane[];
+extern fractional accelerometer[];
 void normalYawCntrl(void);
 void hoverYawCntrl(void);
 
@@ -83,14 +82,22 @@ void normalYawCntrl(void)
 {
 	int16_t yawNavDeflection;
 	union longww gyroYawFeedback;
+        int16_t xacc;
 
         // lowpass filter the x accelerometer samples
         // The MPU6000 applies a 42Hz digital lowpass filter, but we probably
         // want just a few Hz of bandwidth for the accelerometer readings.
         // Note that this is executed at HEARTBEAT_HZ = 200, so the 3dB point
         // for lp2 with LPCB_45_HZ will be 4.5Hz
+#if (HILSIM == 1)
+                // acceleration data comes from the Xplane plugin
+                int16_t x_acc = (float)g_a_x_sim.BB;
+#else
+                // acceleration data comes from the onboard sensor
+                int16_t x_acc = accelerometer[0];
+#endif
         // scale value up such that 1g of lateral acceleration has magnitude 16K
-        xacc = -lp2(gplane[0], &xacc_filt, LPCB_45_HZ);
+        xacc = lp2(x_acc, &xacc_filt, LPCB_45_HZ);
         magClamp(&xacc, 16384/(ACCEL_RANGE)); // saturate at 16K
         xacc *= (ACCEL_RANGE);
 
@@ -118,13 +125,13 @@ void normalYawCntrl(void)
 		gyroYawFeedback.WW = __builtin_mulus(yawkdrud, omegaAccum[2]);
 #if (HILSIM == 1)
                 // acceleration data comes from the Xplane plugin
-                int16_t xacc_scaled = -(1.0/16) * (float)g_a_x_sim.BB;
+                int16_t xacc_scaled = -(1.0/16) * xacc;
                 if ((udb_heartbeat_counter % (HEARTBEAT_HZ/10)) == 0) {
                     printf("xacc: %i, xacc feedback: %i, total feedback: %i\n", g_a_x_sim.BB, xacc_scaled, gyroYawFeedback._.W1);
                 }
 #else
                 // acceleration data comes from the onboard sensor
-                int16_t xacc_scaled = -xgain * XACCEL_VALUE;
+                int16_t xacc_scaled = -xgain * xacc;
 #endif
 		gyroYawFeedback._.W1 -= xacc_scaled;
 	}

@@ -232,3 +232,15 @@
 	was on in 1st and 3rd flights, sign was wrong on 2nd flight, but feedback
 	was turned off before W2 (GE labeling). Wrong sign caused wide turn, missing
 	W1.
+
+15 October 2014:
+	Log 2560 is a bomb run with onboard video of the release. I signal when the
+	plane is directly overhead to provide an image reference for the point directly
+	below the aircraft. The release occurs about 13 frames before passing over the
+	center of the WP, and this should be 10 meters early due to the WP radius.
+	The airspeed averaged over 1 second around the release is 10.6 m/sec.
+	This implies that the release occurred 10.6 * (13/30) = 4.6 meters early.
+	That is 5.4 meters past the edge of the WP, indicating that the IMU location
+	lags by 5.4 / 10.6 = 0.51 seconds. Since gpsParseCommon.c is applying a
+	one-interval = 0.25 seconds, this indicates that reporting lag for the LEA6H is
+	about 0.75 seconds for straight & level flight.
