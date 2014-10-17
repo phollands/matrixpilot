@@ -300,10 +300,6 @@ boolean udb_serial_callback_get_binary_to_send(char *c)
 	{
 		status = ring_get(c);
 	}
-
-	if (!status)
-		serial_interrupt_stopped = 1;
-
 	return status;
 }
 #endif
@@ -314,12 +310,8 @@ int16_t mavlink_serial_send(mavlink_channel_t UNUSED(chan), const uint8_t buf[],
 	// Note at the moment, all channels lead to the one serial port
 #ifdef USE_RING_BUFFER
 	int status = queue_data((char*) buf, len);
+        if (!pauseSerial && status) udb_serial_start_sending_data();
 
-	if (status && (serial_interrupt_stopped == 1))
-	{
-		serial_interrupt_stopped  = 0;
-		udb_serial_start_sending_data();
-	}
 	return status;
 #else
 	if (serial_interrupt_stopped == 1)
