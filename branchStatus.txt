@@ -197,3 +197,9 @@ Bug??? using COF linker output format, linking with static lib VectorMatrix.a do
 11 September 2014:
 	See Cub-auav3 project status for experiments at branch level with yawCntrl.c
 	Fixed bug in SBUS mode failsafe detection logic.
+
+16 October 2014:
+	Software flow control tested and working properly with markw's OpenLog firmware.
+	115.2K baud telemetry is supporting 50Hz RC, servo, raw_imu data in addition
+	to the standard SUE rate of 8Hz. Python program logPlotter.py in pymavlink/examples
+	is set up to read the logfiles with SUE data and generate pyplot plots.

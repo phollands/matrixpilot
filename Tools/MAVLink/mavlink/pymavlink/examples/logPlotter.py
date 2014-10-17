@@ -222,7 +222,7 @@ if __name__=="__main__":
             elif hasattr(msg, 'time_usec'):
                 last_timestamp = msg.time_usec
                     
-            print "timestamp: %i, type: %s" % (last_timestamp, msg.get_type())
+#             print "timestamp: %i, type: %s" % (last_timestamp, msg.get_type())
                 
             if msg.get_type() == 'ATTITUDE':
                 entry = [1000 * msg.time_boot_ms, 
