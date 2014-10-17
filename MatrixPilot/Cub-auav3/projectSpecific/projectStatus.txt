@@ -243,4 +243,5 @@
 	That is 5.4 meters past the edge of the WP, indicating that the IMU location
 	lags by 5.4 / 10.6 = 0.51 seconds. Since gpsParseCommon.c is compensating for
 	one interval = 0.25 seconds, this indicates that reporting lag for the LEA6H is
-	about 0.75 seconds for straight & level flight.
+	about 0.5 seconds for straight & level flight (allowing about .25 seconds
+	for bomb release latency).

@@ -267,7 +267,7 @@ void configureDigitalIO(void)	// AUAV3 board
 	TRISGbits.TRISG14 = 0;  // O5
 	TRISGbits.TRISG1 = 0;   // O6
 
-    // Configure the DIGx pins as outputs for scope tracing
+        // Configure the DIGx pins as outputs for scope tracing
 	TRISAbits.TRISA6 = 0;   // DIG2
 	TRISAbits.TRISA7 = 0;   // DIG1
 	TRISEbits.TRISE1 = 0;   // DIG0
