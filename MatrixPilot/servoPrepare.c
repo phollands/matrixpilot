@@ -27,7 +27,8 @@
 //	routines to drive the PWM pins for the servos,
 //	assumes the use of the 16MHz crystal.
 
-// these are the desired pitch/roll/yaw angles (in DCM radians x.xx format)
+// these are the desired pitch/roll angles (in DCM radians x.xx format)
+// and yaw rate setpoint
 int16_t pitch_setpoint, roll_setpoint, yaw_rate;
 float xgain = 0;
 

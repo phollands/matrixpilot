@@ -182,6 +182,7 @@ void triggerActionSetValue(boolean newValue)
 	if (TRIGGER_TYPE == TRIGGER_TYPE_SERVO)
 	{
 		udb_pwOut[TRIGGER_OUTPUT_CHANNEL] = (newValue) ? TRIGGER_SERVO_HIGH : TRIGGER_SERVO_LOW;
+                DIG1 = (newValue) ? 1 : 0;
 	}
 	else if (TRIGGER_TYPE == TRIGGER_TYPE_DIGITAL)
 	{

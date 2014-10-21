@@ -111,7 +111,7 @@
 // Aileron and Rudder Navigation
 // Set either of these to 0 to disable use of that control surface for navigation.
 #define AILERON_NAVIGATION                  1
-#define RUDDER_NAVIGATION                   0
+#define RUDDER_NAVIGATION                   1
 
 // Cross track margin, in meters
 // This is used when the cross track option is attached to a waypoint
@@ -472,10 +472,19 @@
 
 #define TRIGGER_TYPE                        TRIGGER_TYPE_SERVO
 #define TRIGGER_ACTION                      TRIGGER_PULSE_LOW
-#define TRIGGER_SERVO_LOW                   2500
-#define TRIGGER_SERVO_HIGH                  3800
-//#define TRIGGER_INIT_VALUE                  TRIGGER_SERVO_HIGH
-#define TRIGGER_PULSE_DURATION              1000
+
+// paintball drop mechanism
+// need +107/-30 travel on DX7
+// assuming 150% is 2000 counts:
+
+#define TRIGGER_SERVO_LOW                   2800
+#define TRIGGER_SERVO_HIGH                  3713
+
+// bomb release
+//#define TRIGGER_SERVO_LOW                   2500
+//#define TRIGGER_SERVO_HIGH                  3800
+
+#define TRIGGER_PULSE_DURATION              500
 #define TRIGGER_REPEAT_PERIOD               4000
 
 
@@ -530,8 +539,8 @@
 // MANUAL_AILERON_RUDDER_MIX is the fraction of manual aileron control to mix into the rudder when
 // in stabilized or waypoint mode.  This mainly helps aileron-initiated turning while in stabilized.
 // RUDDER_BOOST is the additional gain multiplier for the manually commanded rudder deflection
-#define YAWKP_RUDDER				0.2 // 0.1
-#define YAWKD_RUDDER				0 //0.03 // 0.1
+#define YAWKP_RUDDER				0.4 // 0.1
+#define YAWKD_RUDDER				0.2 //0.03 // 0.1
 #define ROLLKP_RUDDER				0.1
 #define ROLLKD_RUDDER				0 //0.05
 #define MANUAL_AILERON_RUDDER_MIX	0.0

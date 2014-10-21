@@ -101,28 +101,34 @@ void normalYawCntrl(void)
         magClamp(&xacc, 16384/(ACCEL_RANGE)); // saturate at 16K
         xacc *= (ACCEL_RANGE);
 
+        // yaw gyro reports rate as a signed 16 bit integer with range [-500, 500) deg/sec
+        // for a setpoint range of +/-60 deg/sec = +/-4000, multiply PWM input by 4
+        int16_t yaw_manual =  REVERSE_IF_NEEDED(RUDDER_CHANNEL_REVERSED,
+            (udb_pwIn[RUDDER_INPUT_CHANNEL] - udb_pwTrim[RUDDER_INPUT_CHANNEL]));
+        yaw_rate = yaw_manual << 2;
+
 #ifdef TestGains
 	flags._.GPS_steering = 0; // turn off navigation
 	flags._.pitch_feedback = 1; // turn on stabilization
 #endif 
 	if (RUDDER_NAVIGATION && flags._.GPS_steering)
 	{
+                // this method output is clamped to +/-16000 => +/-240 deg/sec
 		yawNavDeflection = determine_navigation_deflection('y');
 		
 		if (canStabilizeInverted() && current_orientation == F_INVERTED)
 		{
 			yawNavDeflection = -yawNavDeflection;
-		} 
-	}
-	else
-	{
-		yawNavDeflection = 0;
+		}
+                yaw_rate += yawNavDeflection;
+                // limit combined manual and nav roll setpoint to less than 240 deg/sec
+                magClamp(&roll_setpoint, 16000);
 	}
 
         gyroYawFeedback.WW = 0;
-	if (YAW_STABILIZATION_RUDDER && flags._.pitch_feedback)
+	if (flags._.pitch_feedback)
 	{
-		gyroYawFeedback.WW = __builtin_mulus(yawkdrud, omegaAccum[2]);
+		gyroYawFeedback.WW = __builtin_mulus(yawkdrud, yaw_rate - omegaAccum[2]);
 #if (HILSIM == 1)
                 // acceleration data comes from the Xplane plugin
                 int16_t xacc_scaled = -(1.0/16) * xacc;
@@ -133,11 +139,13 @@ void normalYawCntrl(void)
                 // acceleration data comes from the onboard sensor
                 int16_t xacc_scaled = -xgain * xacc;
 #endif
-		gyroYawFeedback._.W1 -= xacc_scaled;
-	}
-
-	yaw_control = (int32_t)yawNavDeflection 
-				- (int32_t)gyroYawFeedback._.W1;
+		gyroYawFeedback._.W1 += xacc_scaled;
+        } else {
+            // no stabilization; pass manual input through
+            gyroYawFeedback._.W1 = yaw_manual;
+        }
+      
+	yaw_control = gyroYawFeedback._.W1;
         // Servo reversing is handled in servoMix.c
 }
 

@@ -165,9 +165,9 @@
 #define USE_FIXED_ORIGIN		1
 const struct waypointDef waypoints[] = {
 	{ { 84, 3, 20 } , F_NORMAL + F_TAKEOFF, CAM_VIEW_LAUNCH } , //Waypoint 1
-	{ { 83, 49, 30 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 2
+	{ { 83, 49, 25 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 2
 	{ { -103, 53, 30 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 3
-	{ { -103, 7, 25 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 4
+	{ { -103, 7, 20 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 4
 	{ { -59, 6, 10 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 4
 	{ { -14, 4,10 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 5
 	{ { 15, 3, 20 } , F_NORMAL + F_TRIGGER , CAM_VIEW_LAUNCH } , //Waypoint 6
