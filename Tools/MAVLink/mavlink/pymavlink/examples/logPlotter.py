@@ -12,7 +12,7 @@ import pylab as plt
 import numpy as np
 from Tkinter import *
 
-# allow import from the parent directorfilty, where mavlink.py is
+# allow import from the parent directory, where mavlink.py is
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
 from optparse import OptionParser
@@ -198,6 +198,7 @@ class flight_log_book:
         
         f2a_t = np.zeros([len(self.f2a), 1])
         sogdata = np.zeros([len(self.f2a), 1])
+        cogdata = np.zeros([len(self.f2a), 1])
         latdata = np.zeros([len(self.f2a), 1])
         londata = np.zeros([len(self.f2a), 1])
         northdata = np.zeros([len(self.f2a), 1])
@@ -209,7 +210,7 @@ class flight_log_book:
         if (len(self.F13) > 0): 
             lat_origin = 1e-7 * self.F13[-1].sue_lat_origin
             lon_origin = 1e-7 * self.F13[-1].sue_lon_origin
-            alt_origin = 1e-2 * self.F13[-1].sue_alt_origin
+            alt_origin = self.F13[-1].sue_alt_origin # centimeters
             print("plot_imu: using origin (%s, %s, %s)" % (lat_origin, lon_origin, alt_origin))
             
         recN = 0
@@ -217,11 +218,14 @@ class flight_log_book:
             f2a_t[recN] = msg.systime_usec / 1.0e6
             if (msg.sue_latitude != 0) and (msg.sue_longitude != 0):
                 sogdata[recN] = msg.sue_sog
+                cogdata[recN] = msg.sue_cog   # 100*degrees
+                # convert to +/-180*100 deg range
+                if (cogdata[recN] > 18000): cogdata[recN] -= 36000
                 latdata[recN] = 1e-7 * msg.sue_latitude - lat_origin
                 northdata[recN] = lat2meters(latdata[recN])
                 londata[recN] = 1e-7 * msg.sue_longitude - lon_origin
                 eastdata[recN] = lon2meters(londata[recN], latdata[recN])
-                altdata[recN] = 1e-2 * msg.sue_altitude - alt_origin
+                altdata[recN] = msg.sue_altitude - alt_origin   # centimeters
             recN += 1            
         
         # fieldnames = ['time_usec', 'xacc', 'yacc', 'zacc', 'xgyro', 'ygyro', 'zgyro', 'xmag', 'ymag', 'zmag']
@@ -276,6 +280,16 @@ class flight_log_book:
         plt.plot(f2a_t, sogdata, '-o', mew=0.0, label='SOG cm/sec')
         plt.xlabel('system time: sec')
         plt.ylabel('xacc')
+        plt.grid()
+        plt.legend()
+    
+        plt.figure(5)
+        plt.title('''turn''')
+        plt.plot(pwmOut_t, rudder_out, '-o', mew=0.0, label='rudder_out')
+        plt.plot(imu_t, raw_zgyro, '-o', mew=0.0, label='yaw rate')
+        plt.plot(pwmOut_t, aileron_out, '-o', mew=0.0, label='aileron_out')
+        plt.plot(f2a_t, cogdata/10, '-o', mew=0.0, label='COG')
+        plt.xlabel('system time: sec')
         plt.grid()
         plt.legend()
     

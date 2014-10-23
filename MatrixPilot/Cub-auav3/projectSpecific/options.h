@@ -478,13 +478,13 @@
 // assuming 150% is 2000 counts:
 
 #define TRIGGER_SERVO_LOW                   2800
-#define TRIGGER_SERVO_HIGH                  3713
+#define TRIGGER_SERVO_HIGH                  3673
 
 // bomb release
 //#define TRIGGER_SERVO_LOW                   2500
 //#define TRIGGER_SERVO_HIGH                  3800
 
-#define TRIGGER_PULSE_DURATION              500
+#define TRIGGER_PULSE_DURATION              250
 #define TRIGGER_REPEAT_PERIOD               4000
 
 
