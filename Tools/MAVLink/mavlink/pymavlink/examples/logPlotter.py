@@ -11,6 +11,7 @@ import sys, time, os, struct, math
 import pylab as plt
 import numpy as np
 from Tkinter import *
+from mpl_toolkits.mplot3d import axes3d
 
 # allow import from the parent directory, where mavlink.py is
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
@@ -204,6 +205,7 @@ class flight_log_book:
         northdata = np.zeros([len(self.f2a), 1])
         eastdata = np.zeros([len(self.f2a), 1])
         altdata = np.zeros([len(self.f2a), 1])
+        magFieldEarth = np.zeros([len(self.f2a), 3])
         
         lat_origin = 0
         lon_origin = 0
@@ -226,6 +228,7 @@ class flight_log_book:
                 londata[recN] = 1e-7 * msg.sue_longitude - lon_origin
                 eastdata[recN] = lon2meters(londata[recN], latdata[recN])
                 altdata[recN] = msg.sue_altitude - alt_origin   # centimeters
+                magFieldEarth[recN] = [msg.sue_magFieldEarth0, msg.sue_magFieldEarth1, msg.sue_magFieldEarth2]
             recN += 1            
         
         # fieldnames = ['time_usec', 'xacc', 'yacc', 'zacc', 'xgyro', 'ygyro', 'zgyro', 'xmag', 'ymag', 'zmag']
@@ -242,10 +245,15 @@ class flight_log_book:
         yaw = attdata[0:,3]
 
         imu_t = imudata[0:,0] / 1.0e6
+        
         raw_xacc = imudata[0:,1]
         raw_yacc = imudata[0:,2]
         raw_zacc = imudata[0:,3]
+        
         raw_zgyro = imudata[0:,6]
+        
+        magFieldBody = imudata[0:,7:10]
+
         raw_accmag = np.zeros((len(self.raw_imu), 1))
         for i in np.arange(len(self.raw_imu)):
             raw_accmag[i] = math.sqrt(math.pow(raw_xacc[i], 2) + 
