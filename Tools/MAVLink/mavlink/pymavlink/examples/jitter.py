@@ -53,7 +53,6 @@ if __name__ == '__main__':
     intVals = dvals[0,:]
     dcmVals = dvals[1,:]
     
-    # for each 1->0 transition of intVals, calculate time interval
     nInterrupts = nRecs - 1 - np.count_nonzero(dvals[0,:])
     int_interval = np.zeros(nInterrupts)
     dcm_latency = np.zeros(nInterrupts)

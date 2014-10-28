@@ -172,7 +172,7 @@
 // the magnetometerOptions.h file, including declination and magnetometer type.
 #define MAG_YAW_DRIFT                       1
 
-#define MAG_YAW_ENABLE                      0
+#define MAG_YAW_ENABLE                      1
 #undef ENABLE_MAGOFFSET
 //#define ENABLE_MAGOFFSET
 #undef ENABLE_MAGALIGNMENT

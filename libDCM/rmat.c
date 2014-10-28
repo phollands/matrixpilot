@@ -404,10 +404,10 @@ static void yaw_drift(void) {
             errorYawplane[0] = 0;
             errorYawplane[1] = 0;
             errorYawplane[2] = 0;
-		}
+        }
 		
-		dcm_flags._.yaw_req = 0;
-	}
+        dcm_flags._.yaw_req = 0;
+    }
 }
 
 #if (MAG_YAW_DRIFT == 1)
