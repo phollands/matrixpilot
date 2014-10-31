@@ -8,7 +8,7 @@ Note: this file has been auto-generated. DO NOT EDIT
 
 import sys, os, struct, array, time, json
 
-sys.path.insert(0, '/home/markw/git/MatrixPilot/Tools/MAVLink/mavlink/pymavlink/generator')
+sys.path.insert(0, './generator')
 from mavcrc import x25crc
 
 WIRE_PROTOCOL_VERSION = "1.0"
