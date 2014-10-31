@@ -93,6 +93,7 @@ class flight_log_book:
         self.raw_imu = [] # list of raw IMU data records
         self.filtered_imu = [] # list of filtered IMU data records
         self.attitude = []
+        self.pos_ned = []
         self.rc_channels = []
         self.servo_out = []
         self.f2a = []
@@ -226,7 +227,7 @@ class flight_log_book:
                 latdata[recN] = 1e-7 * msg.sue_latitude - lat_origin
                 northdata[recN] = lat2meters(latdata[recN])
                 londata[recN] = 1e-7 * msg.sue_longitude - lon_origin
-                eastdata[recN] = lon2meters(londata[recN], latdata[recN])
+                eastdata[recN] = lon2meters(londata[recN], lat_origin)
                 altdata[recN] = msg.sue_altitude - alt_origin   # centimeters
                 magFieldEarth[recN] = [msg.sue_magFieldEarth0, msg.sue_magFieldEarth1, msg.sue_magFieldEarth2]
             recN += 1            
@@ -234,6 +235,15 @@ class flight_log_book:
         # fieldnames = ['time_usec', 'xacc', 'yacc', 'zacc', 'xgyro', 'ygyro', 'zgyro', 'xmag', 'ymag', 'zmag']
         imudata = np.array(self.raw_imu)
         imudata_filt = np.array(self.filtered_imu)
+        
+        posNED = np.array(self.pos_ned)
+        posNED_t = posNED[0:,0] / 1.0e6
+        imuLocx = posNED[0:,2]
+        imuLocy = posNED[0:,1]
+        imuLocz = -posNED[0:,3]
+        imuVelx = posNED[0:,5]
+        imuVely = posNED[0:,4]
+        imuVelz = -posNED[0:,6]
         
         pwmIn = np.array(self.rc_channels)
         pwmOut = np.array(self.servo_out)
@@ -291,7 +301,7 @@ class flight_log_book:
         plt.grid()
         plt.legend()
     
-        plt.figure(5)
+        plt.figure(2)
         plt.title('''turn''')
         plt.plot(pwmOut_t, rudder_out, '-o', mew=0.0, label='rudder_out')
         plt.plot(imu_t, raw_zgyro, '-o', mew=0.0, label='yaw rate')
@@ -301,7 +311,7 @@ class flight_log_book:
         plt.grid()
         plt.legend()
     
-        plt.figure(2)
+        plt.figure(3)
         plt.title('raw accelerometer data')
         plt.plot(imu_t, raw_xacc, '-o', mew=0.0, label='xacc')
         plt.plot(imu_t, raw_yacc, '-o', mew=0.0, label='yacc')
@@ -317,6 +327,23 @@ class flight_log_book:
         plt.grid()
         plt.legend()
         
+        plt.figure(4)
+        plt.title('IMU location')
+#         plt.plot(imuLocx, imuLocy, '-o', mew=0.0, label='IMUlocxy')
+        plt.plot(posNED_t, imuLocx, '-o', mew=0.0, label='IMUlocx')
+        plt.plot(posNED_t, imuLocy, '-o', mew=0.0, label='IMUlocy')
+        plt.plot(posNED_t, imuLocz, '-o', mew=0.0, label='IMUlocz')
+        plt.plot(f2a_t, eastdata, '-o', mew=0.0, label='gpseast')
+        plt.plot(f2a_t, northdata, '-o', mew=0.0, label='gpsnorth')
+        plt.plot(f2a_t, altdata/100, '-o', mew=0.0, label='gpsalt')
+#         plt.plot(posNED_t, imuVelx/100, '-o', mew=0.0, label='imuVelx')
+#         plt.plot(posNED_t, imuVely/100, '-o', mew=0.0, label='imuVely')
+        
+        plt.xlabel('system time: sec')
+        plt.ylabel('meters')
+        plt.grid()
+        plt.legend()
+        
 #         plt.figure(3)
 #         plt.title('Sport Cub: adverse yaw')
 #         plt.plot(imu_t, raw_zgyro, '-o', mew=0.0, label='yaw rate')
@@ -328,7 +355,7 @@ class flight_log_book:
 #         plt.grid()
 #         plt.legend()
 
-        plt.figure(3)
+        plt.figure(5)
         plt.title('LEA-6H lat/lon')
         plt.plot(eastdata, northdata, '-o', mew=0.0, label='lat/lon')
         
@@ -338,13 +365,13 @@ class flight_log_book:
         plt.legend()
         plt.axis('equal')
         
-        plt.figure(4)
+        plt.figure(6)
         plt.title('LEA-6H lat/lon')
         plt.plot(f2a_t, northdata, '-o', mew=0.0, label='north')
         plt.plot(f2a_t, eastdata, '-o', mew=0.0, label='east')
         
         plt.xlabel('seconds')
-        plt.ylabel('degrees')
+        plt.ylabel('meters')
         plt.grid()
         plt.legend()
         
@@ -383,6 +410,14 @@ if __name__=="__main__":
                          msg.pitch * 180/math.pi, 
                          msg.yaw * 180/math.pi]
                 log_book.attitude.append(entry)
+                
+            elif msg.get_type() == "LOCAL_POSITION_NED":
+#                 print(msg)
+                # fieldnames = ['time_boot_ms', 'x', 'y', 'z', 'vx', 'vy', 'vz']
+                entry = [1000 * msg.time_boot_ms, 
+                         msg.x, msg.y, msg.z,
+                         msg.vx, msg.vy, msg.vz]                
+                log_book.pos_ned.append(entry)                
                 
             elif msg.get_type() == 'RAW_IMU':
                 boxfilter.update([msg.xacc, msg.yacc, msg.zacc,
@@ -425,7 +460,8 @@ if __name__=="__main__":
                 
             elif msg.get_type() == 'SERVO_OUTPUT_RAW':
                 if (msg.port == 220):
-                    entry = [1000 * msg.time_boot_ms, 
+                    # this needs to be fixed in MAVlink.c
+                    entry = [1000 * msg.time_usec, 
                              msg.servo1_raw,
                              msg.servo2_raw,
                              msg.servo3_raw,

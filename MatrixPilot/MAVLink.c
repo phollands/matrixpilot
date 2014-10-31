@@ -162,6 +162,8 @@ extern struct ADchannel udb_rssi;
 
 extern long barometer_altitude;        // above sea level altitude - ASL (millimeters)
 extern fractional accelerometer[];
+extern struct relative3D_f GPSloc_f;
+extern float loc_f[3];
 
 union intbb voltage_milis = {0};
 uint8_t mavlink_counter = 0;
@@ -241,9 +243,7 @@ void init_mavlink(void)
 
 	// QGroundControl GCS lets user send message to increase stream rate
 	streamRates[MAV_DATA_STREAM_RC_CHANNELS] = MAVLINK_RATE_RC_CHAN;
-	streamRates[MAV_DATA_STREAM_RAW_IMU] = MAVLINK_RATE_RAW_IMU;
-	streamRates[MAV_DATA_STREAM_RAW_GPS] = MAVLINK_RATE_RAW_GPS;
-	streamRates[MAV_DATA_STREAM_RAW_GPS_STATUS] = MAVLINK_RATE_RAW_GPS_STATUS;
+	streamRates[MAV_DATA_STREAM_RAW_SENSORS] = MAVLINK_RATE_RAW_IMU;
 	streamRates[MAV_DATA_STREAM_POSITION] = MAVLINK_RATE_POSITION;
 
 	streamRates[MAV_DATA_STREAM_EXTRA1] = MAVLINK_RATE_SUE;
@@ -874,9 +874,7 @@ void handleMessage(void)
 			if (packet.req_stream_id == MAV_DATA_STREAM_ALL)
 			{
 				// Warning: mavproxy automatically sets all.  Do not include all here, it will overide defaults.
-				streamRates[MAV_DATA_STREAM_RAW_IMU] = freq;
-				streamRates[MAV_DATA_STREAM_RAW_GPS] = freq;
-				streamRates[MAV_DATA_STREAM_RAW_GPS_STATUS] = freq;
+				streamRates[MAV_DATA_STREAM_RAW_SENSORS] = freq;
 				streamRates[MAV_DATA_STREAM_RC_CHANNELS] = freq;
 			}
 			else
@@ -1590,7 +1588,8 @@ void mavlink_output(void)
 	}
 
 	spread_transmission_load = 4;
-	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_RAW_GPS], mavlink_counter + spread_transmission_load))
+        // NOTE: this rate is not adjustable at runtime, since it's not in the streamrates array
+	if (mavlink_frequency_send(MAVLINK_RATE_RAW_GPS, mavlink_counter + spread_transmission_load))
 	{
 		int16_t gps_fix_type;
 		if (gps_nav_valid())
@@ -1767,6 +1766,38 @@ void mavlink_output(void)
 				(uint8_t) 0);
 	}
 
+/**
+ * @brief Send a local_position_ned message
+ * @param chan MAVLink channel to send the message
+ *
+ * @param time_boot_ms Timestamp (milliseconds since system boot)
+ * @param x X Position
+ * @param y Y Position
+ * @param z Z Position
+ * @param vx X Speed
+ * @param vy Y Speed
+ * @param vz Z Speed
+ */
+
+	spread_transmission_load = 28;
+	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_RAW_SENSORS], mavlink_counter + spread_transmission_load))
+	{
+            // IMUlocation is maintained in UDB-Earth frame, which is East-North-Up
+            // and mavlink convention is North-East-Down, so we need to swap x and y
+            // and negate z to rotate into the NED frame
+            mavlink_msg_local_position_ned_send(MAVLINK_COMM_0, msec,
+
+//                    loc_f[0], loc_f[1], loc_f[2],
+                    ((float)IMUlocationy.WW / 65536.0),
+                    ((float)IMUlocationx.WW / 65536.0),
+                    ((float)-IMUlocationz.WW / 65536.0),
+
+//                    GPSloc_f.x, GPSloc_f.y, GPSloc_f.z);
+                    ((float)IMUvelocityy.WW / 65536.0),
+                    ((float)IMUvelocityx.WW / 65536.0),
+                    ((float)-IMUvelocityz.WW / 65536.0));
+        }
+
         // RAW SENSORS - ACCELOREMETERS and GYROS
 	// It is expected that these values are graphed to allow users to check basic sensor operation,
 	// and to graph noise on the signals. As this code is for testing and graphing basic hardware, it uses
@@ -1774,7 +1805,7 @@ void mavlink_output(void)
 	// See:- http://code.google.com/p/gentlenav/wiki/UDBCoordinateSystems and the "Aviation Convention" diagram.
 
 	spread_transmission_load = 30;
-	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_RAW_IMU], mavlink_counter + spread_transmission_load))
+	if (mavlink_frequency_send(streamRates[MAV_DATA_STREAM_RAW_SENSORS], mavlink_counter + spread_transmission_load))
 	{
 #if (MAG_YAW_DRIFT == 1) // Magnetometer is connected
 		mavlink_msg_raw_imu_send(MAVLINK_COMM_0, systime_usec,

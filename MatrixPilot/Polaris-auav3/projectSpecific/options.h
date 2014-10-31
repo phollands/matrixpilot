@@ -44,6 +44,9 @@
 // define this to add debug text messages to mavlink stream
 #undef USE_MAVLINK_DBGIO
 
+// define this to test alternate stabilization techniques
+//#define DISABLE_CENTRIPETAL_COMP
+#undef DISABLE_CENTRIPETAL_COMP
 ////////////////////////////////////////////////////////////////////////////////
 // Set Up Board Type
 // See the MatrixPilot wiki for more details on different board types.
@@ -72,6 +75,14 @@
 //        from point of view of the pilot, then rotate the board 180 around the Z axis of the plane,
 #define BOARD_ORIENTATION                   ORIENTATION_FORWARDS
 
+// manual accel/gyro calibration values supplied
+#define PRE_CALIBRATED
+#define XACCEL_OFFSET -209
+#define YACCEL_OFFSET 325
+#define ZACCEL_OFFSET -594
+#define XRATE_OFFSET  -26
+#define YRATE_OFFSET  116
+#define ZRATE_OFFSET  35
 
 ////////////////////////////////////////////////////////////////////////////////
 // Choose your airframe type:
@@ -86,6 +97,7 @@
 // Set this value to your GPS type.  (Set to GPS_STD, GPS_UBX_2HZ, GPS_UBX_4HZ, or GPS_MTEK)
 #define GPS_TYPE GPS_STD
 
+#define BAROMETER_ALTITUDE 0
 
 ////////////////////////////////////////////////////////////////////////////////
 // Enable/Disable core features of this firmware
@@ -94,6 +106,8 @@
 // Set any of these to 0 to disable the stabilization in that axis.
 #define ROLL_STABILIZATION_AILERONS         1
 #define ROLL_STABILIZATION_RUDDER           0
+// experimental: use rudder to ...
+#define ROLL_CONTROL_RUDDER                 0
 #define PITCH_STABILIZATION                 1
 #define YAW_STABILIZATION_RUDDER            0
 #define YAW_STABILIZATION_AILERON           0
@@ -101,7 +115,7 @@
 // Aileron and Rudder Navigation
 // Set either of these to 0 to disable use of that control surface for navigation.
 #define AILERON_NAVIGATION                  1
-#define RUDDER_NAVIGATION                   0
+#define RUDDER_NAVIGATION                   1
 
 // Cross track margin, in meters
 // This is used when the cross track option is attached to a waypoint
@@ -160,7 +174,12 @@
 // Otherwise, if set to 0 the GPS will be used.
 // If you select this option, you also need to set magnetometer options in
 // the magnetometerOptions.h file, including declination and magnetometer type.
-#define MAG_YAW_DRIFT                       0
+#define MAG_YAW_DRIFT                       1
+#define MAG_YAW_ENABLE                      1
+#undef ENABLE_MAGOFFSET
+//#define ENABLE_MAGOFFSET
+#undef ENABLE_MAGALIGNMENT
+//#define ENABLE_MAGALIGNMENT
 
 
 // Racing Mode
@@ -198,6 +217,7 @@
 // PPM_NUMBER_OF_CHANNELS is the number of channels sent on the PWM signal.  This is
 // often different from the NUM_INPUTS value below, and should usually be left at 8.
 //
+#define USE_SBUS_INPUT                      0
 #define USE_PPM_INPUT                       0
 #define PPM_NUMBER_OF_CHANNELS              8
 #define PPM_SIGNAL_INVERTED                 0
@@ -208,7 +228,12 @@
 //   1-4 enables only the first 1-4 of the 4 standard input channels
 //   5 also enables E8 as the 5th input channel
 // For UDB4 boards: Set to 1-8
-#define NUM_INPUTS                          6
+#define NUM_INPUTS                          7
+
+// respect TX trim settings
+#define FIXED_TRIMPOINT     1
+#define THROTTLE_TRIMPOINT  2110
+#define CHANNEL_TRIMPOINT   3000
 
 // Channel numbers for each input.
 // Use as is, or edit to match your setup.
@@ -218,6 +243,7 @@
 #define AILERON_INPUT_CHANNEL               CHANNEL_2
 #define ELEVATOR_INPUT_CHANNEL              CHANNEL_3
 #define RUDDER_INPUT_CHANNEL                CHANNEL_4
+#define LAUNCH_ARM_INPUT_CHANNEL            CHANNEL_5
 #define MODE_SWITCH_INPUT_CHANNEL           CHANNEL_6
 #define CAMERA_PITCH_INPUT_CHANNEL          CHANNEL_UNUSED
 #define CAMERA_YAW_INPUT_CHANNEL            CHANNEL_UNUSED
@@ -270,7 +296,7 @@
 // For any of these that evaluate to 1 (either hardcoded or by flipping a switch on the board,
 // as you define below), that servo will be sent reversed controls.
 #define AILERON_CHANNEL_REVERSED            1
-#define ELEVATOR_CHANNEL_REVERSED           1
+#define ELEVATOR_CHANNEL_REVERSED           0
 #define RUDDER_CHANNEL_REVERSED             1
 #define AILERON_SECONDARY_CHANNEL_REVERSED  0
 #define THROTTLE_CHANNEL_REVERSED           0
@@ -357,10 +383,23 @@
 
 #define SERIAL_OUTPUT_FORMAT 	SERIAL_MAVLINK
 //#define SERIAL_OUTPUT_FORMAT 	SERIAL_UDB_EXTRA
+//#define SERIAL_OUTPUT_FORMAT 	SERIAL_NMEA
+//#define SERIAL_OUTPUT_FORMAT 	SERIAL_MAGNETOMETER
+
+// use ring buffer and software flow control for onboard openlog
+// **** not compatible with mavlink binary uplink ****
+// TODO: add option to use separate UART for mavlink uplink
+// TODO: port gimbal parameter setting code for use instead of mavlink uplink
+//       (could use "console" instead)
+#define USE_RING_BUFFER
+//#undef USE_RING_BUFFER
+// to be used with OpenLog for software flow control
+// Warning: incompatible with mavlink binary uplink
+#define SOFTWARE_FLOW_CONTROL 1
 
 // MAVLink requires an aircraft Identifier (I.D) as it is deaigned to control multiple aircraft
 // Each aircraft in the sky will need a unique I.D. in the range from 0-255
-#define MAVLINK_SYSID                       55
+#define MAVLINK_SYSID                       1
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -775,21 +814,37 @@
 // external port assignment.
 // Assign the console to an internal UART with CONSOLE_UART, map this console to
 // external port connection with DBG_PORT.
+// AUAV3 port 4 is non-opto, labeled GPS_RX,TX
 #define GPS_PORT                            4
+// AUAV3 port 3 is non-opto, labeled U3_RX,TX
 #define TLM_PORT                            3
+// AUAV3 port 2 is opto-coupled, labeled U2_RX,TX
+#define SBUS_PORT                           2
+// AUAV3 port 1 is opto-coupled, labeled U1_RX,TX
 #define DBG_PORT                            1
 
 
 // Set this to 1 to enable logging telemetry to dataflash on AUAV3
-#define USE_TELELOG                         1
+#define USE_TELELOG                         0
 
 // Set this to 1 to enable loading options settings from a config file on AUAV3
-#define USE_CONFIGFILE                      1
+#define USE_CONFIGFILE                      0
 
 // Set this to 1 to enable the USB stack on AUAV3
 #define USE_USB                             0
 
 // Set this to 1 to enable the Mass Storage Driver support over USB on AUAV3
 #define USE_MSD                             0
+// define this to enable catapult launch arming
+//#define CATAPULT_LAUNCH_ENABLE
+#undef CATAPULT_LAUNCH_ENABLE
+#define CATAPULT_ARMED_THROTTLE 600
+
+// replace gps altitude with pressure altitude in IMU location estimation
+//#define USE_PRESSURE_ALT
+
+// replace IMU altitude with pressure altitude in mavlink VFR_HUD record
+//#define TEST_BAROMETER_ALTITUDE
+#undef TEST_BAROMETER_ALTITUDE
 
 #endif

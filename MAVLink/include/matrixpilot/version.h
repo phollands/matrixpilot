@@ -1,12 +1,12 @@
 /** @file
  *	@brief MAVLink comm protocol built from matrixpilot.xml
- *	@see http://pixhawk.ethz.ch/software/mavlink
+ *	@see http://mavlink.org
  */
 #ifndef MAVLINK_VERSION_H
 #define MAVLINK_VERSION_H
 
-#define MAVLINK_BUILD_DATE "Sun Oct 12 15:45:00 2014"
+#define MAVLINK_BUILD_DATE "Thu Oct 30 09:32:30 2014"
 #define MAVLINK_WIRE_PROTOCOL_VERSION "1.0"
-#define MAVLINK_MAX_DIALECT_PAYLOAD_SIZE 254
+#define MAVLINK_MAX_DIALECT_PAYLOAD_SIZE 255
  
 #endif // MAVLINK_VERSION_H

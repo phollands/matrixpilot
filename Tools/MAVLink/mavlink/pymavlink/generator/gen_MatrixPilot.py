@@ -18,11 +18,12 @@ sys.path.insert(0, os.path.join(os.getcwd(), '..'))
 
 class options:
     """ a class to simulate the options of mavgen OptionsParser"""
-    def __init__(self, lang, output, wire_protocol, error_limit):
+    def __init__(self, lang, output, wire_protocol, error_limit, validate):
         self.language = lang
         self.wire_protocol = wire_protocol
         self.output = output
         self.error_limit = error_limit
+        self.validate = validate
 
 def remove_include_files(target_directory):
     search_pattern = target_directory+'/*.h'
@@ -100,14 +101,14 @@ for xml_file in xml_file_names:
         sys.exit()
 
     opts = options(lang = "C", output = "C/include_v"+protocol, \
-                   wire_protocol=protocol, error_limit=200)
+                   wire_protocol=protocol, error_limit=200, validate=True)
     args = []
     args.append(xml_file)
     print "About to generate C include files"
     mavgen(opts, args)
     opts = options(lang = "python", \
                    output="python/mavlink_"+xml_file_base+"_v"+protocol+".py", \
-                   wire_protocol=protocol, error_limit=200)
+                   wire_protocol=protocol, error_limit=200, validate=True)
     print "About to generate python parsers"
     mavgen(opts,args)
     

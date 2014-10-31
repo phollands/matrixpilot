@@ -3,13 +3,14 @@ import sys
 import os
 import numpy as np
 
+sys.path.insert(0, os.path.join(os.getcwd(), '..', 'MAVLink', 'mavlink', 'pymavlink'))
+os.environ['MAVLINK10'] = '1'
 try:
-    sys.path.insert(0, os.path.join(os.getcwd(), '..', 'MAVLink', 'mavlink', 'pymavlink'))
-    os.environ['MAVLINK10'] = '1'
     import mavlinkv10 as mavlink
     import mavutil
 except:
     print "Not able to find Python MAVlink libraries"
+    sys.exit()
 
 def bstr(n): # n in range 0-7
     '''Convert number to 3 digit binary string'''
@@ -369,6 +370,10 @@ class mavlink_telemetry(base_telemetry):
             else :
                 return("F2_B message received without corresponding F2_A")
                 
+        # fieldnames = ['time_boot_ms', 'x', 'y', 'z', 'vx', 'vy', 'vz']
+        elif telemetry_file.msg.get_type() == 'LOCAL_POSITION_NED':
+            return('LOCAL_POSITION_NED')
+        
         # def raw_imu_encode(self, time_usec, xacc, yacc, zacc, xgyro, ygyro, zgyro, xmag, ymag, zmag):
         elif telemetry_file.msg.get_type() == 'RAW_IMU':
             #print "RAW_IMU time: ", telemetry_file.msg.time_usec
@@ -1178,7 +1183,7 @@ class ascii_telemetry(base_telemetry):
             match = re.match(".*:imx([-0-9]*?):",line) # IMUlocation x. Meters from origin.
             if match :
                 try:
-                    self.IMUlocationx_W1 = int(match.group(1))
+                    self.IMUlocationx_W1 = int(match.group(1)) / 32768.0
                 except:
                     print "Corrupt IMULocationX value in line", line_no
                     return "Error"

@@ -50,7 +50,7 @@ int8_t desired_dir = 0;
 extern union longww IMUintegralAccelerationx;
 extern union longww IMUintegralAccelerationy;
 
-static void setup_origin(void)
+void setup_origin(void)
 {
 	if (use_fixed_origin())
 	{

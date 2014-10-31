@@ -8,21 +8,22 @@ Released under GNU GPL version 3 or later
 
 '''
 import sys, textwrap, os
-
-# allow import from the parent directory to find mavgen 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-
-import mavparse
-import mavgen_python
-import mavgen_c
-
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'lib'))
-
-from genxmlif import GenXmlIfError
-from minixsv import pyxsval 
+try:
+    import mavparse
+except Exception:
+    from pymavlink.generator import mavparse
 
 # XSD schema file
 schemaFile = os.path.join(os.path.dirname(os.path.realpath(__file__)), "mavschema.xsd")
+
+# Set defaults for generating MAVLink code
+DEFAULT_WIRE_PROTOCOL = mavparse.PROTOCOL_1_0
+DEFAULT_LANGUAGE = 'Python'
+DEFAULT_ERROR_LIMIT = 200
+DEFAULT_VALIDATE = True
+
+# List the supported languages. This is done globally because it's used by the GUI wrapper too
+supportedLanguages = ["C", "CS", "JavaScript", "Python", "WLua", "ObjC", "Java"]
 
 def mavgen(opts, args) :
     """Generate mavlink message formatters and parsers (C and Python ) using options
@@ -32,9 +33,28 @@ def mavgen(opts, args) :
 
     xml = []
 
+    # Enable validation by default, disabling it if explicitly requested
+    if opts.validate:
+        try:
+            from lib.genxmlif import GenXmlIfError
+            from lib.minixsv import pyxsval
+        except Exception:
+            print("WARNING: Unable to load XML validator libraries. XML validation will not be performed")
+            opts.validate = False
+
+    def mavgen_validate(fname, schema, errorLimitNumber) :
+        """Uses minixsv to validate an XML file with a given XSD schema file. We define mavgen_validate
+           here because it relies on the XML libs that were loaded in mavgen(), so it can't be called standalone"""
+        # use default values of minixsv, location of the schema file must be specified in the XML file
+        domTreeWrapper = pyxsval.parseAndValidate(fname, xsdFile=schema, errorLimit=errorLimitNumber)
+
+    # Process all XML files, validating them as necessary.
     for fname in args:
-        print("Validating %s" % fname)
-        mavgen_validate(fname, schemaFile, opts.error_limit);
+        if opts.validate:
+            print("Validating %s" % fname)
+            mavgen_validate(fname, schemaFile, opts.error_limit);
+        else:
+            print("Validation skipped for %s." % fname)
 
         print("Parsing %s" % fname)
         xml.append(mavparse.MAVXML(fname, opts.wire_protocol))
@@ -44,9 +64,12 @@ def mavgen(opts, args) :
         for i in x.include:
             fname = os.path.join(os.path.dirname(x.filename), i)
 
-            ## Validate XML file with XSD file
-            print("Validating %s" % fname)
-            mavgen_validate(fname, schemaFile, opts.error_limit);
+            ## Validate XML file with XSD file if possible.
+            if opts.validate:
+                print("Validating %s" % fname)
+                mavgen_validate(fname, schemaFile, opts.error_limit);
+            else:
+                print("Validation skipped for %s." % fname)
 
             ## Parsing
             print("Parsing %s" % fname)
@@ -76,32 +99,96 @@ def mavgen(opts, args) :
     # Convert language option to lowercase and validate
     opts.language = opts.language.lower()
     if opts.language == 'python':
+        import mavgen_python
         mavgen_python.generate(opts.output, xml)
     elif opts.language == 'c':
+        try:
+            import mavgen_c
+        except Exception:
+            from pymavlink.generator import mavgen_c
         mavgen_c.generate(opts.output, xml)
+    elif opts.language == 'wlua':
+        try:
+            import mavgen_wlua
+        except Exception:
+            from pymavlink.generator import mavgen_wlua
+        mavgen_wlua.generate(opts.output, xml)
+    elif opts.language == 'cs':
+        try:
+            import mavgen_cs
+        except Exception:
+            from pymavlink.generator import mavgen_cs
+        mavgen_cs.generate(opts.output, xml)
+    elif opts.language == 'javascript':
+        try:
+            import mavgen_javascript
+        except Exception:
+            from pymavlink.generator import mavgen_javascript
+        mavgen_javascript.generate(opts.output, xml)
+    elif opts.language == 'objc':
+        try:
+            import mavgen_objc
+        except Exception:
+            from pymavlink.generator import mavgen_objc
+        mavgen_objc.generate(opts.output, xml)
+    elif opts.language == 'java':
+        try:
+            import mavgen_java
+        except Exception:
+            from pymavlink.generator import mavgen_java
+        mavgen_java.generate(opts.output, xml)
     else:
         print("Unsupported language %s" % opts.language)
-    
-
-def mavgen_validate(fname, schema, errorLimitNumber) :
-    """Uses minixsv to validate an XML file with a given XSD schema file."""
-    # use default values of minixsv, location of the schema file must be specified in the XML file
-    domTreeWrapper = pyxsval.parseAndValidate(fname, xsdFile=schema, errorLimit=errorLimitNumber)
-            
-    # domTree is a minidom document object
-    domTree = domTreeWrapper.getTree()
 
 
-if __name__=="__main__":
-    from optparse import OptionParser
+# build all the dialects in the dialects subpackage
+class Opts:
+    def __init__(self, output, wire_protocol=DEFAULT_WIRE_PROTOCOL, language=DEFAULT_LANGUAGE, validate=DEFAULT_VALIDATE, error_limit=DEFAULT_ERROR_LIMIT):
+        self.wire_protocol = wire_protocol
+        self.error_limit = error_limit
+        self.language = language
+        self.output = output
+        self.validate = validate
 
-    parser = OptionParser("%prog [options] <XML files>")
-    parser.add_option("-o", "--output", dest="output", default="mavlink", help="output directory.")
-    parser.add_option("--lang", dest="language", default="Python", help="language of generated code: 'Python' or 'C' [default: %default]")
-    parser.add_option("--wire-protocol", dest="wire_protocol", default=mavparse.PROTOCOL_1_0, help="MAVLink protocol version: '0.9' or '1.0'. [default: %default]")
-    parser.add_option("--error-limit", dest="error_limit", default=200, help="maximum number of validation errors.")
-    (opts, args) = parser.parse_args()
+def mavgen_python_dialect(dialect, wire_protocol):
+    '''generate the python code on the fly for a MAVLink dialect'''
+    dialects = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'dialects')
+    mdef = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'message_definitions')
+    if wire_protocol == mavparse.PROTOCOL_0_9:
+        py = os.path.join(dialects, 'v09', dialect + '.py')
+        xml = os.path.join(dialects, 'v09', dialect + '.xml')
+        if not os.path.exists(xml):
+            xml = os.path.join(mdef, 'v0.9', dialect + '.xml')
+    else:
+        py = os.path.join(dialects, 'v10', dialect + '.py')
+        xml = os.path.join(dialects, 'v10', dialect + '.xml')
+        if not os.path.exists(xml):
+            xml = os.path.join(mdef, 'v1.0', dialect + '.xml')
+    opts = Opts(py, wire_protocol)
+    import StringIO
 
-    if len(args) < 1:
-        parser.error("You must supply at least one MAVLink XML protocol definition")
-    mavgen(opts, args)
+    # throw away stdout while generating
+    stdout_saved = sys.stdout
+    sys.stdout = StringIO.StringIO()
+    try:
+        xml = os.path.relpath(xml)
+        mavgen( opts, [xml] )
+    except Exception:
+        sys.stdout = stdout_saved
+        raise
+    sys.stdout = stdout_saved
+
+
+if __name__ == "__main__":
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser(description="This tool generate implementations from MAVLink message definitions")
+    parser.add_argument("-o", "--output", default="mavlink", help="output directory.")
+    parser.add_argument("--lang", dest="language", choices=supportedLanguages, default=DEFAULT_LANGUAGE, help="language of generated code [default: %(default)s]")
+    parser.add_argument("--wire-protocol", choices=[mavparse.PROTOCOL_0_9, mavparse.PROTOCOL_1_0], default=DEFAULT_WIRE_PROTOCOL, help="MAVLink protocol version. [default: %(default)s]")
+    parser.add_argument("--no-validate", action="store_false", dest="validate", default=DEFAULT_VALIDATE, help="Do not perform XML validation. Can speed up code generation if XML files are known to be correct.")
+    parser.add_argument("--error-limit", default=DEFAULT_ERROR_LIMIT, help="maximum number of validation errors to display")
+    parser.add_argument("definitions", metavar="XML", nargs="+", help="MAVLink definitions")
+    args = parser.parse_args()
+
+    mavgen(args, args.definitions)

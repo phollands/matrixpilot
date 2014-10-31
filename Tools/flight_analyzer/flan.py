@@ -2019,6 +2019,7 @@ class flight_log_book:
         self.entries = [] # an empty list of entries  at the beginning.
         self.raw_imu = [] # list of raw IMU data records
         self.filtered_imu = [] # list of filtered IMU data records
+        self.pos_ned = [] # list of local_position_ned records
         self.F4 = "Empty"
         self.F5 = "Empty"
         self.F6 = "Empty"
@@ -2319,7 +2320,9 @@ def create_log_book(options) :
                      float(boxcar.sums[7]) / boxcar.length, 
                      float(boxcar.sums[8]) / boxcar.length]
             log_book.filtered_imu.append(entry)
-                
+            
+        elif log.log_format == "LOCAL_POSITION_NED":
+            log_book.pos_ned.append(entry)                
             
         elif log.log_format == "F4" : # We have a type of options.h line
             # format of roll_stabilization has changed over time

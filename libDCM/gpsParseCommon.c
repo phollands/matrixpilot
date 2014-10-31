@@ -47,7 +47,7 @@ uint8_t lat_cir;
 int16_t cos_lat = 0;
 // floating point version of location and cos_lat
 float loc_f[3];
-float   cos_lat_f;
+float   cos_lat_f = 0;
 int16_t gps_data_age;
 uint8_t *gps_out_buffer = 0;
 int16_t gps_out_buffer_length = 0;
@@ -107,12 +107,14 @@ uint16_t air_speed_3DGPS = 0;
 int8_t calculated_heading;
 
 static int8_t cog_previous = 64;    // North
-static float cog_prev_f = 90;       // North
+static float cog_prev_f = 90.0f;       // North
 static int16_t sog_previous = 0;
 static int16_t climb_rate_previous = 0;
 static int16_t location_previous[] = { 0, 0, 0 };
-static float location_prev_f[] = { 0, 0, 0 };
+static float location_prev_f[] = { 0.0f, 0.0f, 0.0f };
 static uint16_t velocity_previous = 0;
+struct relative2D location_deltaXY = {0, 0};
+struct relative2D_f location_deltaXY_f = {0.0f, 0.0f};
 
 // Received a full set of GPS messages
 void udb_background_callback_triggered(void)
@@ -129,8 +131,6 @@ void udb_background_callback_triggered(void)
 	int16_t location[3];
 	int16_t location_deltaZ;
 	float location_deltaZ_f;
-	struct relative2D location_deltaXY;
-	struct relative2D_f location_deltaXY_f;
 	struct relative2D velocity_thru_air;
 	int16_t velocity_thru_airz;
 
@@ -192,7 +192,6 @@ void udb_background_callback_triggered(void)
                         location_deltaXY.y = 0;
                         location_deltaZ = 0;
 		}
-		dcm_flags._.gps_history_valid = 1;
 		actual_dir = cog_circular + cog_delta;
 		cog_previous = cog_circular;
 
@@ -234,10 +233,10 @@ void udb_background_callback_triggered(void)
                 //________________________________________________________________________
                 //                const float eR = 6371.0e3f;
 
-                // difference is 32 bit integer degrees*10^7; precision about 1/90 meter, about 10^-2
+                // difference is 32 bit integer degrees*10^7; precision about 1/90 meter, roughly 10^-2
                 // Since 1 meter = 90 counts, converting the difference to 32 bit floating point
                 // with 24 bit mantissa provides precision of 2^-24 = 6*10^-8 meters * 2^exponent. 
-                // For displacements up to 131 Kilometers (exponent 17)
+                // For displacements up to 131 Kilometers (exponent 17) (max 16 bit range is +/-32Km)
                 // this exceeds the integer precision.
                 loc_f[1] = (float) (lat_gps.WW - lat_origin.WW) / 89.983f; // 122 + 361 cycles
                 loc_f[0] = ((float) (long_gps.WW - long_origin.WW) / 89.983f) * cos_lat_f; // 122 + 109
@@ -258,6 +257,7 @@ void udb_background_callback_triggered(void)
                     location_deltaXY_f.y = 0.0f;
                     location_deltaZ_f = 0.0f;
                 }
+		dcm_flags._.gps_history_valid = 1;
 		actual_dir_f = circ360_f(cog_circ_f + cog_delta_f);   // 2*122
                 cog_prev_f = cog_circ_f;
 
@@ -274,13 +274,9 @@ void udb_background_callback_triggered(void)
                 //________________________________________________________________________
 
                 // from dead_reckon()
-                IMUlocationx._.W1 = (int) GPSloc_f.x;
-                IMUlocationy._.W1 = (int) GPSloc_f.y;
-                IMUlocationz._.W1 = (int) GPSloc_f.z;
-
-                IMUlocationx._.W0 = abs((int) (65536 * (GPSloc_f.x - IMUlocationx._.W1) - 0.5)); // 3 * (2 * 122 + 109) = 1059
-                IMUlocationy._.W0 = abs((int) (65536 * (GPSloc_f.y - IMUlocationy._.W1) - 0.5));
-                IMUlocationz._.W0 = abs((int) (65536 * (GPSloc_f.z - IMUlocationz._.W1) - 0.5));
+                IMUlocationx.WW = (int32_t) (65536 * GPSloc_f.x);
+                IMUlocationy.WW = (int32_t) (65536 * GPSloc_f.y);
+                IMUlocationz.WW = (int32_t) (65536 * GPSloc_f.z);
 
                 IMUintegralAccelerationx._.W0 = 0;
                 IMUintegralAccelerationy._.W0 = 0;
@@ -290,11 +286,16 @@ void udb_background_callback_triggered(void)
                 IMUintegralAccelerationy._.W1 = GPSvelocity.y;
                 IMUintegralAccelerationz._.W1 = GPSvelocity.z;
 
+                IMUvelocityx._.W1 = GPSvelocity.x;
+                IMUvelocityy._.W1 = GPSvelocity.y;
+                IMUvelocityz._.W1 = GPSvelocity.z;
+
 #if (SILSIM != 1 && BOARD_TYPE == AUAV3_BOARD)
                 // deassert digital out 2
                 DIG2 = 0;
-                // elapsed time ~100 usec = 7000 cycles at 70 MIPS
-                // at 4 Hz, this is 28000/70e6 = 0.04% cpu load
+                // elapsed time ~260 usec = 18,200 cycles at 70 MIPS
+                // this is 5.2% of the 5 msec (200Hz) heartbeat interval
+                // and only 0.1% of the 250 msec (4Hz) GPS reporting interval
 #endif
 #if (HILSIM == 1)
 		air_speed_3DGPS = as_sim.BB; // use Xplane as a pitot

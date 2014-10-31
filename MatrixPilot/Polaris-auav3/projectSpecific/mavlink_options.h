@@ -24,10 +24,11 @@
 //
 
 // Common data rates
-#define MAVLINK_RATE_RC_CHAN                0   // RC_CHANNELS_SCALED, RC_CHANNELS_RAW, SERVO_OUTPUT_RAW |
-#define MAVLINK_RATE_IMU_RAW                0   // ATTITUDE_CONTROLLER_OUTPUT, POSITION_CONTROLLER_OUTPUT, NAV_CONTROLLER_OUTPUT. |
-#define MAVLINK_RATE_POSITION               8   // LOCAL_POSITION, GLOBAL_POSITION/GLOBAL_POSITION_INT messages. |
-#define MAVLINK_RATE_RAW_SENSORS            2   // IMU_RAW, GPS_RAW, GPS_STATUS packets.
+#define MAVLINK_RATE_RC_CHAN               50   // RC_CHANNELS_RAW, SERVO_OUTPUT_RAW
+#define MAVLINK_RATE_POSITION               8   // LOCAL_POSITION, GLOBAL_POSITION/GLOBAL_POSITION_INT messages.
+#define MAVLINK_RATE_RAW_IMU               50   // IMU_RAW packets
+#define MAVLINK_RATE_RAW_GPS                4   // GPS_RAW packets
+#define MAVLINK_RATE_RAW_GPS_STATUS         4   // GPS_STATUS packets
 
 // Fixed data rates
 #define MAVLINK_RATE_HEARTBEAT              4
@@ -40,8 +41,9 @@
 // Send VFR_HUD message at position rate, 1=yes, 0=no.  Needed for correct mavproxy state
 #define MSG_VFR_HUD_WITH_POSITION           1
 
-#define MAVLINK_FRAME_FREQUENCY             40
-#define MAVLINK_WAYPOINT_TIMEOUT            120 // Dependent on frequency of calling mavlink_output_40hz. 120 is 3 second timeout.
+// unused
+//#define MAVLINK_FRAME_FREQUENCY             40
+//#define MAVLINK_WAYPOINT_TIMEOUT            120 // Dependent on frequency of calling mavlink_output_40hz. 120 is 3 second timeout.
 
 // 19200,38400,57600,115200,230400,460800,921600
 // Fixed 19200 for non free running clock
