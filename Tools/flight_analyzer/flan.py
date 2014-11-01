@@ -2007,12 +2007,21 @@ class origin() :
 
     def rel_to_absolute(self,meters_east, meters_north, alt_from_origin, lat):
         """Convert meters east and north  from origin into an absolute lat and lon, alt from sea level"""
-        delta_lon = convert_meters_east_to_lon(int(meters_east),lat)
-        abs_lon  = int(self.longitude + int(delta_lon))
-        abs_lat   = int(convert_meters_north_to_lat(meters_north) + self.latitude)
+        delta_lon = convert_meters_east_to_lon((meters_east),lat)
+        abs_lon  = (self.longitude + (delta_lon))
+        abs_lat   = (convert_meters_north_to_lat(meters_north) + self.latitude)
         abs_alt   = alt_from_origin + self.altitude
         self.absolute_position = [abs_lat, abs_lon, abs_alt]
         return self.absolute_position
+                 
+#     def rel_to_absolute(self,meters_east, meters_north, alt_from_origin, lat):
+#         """Convert meters east and north  from origin into an absolute lat and lon, alt from sea level"""
+#         delta_lon = convert_meters_east_to_lon(int(meters_east),lat)
+#         abs_lon  = int(self.longitude + int(delta_lon))
+#         abs_lat   = int(convert_meters_north_to_lat(meters_north) + self.latitude)
+#         abs_alt   = alt_from_origin + self.altitude
+#         self.absolute_position = [abs_lat, abs_lon, abs_alt]
+#         return self.absolute_position
                  
 class flight_log_book:
     def __init__(self) :

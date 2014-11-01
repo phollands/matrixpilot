@@ -20,6 +20,7 @@ import array, struct
 
 
 try:
+    sys.path.insert(0, os.path.join(os.getcwd(), '..', 'MAVLink', 'mavlink', 'pymavlink', 'generator'))
     sys.path.insert(0, os.path.join(os.getcwd(), '..', 'MAVLink', 'mavlink', 'pymavlink'))
     os.environ['MAVLINK10'] = '1'
     import mavlinkv10 as mavlink

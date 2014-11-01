@@ -3,6 +3,7 @@ import sys
 import os
 import numpy as np
 
+sys.path.insert(0, os.path.join(os.getcwd(), '..', 'MAVLink', 'mavlink', 'pymavlink', 'generator'))
 sys.path.insert(0, os.path.join(os.getcwd(), '..', 'MAVLink', 'mavlink', 'pymavlink'))
 os.environ['MAVLINK10'] = '1'
 try:
@@ -15,6 +16,12 @@ except:
 def bstr(n): # n in range 0-7
     '''Convert number to 3 digit binary string'''
     return ''.join([str(n >> x & 1) for x in (2,1,0)])
+
+class last_highresIMU:
+    time = 0
+    x = 0
+    y = 0
+    z = 0
 
 class boxcar:
     # run a boxcar integrator on raw IMU data: length 250msec
@@ -95,18 +102,10 @@ class raw_mavlink_telemetry_file:
                       self.msg.get_type() == 'SERIAL_UDB_EXTRA_F15' or \
                       self.msg.get_type() == 'SERIAL_UDB_EXTRA_F17':
                             return self.msg                
-                elif True and self.msg.get_type() == 'RAW_IMU':
-                    # C Code in MP is:-
-                    # mavlink_msg_raw_imu_send(MAVLINK_COMM_0, systime_usec,
-                    #       (int16_t)udb_xaccel.value, (int16_t)udb_yaccel.value, (int16_t)udb_zaccel.value,
-                    #       (int16_t)udb_xrate.value, (int16_t)udb_yrate.value, (int16_t)udb_zrate.value,
-                    #       //(int16_t)magFieldRaw[0], (int16_t)magFieldRaw[1], (int16_t)magFieldRaw[2],
-		            #       (int16_t)udb_magFieldBody[0], (int16_t)udb_magFieldBody[1], (int16_t)udb_magFieldBody[2]);
-                    # 
+                elif self.msg.get_type() == 'RAW_IMU':
                     return self.msg;
-                    # print self.msg.xacc,",",self.msg.yacc,",",self.msg.zacc, ",", \
-                    #       self.msg.xgyro,",",self.msg.ygyro,",",self.msg.zgyro, ",", \
-                    #       self.msg.xmag,",",self.msg.ymag,",",self.msg.zmag
+                elif self.msg.get_type() == 'LOCAL_POSITION_NED':
+                    return self.msg;
                 else :
                         #print "Ignoring non SUE MAVLink message", self.msg.get_type()
                         pass
@@ -336,9 +335,14 @@ class mavlink_telemetry(base_telemetry):
                 self.pwm_output[9] = int(telemetry_file.msg.sue_pwm_output_9)
                 self.pwm_output[10] = int(telemetry_file.msg.sue_pwm_output_10)
 
-                self.IMUlocationx_W1 = int(telemetry_file.msg.sue_imu_location_x)
-                self.IMUlocationy_W1 = int(telemetry_file.msg.sue_imu_location_y)
-                self.IMUlocationz_W1 = int(telemetry_file.msg.sue_imu_location_z)
+                if (last_highresIMU.time != 0):
+                    self.IMUlocationx_W1 = last_highresIMU.x
+                    self.IMUlocationy_W1 = last_highresIMU.y
+                    self.IMUlocationz_W1 = last_highresIMU.z
+                else:
+                    self.IMUlocationx_W1 = int(telemetry_file.msg.sue_imu_location_x)
+                    self.IMUlocationy_W1 = int(telemetry_file.msg.sue_imu_location_y)
+                    self.IMUlocationz_W1 = int(telemetry_file.msg.sue_imu_location_z)
                 #print self.IMUlocationx_W1, ",", self.IMUlocationy_W1
                 self.sue_flags = int(telemetry_file.msg.sue_flags)
 
@@ -371,8 +375,13 @@ class mavlink_telemetry(base_telemetry):
                 return("F2_B message received without corresponding F2_A")
                 
         # fieldnames = ['time_boot_ms', 'x', 'y', 'z', 'vx', 'vy', 'vz']
-        elif telemetry_file.msg.get_type() == 'LOCAL_POSITION_NED':
-            return('LOCAL_POSITION_NED')
+        elif telemetry_file.msg.get_type() == "LOCAL_POSITION_NED":
+            # convert to ENU
+            last_highresIMU.time = telemetry_file.msg.time_boot_ms
+            last_highresIMU.x = telemetry_file.msg.y
+            last_highresIMU.y = telemetry_file.msg.x
+            last_highresIMU.z = -telemetry_file.msg.z/100
+            return("LOCAL_POSITION_NED")
         
         # def raw_imu_encode(self, time_usec, xacc, yacc, zacc, xgyro, ygyro, zgyro, xmag, ymag, zmag):
         elif telemetry_file.msg.get_type() == 'RAW_IMU':
@@ -1183,7 +1192,7 @@ class ascii_telemetry(base_telemetry):
             match = re.match(".*:imx([-0-9]*?):",line) # IMUlocation x. Meters from origin.
             if match :
                 try:
-                    self.IMUlocationx_W1 = int(match.group(1)) / 32768.0
+                    self.IMUlocationx_W1 = int(match.group(1))
                 except:
                     print "Corrupt IMULocationX value in line", line_no
                     return "Error"
