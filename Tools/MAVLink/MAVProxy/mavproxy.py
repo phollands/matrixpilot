@@ -14,7 +14,8 @@ import serial, Queue, select
 # find the mavlink.py module
 for d in [ 'pymavlink',
            os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'pymavlink'),
-           os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'mavlink', 'pymavlink') ]:
+           os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'mavlink', 'pymavlink'),
+           os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'mavlink', 'pymavlink', 'generator') ]:
     if os.path.exists(d):
         sys.path.insert(0, d)
 
