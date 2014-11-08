@@ -606,7 +606,8 @@ static void mag_drift(void) {
         mag_latency_counter = (HEARTBEAT_HZ / 4) - MAG_LATENCY_COUNT; // setup for the next reading
 
         // Compute the mag field in the earth frame
-
+        // The horizontal component of this vector should point to magnetic north
+        // After transforming to earth frame, that should be parallel to "declinationVector"
         magFieldEarth[0] = VectorDotProduct(3, &rmatDelayCompensated[0], udb_magFieldBody) << 1;
         magFieldEarth[1] = VectorDotProduct(3, &rmatDelayCompensated[3], udb_magFieldBody) << 1;
         magFieldEarth[2] = VectorDotProduct(3, &rmatDelayCompensated[6], udb_magFieldBody) << 1;
@@ -815,7 +816,7 @@ void dcm_run_imu_step(void) {
     DIG0 = 1;
 #endif
     // TODO: dead reckoning is currently disabled to test GPS-only accuracy
-    //    dead_reckon(); // in libDCM:deadReconing.c
+    dead_reckon(); // in libDCM:deadReconing.c
 
 #ifndef DISABLE_CENTRIPETAL_COMP
     adj_accel(); // local

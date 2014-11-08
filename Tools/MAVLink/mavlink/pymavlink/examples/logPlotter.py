@@ -61,12 +61,19 @@ def lon2meters(deg, lat):
     return((deg * (1e7 / 89.983)) * math.cos(math.pi * lat / 180))
 
 class boxcar:
-    # run a boxcar integrator on raw IMU data: length 250msec
-    atts = np.zeros(9)   
-    index = 0
-    length = 7
-    buf = np.zeros((9, length), dtype=int)
-    sums = np.zeros((9, 1), dtype=float)
+    # run a rectangular window FIR filter on raw IMU data: length 250msec
+    # analagous to old-style analog boxcar integrators which integrated over a sample window
+    # and slid the window relative to a trigger pulse (relied on repetitive signals,
+    # but equivalent to a FIR filter operating on a sample sequence)
+    
+    def __init__(self, n_channels, length):
+        self.n_channels = n_channels
+        self.length = length
+    
+        self.atts = np.zeros(n_channels)   
+        self.index = 0
+        self.buf = np.zeros((n_channels, length), dtype=int)
+        self.sums = np.zeros((n_channels, 1), dtype=float)
     
     def update(self, data):
         
@@ -74,7 +81,7 @@ class boxcar:
         self.index += 1
         self.index %= self.length 
         
-        for idx in range(0, 9):
+        for idx in range(0, self.n_channels):
             #print "boxIndex: ", self.index, " new: ", self.atts[idx], " old: ", self.buf[idx, self.index]
             # add (new - oldest) value
             self.sums[idx] += data[idx] - self.buf[idx, self.index]
@@ -84,8 +91,8 @@ class boxcar:
             
     def output(self):
         outdata = []
-        for i in range(0, 9):
-            outdata.append(float(boxcar.sums[i]) / boxcar.length)
+        for i in range(0, self.n_channels):
+            outdata.append(float(self.sums[i]) / self.length)
         return outdata
 
 class flight_log_book:
@@ -230,6 +237,7 @@ class flight_log_book:
                 eastdata[recN] = lon2meters(londata[recN], lat_origin)
                 altdata[recN] = msg.sue_altitude - alt_origin   # centimeters
                 magFieldEarth[recN] = [msg.sue_magFieldEarth0, msg.sue_magFieldEarth1, msg.sue_magFieldEarth2]
+        
             recN += 1            
         
         # fieldnames = ['time_usec', 'xacc', 'yacc', 'zacc', 'xgyro', 'ygyro', 'zgyro', 'xmag', 'ymag', 'zmag']
@@ -262,7 +270,25 @@ class flight_log_book:
         
         raw_zgyro = imudata[0:,6]
         
+        # offsets have been removed
         magFieldBody = imudata[0:,7:10]
+        magHeading = np.zeros([len(imudata[0:,0]), 1])
+        
+        magFieldBody_filt = imudata_filt[0:,7:10]
+        magHeading_filt = np.zeros([len(imudata_filt[0:,0]), 1])
+        
+        for i in range(len(magHeading)):
+            magFieldBody[i,0] -= 300
+            magFieldBody[i,1] -= 100
+            
+            magHeading[i] = 90 - (180/math.pi)*math.atan2(magFieldBody[i,1],magFieldBody[i,0])
+            if magHeading[i] > 180: magHeading[i] -= 360
+
+            magFieldBody_filt[i,0] -= 300
+            magFieldBody_filt[i,1] -= 100
+            
+            magHeading_filt[i] = 90 - (180/math.pi)*math.atan2(magFieldBody_filt[i,1],magFieldBody_filt[i,0])
+            if magHeading_filt[i] > 180: magHeading_filt[i] -= 360
 
         raw_accmag = np.zeros((len(self.raw_imu), 1))
         for i in np.arange(len(self.raw_imu)):
@@ -282,67 +308,79 @@ class flight_log_book:
         throttle_out = 20 * (pwmOut[0:,1] - 1500)
         bomb_out = 20 * (pwmOut[0:,5] - 1500)
         
-        plt.figure(1)
-        plt.title('''lateral acceleration feedback''')
-#         plt.plot(imu_t, raw_xacc, 'o', mew=0.0, label='xacc')
-        plt.plot(imu_filt_t, filt_xacc, '-o', mew=0.0, label='xacc_filt')
-#         plt.plot(imu_filt_t, filt_zacc, 'o', mew=0.0, label='zacc_filt')
-        plt.plot(pwmOut_t, rudder_out, '-o', mew=0.0, label='rudder_out')
-#         plt.plot(pwmIn_t, rudder_man, '-o', mew=0.0, label='rudder_man')
-        plt.plot(imu_t, raw_zgyro, '-o', mew=0.0, label='yaw rate')
-        plt.plot(pwmIn_t, mode, '-o', mew=0.0, label='mode')
-        plt.plot(pwmOut_t, aileron_out, '-o', mew=0.0, label='aileron_out')
-        plt.plot(pwmOut_t, bomb_out, '-o', mew=0.0, label='bomb release')
-        plt.plot(att_t, pitch, '-o', mew=0.0, label='pitch')
-        plt.plot(f2a_t, altdata, '-o', mew=0.0, label='altitude cm')
-        plt.plot(f2a_t, sogdata, '-o', mew=0.0, label='SOG cm/sec')
-        plt.xlabel('system time: sec')
-        plt.ylabel('xacc')
-        plt.grid()
-        plt.legend()
-    
-        plt.figure(2)
-        plt.title('''turn''')
-        plt.plot(pwmOut_t, rudder_out, '-o', mew=0.0, label='rudder_out')
-        plt.plot(imu_t, raw_zgyro, '-o', mew=0.0, label='yaw rate')
-        plt.plot(pwmOut_t, aileron_out, '-o', mew=0.0, label='aileron_out')
-        plt.plot(f2a_t, cogdata/10, '-o', mew=0.0, label='COG')
-        plt.xlabel('system time: sec')
-        plt.grid()
-        plt.legend()
-    
-        plt.figure(3)
-        plt.title('raw accelerometer data')
-        plt.plot(imu_t, raw_xacc, '-o', mew=0.0, label='xacc')
-        plt.plot(imu_t, raw_yacc, '-o', mew=0.0, label='yacc')
-        plt.plot(imu_t, raw_zacc, '-o', mew=0.0, label='zacc')
-        plt.plot(imu_t, raw_accmag, '-o', mew=0.0, label='mag')
-#         plt.plot(imu_t, raw_zgyro, '-o', mew=0.0, label='yaw rate')
-# 
-#         plt.plot(pwmOut_t, throttle_out, '-o', mew=0.0, label='throttle')
+#         plt.figure(1)
+#         plt.title('''lateral acceleration feedback''')
+#         plt.plot(imu_filt_t, filt_xacc, '-o', mew=0.0, label='xacc_filt')
 #         plt.plot(pwmOut_t, rudder_out, '-o', mew=0.0, label='rudder_out')
-        
+#         plt.plot(imu_t, raw_zgyro, '-o', mew=0.0, label='yaw rate')
+#         plt.plot(pwmIn_t, mode, '-o', mew=0.0, label='mode')
+#         plt.plot(pwmOut_t, aileron_out, '-o', mew=0.0, label='aileron_out')
+#         plt.plot(pwmOut_t, bomb_out, '-o', mew=0.0, label='bomb release')
+#         plt.plot(att_t, pitch, '-o', mew=0.0, label='pitch')
+#         plt.plot(f2a_t, altdata, '-o', mew=0.0, label='altitude cm')
+#         plt.plot(f2a_t, sogdata, '-o', mew=0.0, label='SOG cm/sec')
+#         plt.xlabel('system time: sec')
+#         plt.ylabel('xacc')
+#         plt.grid()
+#         plt.legend()
+    
+        plt.figure(1)
+        plt.title('''magFieldBody''')
+        plt.plot(imu_filt_t, magFieldBody[0:,0], '-o', mew=0.0, label='x')
+        plt.plot(imu_filt_t, magFieldBody[0:,1], '-o', mew=0.0, label='y')
+        plt.plot(imu_filt_t, magFieldBody[0:,2], '-o', mew=0.0, label='z')
+        plt.plot(pwmOut_t, aileron_out/10, '-o', mew=0.0, label='ail/10')
+        plt.plot(f2a_t, sogdata/10, '-o', mew=0.0, label='SOG dm/sec')
+        plt.plot(att_t, roll*10, '-o', mew=0.0, label='roll*10 deg')
         plt.xlabel('system time: sec')
-        plt.ylabel('acc')
         plt.grid()
         plt.legend()
-        
-        plt.figure(4)
-        plt.title('IMU location')
-#         plt.plot(imuLocx, imuLocy, '-o', mew=0.0, label='IMUlocxy')
-        plt.plot(posNED_t, imuLocx, '-o', mew=0.0, label='IMUlocx')
-        plt.plot(posNED_t, imuLocy, '-o', mew=0.0, label='IMUlocy')
-        plt.plot(posNED_t, imuLocz, '-o', mew=0.0, label='IMUlocz')
-        plt.plot(f2a_t, eastdata, '-o', mew=0.0, label='gpseast')
-        plt.plot(f2a_t, northdata, '-o', mew=0.0, label='gpsnorth')
-        plt.plot(f2a_t, altdata/100, '-o', mew=0.0, label='gpsalt')
-#         plt.plot(posNED_t, imuVelx/100, '-o', mew=0.0, label='imuVelx')
-#         plt.plot(posNED_t, imuVely/100, '-o', mew=0.0, label='imuVely')
-        
+
+        plt.figure(2)
+        plt.title('''magHeading''')
+#         plt.plot(imu_t, magFieldBody[0:,0], '-o', mew=0.0, label='x')
+#         plt.plot(imu_t, magFieldBody[0:,1], '-o', mew=0.0, label='y')
+#         plt.plot(imu_t, magFieldBody[0:,2], '-o', mew=0.0, label='z')
+        plt.plot(imu_t, magHeading, '-o', mew=0.0, label='magHeading')
+        plt.plot(imu_filt_t, magHeading_filt, '-o', mew=0.0, label='magHeading_filt')
+        plt.plot(f2a_t, cogdata/100, '-o', mew=0.0, label='COG degrees')
+        plt.plot(f2a_t, sogdata/10, '-o', mew=0.0, label='SOG dm/sec')
+        plt.plot(att_t, yaw, '-o', mew=0.0, label='yaw deg')
         plt.xlabel('system time: sec')
-        plt.ylabel('meters')
         plt.grid()
         plt.legend()
+
+        if (0):    
+                
+            plt.figure(3)
+            plt.title('raw accelerometer data')
+            plt.plot(imu_t, raw_xacc, '-o', mew=0.0, label='xacc')
+            plt.plot(imu_t, raw_yacc, '-o', mew=0.0, label='yacc')
+            plt.plot(imu_t, raw_zacc, '-o', mew=0.0, label='zacc')
+    #        plt.plot(imu_t, raw_accmag, '-o', mew=0.0, label='mag')
+            plt.plot(imu_t, raw_zgyro, '-o', mew=0.0, label='yaw rate')
+            
+            plt.xlabel('system time: sec')
+            plt.ylabel('acc')
+            plt.grid()
+            plt.legend()
+            
+            plt.figure(4)
+            plt.title('IMU, GPS location')
+    #         plt.plot(imuLocx, imuLocy, '-o', mew=0.0, label='IMUlocxy')
+            plt.plot(posNED_t, imuLocx, '-o', mew=0.0, label='IMUlocx')
+            plt.plot(posNED_t, imuLocy, '-o', mew=0.0, label='IMUlocy')
+            plt.plot(posNED_t, imuLocz, '-o', mew=0.0, label='IMUlocz')
+            plt.plot(f2a_t, eastdata, '-o', mew=0.0, label='gpseast')
+            plt.plot(f2a_t, northdata, '-o', mew=0.0, label='gpsnorth')
+            plt.plot(f2a_t, altdata/100, '-o', mew=0.0, label='gpsalt')
+    #         plt.plot(posNED_t, imuVelx/100, '-o', mew=0.0, label='imuVelx')
+    #         plt.plot(posNED_t, imuVely/100, '-o', mew=0.0, label='imuVely')
+            
+            plt.xlabel('system time: sec')
+            plt.ylabel('meters')
+            plt.grid()
+            plt.legend()
         
 #         plt.figure(3)
 #         plt.title('Sport Cub: adverse yaw')
@@ -355,10 +393,21 @@ class flight_log_book:
 #         plt.grid()
 #         plt.legend()
 
-        plt.figure(5)
-        plt.title('LEA-6H lat/lon')
-        plt.plot(eastdata, northdata, '-o', mew=0.0, label='lat/lon')
+        start = 0.45 * len(eastdata)
+        end = start + 100
+        istart = 0.45 * len(imuLocx)
+        iend = istart + 100 * 50/4
         
+        start = 0
+        end = len(eastdata)
+        istart = 0
+        iend = len(imuLocx)
+        
+        plt.figure(5)
+        plt.title('IMU, GPS track')
+        plt.plot(eastdata[start:end], northdata[start:end], '-o', mew=0.0, label='gps')
+        plt.plot(imuLocx[istart:iend], imuLocy[istart:iend], '-o', mew=0.0, label='imu')
+
         plt.xlabel('east meters')
         plt.ylabel('north meters')
         plt.grid()
@@ -366,14 +415,23 @@ class flight_log_book:
         plt.axis('equal')
         
         plt.figure(6)
-        plt.title('LEA-6H lat/lon')
-        plt.plot(f2a_t, northdata, '-o', mew=0.0, label='north')
-        plt.plot(f2a_t, eastdata, '-o', mew=0.0, label='east')
-        
+        plt.title('GPS SOG')
+        plt.plot(f2a_t[start:end], sogdata[start:end]/100, '-o', mew=0.0, label='SOG m/sec')
         plt.xlabel('seconds')
-        plt.ylabel('meters')
+        plt.ylabel('m/sec')
         plt.grid()
         plt.legend()
+        
+
+#         plt.figure(6)
+#         plt.title('LEA-6H lat/lon')
+#         plt.plot(f2a_t, northdata, '-o', mew=0.0, label='north')
+#         plt.plot(f2a_t, eastdata, '-o', mew=0.0, label='east')
+#         
+#         plt.xlabel('seconds')
+#         plt.ylabel('meters')
+#         plt.grid()
+#         plt.legend()
         
         plt.show(block=False)
 
@@ -386,7 +444,7 @@ if __name__=="__main__":
 #     w = Canvas(root, width=600, height=300)
 
     log_book = flight_log_book()
-    boxfilter = boxcar()
+    boxfilter = boxcar(9, 83)
     last_F2A_msg = None
     last_timestamp = 0
     while True:
@@ -430,7 +488,7 @@ if __name__=="__main__":
                          msg.xmag, msg.ymag, msg.zmag]
                 log_book.raw_imu.append(entry)
                 
-                filterTime = msg.time_usec - 20000 * (math.floor(boxcar.length/2.0))
+                filterTime = msg.time_usec - 20000 * (math.floor(boxfilter.length/2.0))
                 entry = [filterTime] + boxfilter.output()
                 log_book.filtered_imu.append(entry)
                 

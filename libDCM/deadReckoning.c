@@ -61,6 +61,12 @@ union longww IMUvelocityx =  { 0 };
 union longww IMUvelocityy =  { 0 };
 union longww IMUvelocityz =  { 0 };
 
+// floating point GPS coordinates
+extern struct relative3D_f GPSloc_f;
+
+// 32 bit fractional GPS coordinates
+extern struct relative3D_32 GPSlocation_32;
+
 //      location, as estimated by the IMU
 // high word is meters, low word is fractional meters
 union longww IMUlocationx =  { 0 };
@@ -76,7 +82,8 @@ uint16_t air_speed_3DIMU = 0;
 int16_t total_energy = 0;
 
 //	GPSlocation - IMUlocation: meters
-fractional locationErrorEarth[] = { 0 , 0 , 0 };
+//fractional locationErrorEarth[] = { 0 , 0 , 0 };
+int32_t locationErrorEarth[] = { 0 , 0 , 0 };
 //	GPSvelocity - IMUvelocity
 fractional velocityErrorEarth[] = { 0 , 0 , 0 };
 
@@ -84,6 +91,7 @@ extern int16_t errorYawground[];
 
 void dead_reckon(void)
 {
+    int i = 0;
 	if (dcm_flags._.dead_reckon_enable == 1)  // wait for startup of GPS
 	{
 		//	integrate the accelerometers to update IMU velocity
@@ -106,9 +114,13 @@ void dead_reckon(void)
 			IMUintegralAccelerationy.WW += __builtin_mulss(DR_FILTER_GAIN ,  velocityErrorEarth[1]);
 			IMUintegralAccelerationz.WW += __builtin_mulss(DR_FILTER_GAIN ,  velocityErrorEarth[2]);
 
-			IMUlocationx.WW += __builtin_mulss(DR_FILTER_GAIN ,  locationErrorEarth[0]);
-			IMUlocationy.WW += __builtin_mulss(DR_FILTER_GAIN ,  locationErrorEarth[1]);
-			IMUlocationz.WW += __builtin_mulss(DR_FILTER_GAIN ,  locationErrorEarth[2]);
+                        // when locationErrorEarth becomes 32 bits, this will need to operate on a 16 bit
+                        // subset, perhaps saturating at a magnitude of 64 meters
+                        // shift the 32 bit location error to the right 7 bits to place the sign bit at bit 15 of the low word
+                        // this is equivalent to multiplication by 2^9 since the decimal point is now between bits 9 and 10
+			IMUlocationx.WW += __builtin_mulss(DR_FILTER_GAIN ,  locationErrorEarth[0]>>7) >> 9;
+			IMUlocationy.WW += __builtin_mulss(DR_FILTER_GAIN ,  locationErrorEarth[1]>>7) >> 9;
+			IMUlocationz.WW += __builtin_mulss(DR_FILTER_GAIN ,  locationErrorEarth[2]>>7) >> 9;
 
 			IMUvelocityx.WW = IMUintegralAccelerationx.WW;
 			IMUvelocityy.WW = IMUintegralAccelerationy.WW;
@@ -135,9 +147,15 @@ void dead_reckon(void)
 			dcm_flags._.reckon_req = 0;
 			dead_reckon_clock = DR_PERIOD;
 
-			locationErrorEarth[0] = GPSlocation.x - IMUlocationx._.W1;
-			locationErrorEarth[1] = GPSlocation.y - IMUlocationy._.W1;
-			locationErrorEarth[2] = GPSlocation.z - IMUlocationz._.W1;
+                        // modify this to utilize 32 bit precision GPSlocation_32
+                        // change locationErrorEarth to 32 bits
+			locationErrorEarth[0] = GPSlocation_32.x - IMUlocationx.WW;
+			locationErrorEarth[1] = GPSlocation_32.y - IMUlocationy.WW;
+			locationErrorEarth[2] = GPSlocation_32.z - IMUlocationz.WW;
+                        // clamp to +/-64 meters
+                        for (i=0; i<3; i++) {
+                            magClamp32(&locationErrorEarth[i], 64*65536);
+                        }
 
 			velocityErrorEarth[0] = GPSvelocity.x - IMUintegralAccelerationx._.W1;
 			velocityErrorEarth[1] = GPSvelocity.y - IMUintegralAccelerationy._.W1;

@@ -153,7 +153,6 @@
 
 #if 1
 // AAM West Field runway center  39°50'31.97"N  105°13'10.17"W (105.2194917, 39.842213889)
-#define USE_FIXED_ORIGIN		1
 #define FIXED_ORIGIN_LOCATION	{ -1052194917, 398422138, 1817.0 }
 
 #if 1
@@ -162,7 +161,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // This is a lefthand pattern for takeoff to the east
 
-#define USE_FIXED_ORIGIN		1
+#define USE_FIXED_ORIGIN		0
 const struct waypointDef waypoints[] = {
 	{ { 84, 3, 20 } , F_NORMAL + F_TAKEOFF, CAM_VIEW_LAUNCH } , //Waypoint 1
 	{ { 83, 49, 25 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 2

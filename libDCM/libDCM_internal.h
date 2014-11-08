@@ -38,7 +38,8 @@ void read_gyros();
 
 extern fractional dirovergndHRmat[];
 extern fractional dirovergndHGPS[];
-extern fractional locationErrorEarth[3];
+//extern fractional locationErrorEarth[3];
+extern int32_t locationErrorEarth[3];
 
 #if (MAG_YAW_DRIFT == 1)
 extern fractional magFieldEarth[3];

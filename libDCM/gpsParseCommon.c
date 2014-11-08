@@ -30,6 +30,7 @@
 #endif
 
 struct relative3D GPSlocation = { 0, 0, 0 };
+struct relative3D_32 GPSlocation_32 = { 0, 0, 0 };
 struct relative3D_f GPSloc_f = { 0.0f, 0.0f, 0.0f };
 struct relative3D GPSvelocity = { 0, 0, 0 };
 
@@ -273,22 +274,23 @@ void udb_background_callback_triggered(void)
 
                 //________________________________________________________________________
 
-                // from dead_reckon()
-                IMUlocationx.WW = (int32_t) (65536 * GPSloc_f.x);
-                IMUlocationy.WW = (int32_t) (65536 * GPSloc_f.y);
-                IMUlocationz.WW = (int32_t) (65536 * GPSloc_f.z);
+                // assign 32 bit GPSlocation from GPSloc_f
+                GPSlocation_32.x = (int32_t) (65536 * GPSloc_f.x);
+                GPSlocation_32.y = (int32_t) (65536 * GPSloc_f.y);
+                GPSlocation_32.z = (int32_t) (65536 * GPSloc_f.z);
 
-                IMUintegralAccelerationx._.W0 = 0;
-                IMUintegralAccelerationy._.W0 = 0;
-                IMUintegralAccelerationz._.W0 = 0;
-
-                IMUintegralAccelerationx._.W1 = GPSvelocity.x;
-                IMUintegralAccelerationy._.W1 = GPSvelocity.y;
-                IMUintegralAccelerationz._.W1 = GPSvelocity.z;
-
-                IMUvelocityx._.W1 = GPSvelocity.x;
-                IMUvelocityy._.W1 = GPSvelocity.y;
-                IMUvelocityz._.W1 = GPSvelocity.z;
+//                // used in navigate.c
+//                IMUintegralAccelerationx._.W0 = 0;
+//                IMUintegralAccelerationy._.W0 = 0;
+//                IMUintegralAccelerationz._.W0 = 0;
+//
+//                IMUintegralAccelerationx._.W1 = GPSvelocity.x;
+//                IMUintegralAccelerationy._.W1 = GPSvelocity.y;
+//                IMUintegralAccelerationz._.W1 = GPSvelocity.z;
+//
+//                IMUvelocityx._.W1 = GPSvelocity.x;
+//                IMUvelocityy._.W1 = GPSvelocity.y;
+//                IMUvelocityz._.W1 = GPSvelocity.z;
 
 #if (SILSIM != 1 && BOARD_TYPE == AUAV3_BOARD)
                 // deassert digital out 2

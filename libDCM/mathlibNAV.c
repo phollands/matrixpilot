@@ -426,3 +426,9 @@ void magClamp(int16_t *in, int16_t mag) {
     else if (*in > mag)
         *in = mag;
 }
+void magClamp32(int32_t *in, int32_t mag) {
+    if (*in < -mag)
+        *in = -mag;
+    else if (*in > mag)
+        *in = mag;
+}
