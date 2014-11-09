@@ -406,7 +406,6 @@ static void yaw_drift(void) {
             errorYawplane[1] = 0;
             errorYawplane[2] = 0;
         }
-
         dcm_flags._.yaw_req = 0;
     }
 }
@@ -561,16 +560,16 @@ static void mag_drift(void) {
     int16_t mag_error;
     fractional magFieldEarthNormalized[3];
     fractional magFieldEarthHorzNorm[2];
-    fractional magAlignmentError[3];
-    fractional rmat2Transpose[9];
-    fractional R2TR1RotationVector[3];
-    fractional R2TAlignmentErrorR1[3];
-    fractional rmatBufferA[9];
-    fractional rmatBufferB[9];
-    fractional magAlignmentAdjustment[3];
-    fractional vectorBuffer[3];
-    fractional magFieldBodyMagnitude;
-    fractional offsetEstimate[3];
+//    fractional magAlignmentError[3];
+//    fractional rmat2Transpose[9];
+//    fractional R2TR1RotationVector[3];
+//    fractional R2TAlignmentErrorR1[3];
+//    fractional rmatBufferA[9];
+//    fractional rmatBufferB[9];
+//    fractional magAlignmentAdjustment[3];
+//    fractional vectorBuffer[3];
+//    fractional magFieldBodyMagnitude;
+//    fractional offsetEstimate[3];
 
     // the following compensates for magnetometer drift by adjusting the timing
     // of when rmat is read
@@ -583,20 +582,20 @@ static void mag_drift(void) {
 
     if (dcm_flags._.mag_drift_req) {
 
-        // Compute magnetic offsets
-        magFieldBodyMagnitude = vector3_mag(udb_magFieldBody[0], udb_magFieldBody[1], udb_magFieldBody[2]);
-        VectorSubtract(3, vectorBuffer, udb_magFieldBody, magFieldBodyPrevious);
-        vector3_normalize(vectorBuffer, vectorBuffer);
-        VectorScale(3, offsetEstimate, vectorBuffer, magFieldBodyMagnitude - magFieldBodyMagnitudePrevious);
-        VectorCopy(3, magFieldBodyPrevious, udb_magFieldBody);
-        magFieldBodyMagnitudePrevious = magFieldBodyMagnitude;
-
-        // Compute and apply the magnetometer alignment adjustment in the body frame
-        RotVector2RotMat(rmatBufferA, magAlignment);
-        vectorBuffer[0] = VectorDotProduct(3, &rmatBufferA[0], udb_magFieldBody) << 1;
-        vectorBuffer[1] = VectorDotProduct(3, &rmatBufferA[3], udb_magFieldBody) << 1;
-        vectorBuffer[2] = VectorDotProduct(3, &rmatBufferA[6], udb_magFieldBody) << 1;
-        VectorCopy(3, udb_magFieldBody, vectorBuffer);
+//        // Compute magnetic offsets
+//        magFieldBodyMagnitude = vector3_mag(udb_magFieldBody[0], udb_magFieldBody[1], udb_magFieldBody[2]);
+//        VectorSubtract(3, vectorBuffer, udb_magFieldBody, magFieldBodyPrevious);
+//        vector3_normalize(vectorBuffer, vectorBuffer);
+//        VectorScale(3, offsetEstimate, vectorBuffer, magFieldBodyMagnitude - magFieldBodyMagnitudePrevious);
+//        VectorCopy(3, magFieldBodyPrevious, udb_magFieldBody);
+//        magFieldBodyMagnitudePrevious = magFieldBodyMagnitude;
+//
+//        // Compute and apply the magnetometer alignment adjustment in the body frame
+//        RotVector2RotMat(rmatBufferA, magAlignment);
+//        vectorBuffer[0] = VectorDotProduct(3, &rmatBufferA[0], udb_magFieldBody) << 1;
+//        vectorBuffer[1] = VectorDotProduct(3, &rmatBufferA[3], udb_magFieldBody) << 1;
+//        vectorBuffer[2] = VectorDotProduct(3, &rmatBufferA[6], udb_magFieldBody) << 1;
+//        VectorCopy(3, udb_magFieldBody, vectorBuffer);
 
         if (dcm_flags._.first_mag_reading == 1) {
             align_rmat_to_mag();
@@ -621,44 +620,49 @@ static void mag_drift(void) {
         declinationVector[0] = cosine(dcm_declination_angle._.B1);
         declinationVector[1] = sine(dcm_declination_angle._.B1);
 #endif
+#if (MAG_YAW_ENABLE != 0)
         mag_error = VectorDotProduct(2, magFieldEarthHorzNorm, declinationVector);
         VectorScale(3, errorYawplane, &rmat[6], mag_error); // Scalegain = 1/2
+//        errorYawplane[0] = 0;
+//        errorYawplane[1] = 0;
+//        errorYawplane[2] = RMAX / 2;
+#endif
 
-        // Do the computations needed to compensate for magnetometer misalignment
-
-        // Determine the apparent shift in the earth's magnetic field:
-        VectorCross(magAlignmentError, magFieldEarthNormalizedPrevious, magFieldEarthNormalized);
-
-        // Compute R2 transpose
-        MatrixTranspose(3, 3, rmat2Transpose, rmatDelayCompensated);
-
-        // Compute 1/2 of R2tranpose times R1
-        MatrixMultiply(3, 3, 3, rmatBufferA, rmat2Transpose, rmatPrevious);
-
-        // Convert to a rotation vector, take advantage of 1/2 from the previous step
-        R2TR1RotationVector[0] = rmatBufferA[7] - rmatBufferA[5];
-        R2TR1RotationVector[1] = rmatBufferA[2] - rmatBufferA[6];
-        R2TR1RotationVector[2] = rmatBufferA[3] - rmatBufferA[1];
-
-        // Compute 1/4 of RT2*Matrix(error-vector)*R1
-        rmatBufferA[0] = rmatBufferA[4] = rmatBufferA[8] = 0;
-        rmatBufferA[7] = magAlignmentError[0];
-        rmatBufferA[5] = -magAlignmentError[0];
-        rmatBufferA[2] = magAlignmentError[1];
-        rmatBufferA[6] = -magAlignmentError[1];
-        rmatBufferA[3] = magAlignmentError[2];
-        rmatBufferA[1] = -magAlignmentError[2];
-        MatrixMultiply(3, 3, 3, rmatBufferB, rmatBufferA, rmatDelayCompensated);
-        MatrixMultiply(3, 3, 3, rmatBufferA, rmat2Transpose, rmatBufferB);
-
-        // taking advantage of factor of 1/4 in the two matrix multiplies, compute
-        // 1/2 of the vector representation of the rotation
-        R2TAlignmentErrorR1[0] = (rmatBufferA[7] - rmatBufferA[5]);
-        R2TAlignmentErrorR1[1] = (rmatBufferA[2] - rmatBufferA[6]);
-        R2TAlignmentErrorR1[2] = (rmatBufferA[3] - rmatBufferA[1]);
-
-        // compute the negative of estimate of the residual misalignment
-        VectorCross(magAlignmentAdjustment, R2TAlignmentErrorR1, R2TR1RotationVector);
+//        // Do the computations needed to compensate for magnetometer misalignment
+//
+//        // Determine the apparent shift in the earth's magnetic field:
+//        VectorCross(magAlignmentError, magFieldEarthNormalizedPrevious, magFieldEarthNormalized);
+//
+//        // Compute R2 transpose
+//        MatrixTranspose(3, 3, rmat2Transpose, rmatDelayCompensated);
+//
+//        // Compute 1/2 of R2tranpose times R1
+//        MatrixMultiply(3, 3, 3, rmatBufferA, rmat2Transpose, rmatPrevious);
+//
+//        // Convert to a rotation vector, take advantage of 1/2 from the previous step
+//        R2TR1RotationVector[0] = rmatBufferA[7] - rmatBufferA[5];
+//        R2TR1RotationVector[1] = rmatBufferA[2] - rmatBufferA[6];
+//        R2TR1RotationVector[2] = rmatBufferA[3] - rmatBufferA[1];
+//
+//        // Compute 1/4 of RT2*Matrix(error-vector)*R1
+//        rmatBufferA[0] = rmatBufferA[4] = rmatBufferA[8] = 0;
+//        rmatBufferA[7] = magAlignmentError[0];
+//        rmatBufferA[5] = -magAlignmentError[0];
+//        rmatBufferA[2] = magAlignmentError[1];
+//        rmatBufferA[6] = -magAlignmentError[1];
+//        rmatBufferA[3] = magAlignmentError[2];
+//        rmatBufferA[1] = -magAlignmentError[2];
+//        MatrixMultiply(3, 3, 3, rmatBufferB, rmatBufferA, rmatDelayCompensated);
+//        MatrixMultiply(3, 3, 3, rmatBufferA, rmat2Transpose, rmatBufferB);
+//
+//        // taking advantage of factor of 1/4 in the two matrix multiplies, compute
+//        // 1/2 of the vector representation of the rotation
+//        R2TAlignmentErrorR1[0] = (rmatBufferA[7] - rmatBufferA[5]);
+//        R2TAlignmentErrorR1[1] = (rmatBufferA[2] - rmatBufferA[6]);
+//        R2TAlignmentErrorR1[2] = (rmatBufferA[3] - rmatBufferA[1]);
+//
+//        // compute the negative of estimate of the residual misalignment
+//        VectorCross(magAlignmentAdjustment, R2TAlignmentErrorR1, R2TR1RotationVector);
 
         if (dcm_flags._.first_mag_reading == 0) {
 
@@ -676,8 +680,8 @@ static void mag_drift(void) {
             dcm_flags._.first_mag_reading = 0;
         }
 
-        VectorCopy(3, magFieldEarthNormalizedPrevious, magFieldEarthNormalized);
-        VectorCopy(9, rmatPrevious, rmatDelayCompensated);
+//        VectorCopy(3, magFieldEarthNormalizedPrevious, magFieldEarthNormalized);
+//        VectorCopy(9, rmatPrevious, rmatDelayCompensated);
 
         dcm_flags._.mag_drift_req = 0;
     }
@@ -807,6 +811,7 @@ void output_IMUvelocity(void)
 
 extern void dead_reckon(void);
 
+// called at HEARTBEAT_HZ
 void dcm_run_imu_step(void) {
     // update the matrix, renormalize it, adjust for roll and
     // pitch drift, and send it to the servos.
@@ -827,15 +832,17 @@ void dcm_run_imu_step(void) {
 #if (MAG_YAW_DRIFT == 1)
     // mag yaw drift correction is not applied if MAG_YAW_ENABLE == 0
     if (magMessage == 7) {
-        // sets errorYawplane for drift correction
+        // sets errorYawplane for drift correction (only if mag_drift_req is set
+        // which means a reading has just been taken) 4Hz
         mag_drift(); // local
     }
 #endif
 #if (MAG_YAW_DRIFT == 0 || MAG_YAW_ENABLE == 0)
-    // use GPS for yaw drift correction: this will overwrite errorYawplane
+    // use GPS for yaw drift correction
+    // runs at GPS_RATE (1 to 4 Hz)
     yaw_drift(); // local
 #endif
-#if (SILSIM == 1)
+#if (0 && SILSIM == 1)
     // print omegacorrP and omegacorrI
     if ((udb_heartbeat_counter % HEARTBEAT_HZ) == 0) {
         printf("ggain: %i, %i, %i, omegacorrI: %i, %i, %i\n",

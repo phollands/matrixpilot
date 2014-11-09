@@ -129,7 +129,7 @@ void normalYawCntrl(void)
 	if (flags._.pitch_feedback)
 	{
 		gyroYawFeedback.WW = __builtin_mulus(yawkdrud, yaw_rate - omegaAccum[2]);
-#if (HILSIM == 1)
+#if (0 && HILSIM == 1)
                 // acceleration data comes from the Xplane plugin
                 int16_t xacc_scaled = -(1.0/16) * xacc;
                 if ((udb_heartbeat_counter % (HEARTBEAT_HZ/10)) == 0) {
