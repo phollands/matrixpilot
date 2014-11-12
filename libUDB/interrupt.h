@@ -1,5 +1,8 @@
 // This file is part of MatrixPilot.
 
+#ifndef UDB_INTERRUPT_H
+#define UDB_INTERRUPT_H
+
 #include "libUDB_defines.h"
 
 //
@@ -66,52 +69,12 @@ uint16_t SP_start(void);
 uint16_t SP_limit(void);
 uint16_t SP_current(void);
 
-#if (BOARD_TYPE == AUAV3_BOARD && IPL_MONITOR_EN != 0)
-static int ipl_stack[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-static int ipl_stack_ptr = 0;
-// using pre-increment, the bottom stack entry is always zero
-// and the ptr points at the current IPL
-static int push_ipl(void) {
-    if (ipl_stack_ptr < 8) {
-        ipl_stack[++ipl_stack_ptr] = SRbits.IPL;
-    }
-    return SRbits.IPL;
-}
-// if the stack pointer gets down to zero, no ISR is active
-// When an ISR pops its IPL off the stack, this method returns the now active IPL
-static int pop_ipl(void) {
-    if (ipl_stack_ptr > 0) {
-        return ipl_stack[--ipl_stack_ptr];
-    } else {
-        return 0;
-    }
-}
-#endif
+void push_ipl(void);
+int pop_ipl(void);
+void indicate_entering_isr(void);
+void indicate_exiting_isr(void);
 
 #if (USE_MCU_IDLE == 1)
-//#define indicate_loading_inter { LED_ORANGE = LED_ON; }
-
-#if (SILSIM != 1 && BOARD_TYPE == AUAV3_BOARD)
-
-#if (BOARD_TYPE == AUAV3_BOARD && IPL_MONITOR_EN != 0)
-
-// Push (pre-increment ipl_stack_ptr) current IPL onto stack: if ipl_stack_ptr is
-// already nonzero we are preempting another ISR, if zero, then no ISR was active.
-// Indicate current IPL on digtal outputs.
-#define indicate_entering_isr {setDigOut(push_ipl()); }
-
-// when current ISR returns, pop the current IPL off the stack, and set dig. out
-// to reflect the previous top of the stack
-#define indicate_exiting_isr {setDigOut(pop_ipl()); }
-#else
-#define indicate_entering_isr {}
-#define indicate_exiting_isr {}
-#endif
-
-#else
-#define indicate_loading_inter { }
-#endif
-
 #define indicate_loading_main  {}
 #else
 #define indicate_loading_inter \
@@ -142,3 +105,4 @@ static int pop_ipl(void) {
 		__asm__("pop CORCON"); \
 	}
 
+#endif

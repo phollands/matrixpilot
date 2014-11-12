@@ -217,7 +217,7 @@ void set_udb_pwIn(uint16_t pwm, int index)
 #define _IC_HANDLER(x, y, z) \
 void __attribute__((__interrupt__,__no_auto_psv__)) _IC##x##Interrupt(void) \
 { \
-	indicate_entering_isr; \
+	indicate_entering_isr(); \
 	interrupt_save_set_corcon; \
 	static uint16_t rise = 0; \
 	uint16_t time = 0; \
@@ -229,7 +229,7 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _IC##x##Interrupt(void) \
 	else \
 		set_udb_pwIn(time - rise, x); \
 	interrupt_restore_corcon; \
-        indicate_exiting_isr; \
+        indicate_exiting_isr(); \
 }
 #define IC_HANDLER(x, y, z) _IC_HANDLER(x, y, z)
 
@@ -254,7 +254,7 @@ IC_HANDLER(8, REGTOK1, IC_PIN8);
 
 void __attribute__((__interrupt__,__no_auto_psv__)) _IC1Interrupt(void)
 {
-	indicate_entering_isr;
+	indicate_entering_isr();
 	interrupt_save_set_corcon;
 
 	static uint16_t rise_ppm = 0;
@@ -318,7 +318,7 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _IC1Interrupt(void)
 #error Invalid USE_PPM_INPUT setting
 #endif // USE_PPM_INPUT
 	interrupt_restore_corcon;
-        indicate_exiting_isr;
+        indicate_exiting_isr();
 }
 
 #endif // USE_PPM_INPUT

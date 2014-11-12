@@ -188,7 +188,7 @@ extern uint16_t maxstack;
 
 void __attribute__((__interrupt__,__no_auto_psv__)) _T4Interrupt(void)
 {
-	indicate_entering_isr;
+	indicate_entering_isr();
 	interrupt_save_set_corcon;
 	switch (outputNum) {
 		case 0:
@@ -259,5 +259,5 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _T4Interrupt(void)
 #endif
 
 	interrupt_restore_corcon;
-        indicate_exiting_isr;
+        indicate_exiting_isr();
 }

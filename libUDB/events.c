@@ -110,7 +110,7 @@ void init_events(void)  // initialize events handler
 void __attribute__((__interrupt__, __no_auto_psv__)) _EVENTL_INTERUPT(void) 
 {
 	_EVENTL_TRIGGERIF = 0;      // clear the interrupt
-	indicate_entering_isr;
+	indicate_entering_isr();
 	interrupt_save_set_corcon;
 
 	int16_t eventIndex;
@@ -132,16 +132,17 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _EVENTL_INTERUPT(void)
 		}
 	}
 	interrupt_restore_corcon;
-        indicate_exiting_isr;
+        indicate_exiting_isr();
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _EVENTM_INTERUPT(void) 
 {
-	_EVENTM_TRIGGERIF = 0;      // clear the interrupt
-	indicate_entering_isr;
+	indicate_entering_isr();
 	interrupt_save_set_corcon;
 
-	int16_t eventIndex;
+	_EVENTM_TRIGGERIF = 0;      // clear the interrupt
+
+        int16_t eventIndex;
 	EVENT* pEvent;
 
 	if (event_init_done)
@@ -160,6 +161,6 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _EVENTM_INTERUPT(void)
 		}
 	}
 	interrupt_restore_corcon;
-        indicate_exiting_isr;
+        indicate_exiting_isr();
 }
 

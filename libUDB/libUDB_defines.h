@@ -43,7 +43,7 @@ union longlongLL { int64_t LL; struct LL _; struct wwww __; };
 #endif
 
 // nonzero for IPL monitoring on AUAV3 DIGn pins
-#define IPL_MONITOR_EN  0
+#define IPL_MONITOR_EN  1
 
 // Build for the specific board type
 #define RED_BOARD               1   // red board with vertical LISY gyros (deprecated)
