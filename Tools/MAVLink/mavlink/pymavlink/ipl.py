@@ -11,7 +11,7 @@ import matplotlib.cm as cmx
 import sys
 
 if __name__ == '__main__':
-    file = open('./ipldata/ipl.csv', 'ro')
+    file = open('./ipldata/ipl_new.csv', 'ro')
     ofile = open('./ipldata/iplvals.csv', 'w')
     chData = []
     lnumber = 0
@@ -48,9 +48,17 @@ if __name__ == '__main__':
     dvals = np.array(chData[1:nChan+1])
     
     # specific case for IPL analysis
+    # in the "new" logic analyzer capture, the first 3 data channels are IPL level [lsb:msb]
+    # the 4th channel is PWM output 1
+    # channels 5 and 6 are the IPL stack level, [lsb:msb]
     iplVals = np.zeros(nRecs, dtype='uint8')
+    pwm1 = np.zeros(nRecs, dtype='uint8')
+    iplSP = np.zeros(nRecs, dtype='uint8')
     for i in range(0, nRecs):
         iplVals[i] = dvals[0,i] + 2 * dvals[1,i] + 4 * dvals[2,i]
+        pwm1[i] = dvals[3,i]
+        iplSP[i] = dvals[4,i] + 2 * dvals[5,i]
+        
     
     ofile.write("time,duration,IPL\n")
         
@@ -69,10 +77,10 @@ if __name__ == '__main__':
     
     # histograms
     nbins = 50
-    bin_width = 6e-6
+    bin_width = 5e-6
     duration_histo = np.zeros((8, nbins))
     
-    ibin_width = 1e-3
+    ibin_width = .1e-3
     interval_histo = np.zeros((8, nbins))
     
     traceTime = []
@@ -85,7 +93,7 @@ if __name__ == '__main__':
         lastIPL = iplVals[i-1]
         
         # ignore glitches due to non-atomic DIGn assignment
-        if dt < 100e-9: 
+        if dt < 1e-6: 
             continue
         
         traceTime.append(tvals[i-1])
