@@ -11,8 +11,8 @@ import matplotlib.cm as cmx
 import sys
 
 if __name__ == '__main__':
-    file = open('/home/markw/Dropbox/autopilots/AUAV3/jitter/ipl.csv', 'ro')
-    ofile = open('/home/markw/Dropbox/autopilots/AUAV3/jitter/iplvals.csv', 'w')
+    file = open('./ipldata/ipl.csv', 'ro')
+    ofile = open('./ipldata/iplvals.csv', 'w')
     chData = []
     lnumber = 0
     for line in file:
