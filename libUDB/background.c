@@ -155,7 +155,7 @@ void udb_init_clock(void)   // initialize timers
 // This interrupt is the Heartbeat of libUDB.
 void __attribute__((__interrupt__,__no_auto_psv__)) _T1Interrupt(void)
 {
-	indicate_loading_inter;
+	indicate_entering_isr;
 	interrupt_save_set_corcon;
 
 	_T1IF = 0;              // clear the interrupt
@@ -221,6 +221,7 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _T1Interrupt(void)
 	udb_heartbeat_counter = (udb_heartbeat_counter+1) % HEARTBEAT_MAX;
 
 	interrupt_restore_corcon;
+        indicate_exiting_isr;
 }
 
 // Trigger the low priority background processing interrupt.
@@ -234,7 +235,7 @@ void udb_background_trigger(void)
 // priority after receiving each new set of GPS data.
 void __attribute__((__interrupt__,__no_auto_psv__)) _T7Interrupt(void)
 {
-	indicate_loading_inter;
+	indicate_entering_isr;
 	interrupt_save_set_corcon;
 
 	_T7IF = 0;              // clear the interrupt
@@ -242,6 +243,7 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _T7Interrupt(void)
 	udb_background_callback_triggered();
 
 	interrupt_restore_corcon;
+        indicate_exiting_isr;
 }
 
 
@@ -282,7 +284,7 @@ uint8_t udb_cpu_load(void)
 //	This is a good place to eventually compute pulse widths for servos.
 void __attribute__((__interrupt__,__no_auto_psv__)) _T6Interrupt(void)
 {
-	indicate_loading_inter;
+	indicate_entering_isr;
 	interrupt_save_set_corcon;
 
 	_T6IF = 0; // clear the interrupt
@@ -344,4 +346,5 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _T6Interrupt(void)
 #endif
 
 	interrupt_restore_corcon;
+        indicate_exiting_isr;
 }

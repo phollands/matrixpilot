@@ -182,7 +182,7 @@ void triggerActionSetValue(boolean newValue)
 	if (TRIGGER_TYPE == TRIGGER_TYPE_SERVO)
 	{
 		udb_pwOut[TRIGGER_OUTPUT_CHANNEL] = (newValue) ? TRIGGER_SERVO_HIGH : TRIGGER_SERVO_LOW;
-#if (SILSIM != 1 && BOARD_TYPE == AUAV3_BOARD)
+#if (SILSIM != 1 && BOARD_TYPE == AUAV3_BOARD && IPL_MONITOR_EN == 0)
                 DIG1 = (newValue) ? 1 : 0;
 #endif
 	}

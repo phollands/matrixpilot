@@ -1,4 +1,7 @@
 // This file is part of MatrixPilot.
+
+#include "libUDB_defines.h"
+
 //
 //    http://code.google.com/p/gentlenav/
 //
@@ -17,7 +20,6 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with MatrixPilot.  If not, see <http://www.gnu.org/licenses/>.
-
 
 #define INT_PRI_T1      6   // background.c : high priority HEARTBEAT_HZ heartbeat of libUDB
 //#define INT_PRI_T2      ?   // radioIn.c : does not use the timer interrupt
@@ -59,13 +61,57 @@ extern uint16_t _cpu_timer;
 
 void sleep(void);
 void idle(void);
+
 uint16_t SP_start(void);
 uint16_t SP_limit(void);
 uint16_t SP_current(void);
 
+#if (BOARD_TYPE == AUAV3_BOARD && IPL_MONITOR_EN != 0)
+static int ipl_stack[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+static int ipl_stack_ptr = 0;
+// using pre-increment, the bottom stack entry is always zero
+// and the ptr points at the current IPL
+static int push_ipl(void) {
+    if (ipl_stack_ptr < 8) {
+        ipl_stack[++ipl_stack_ptr] = SRbits.IPL;
+    }
+    return SRbits.IPL;
+}
+// if the stack pointer gets down to zero, no ISR is active
+// When an ISR pops its IPL off the stack, this method returns the now active IPL
+static int pop_ipl(void) {
+    if (ipl_stack_ptr > 0) {
+        return ipl_stack[--ipl_stack_ptr];
+    } else {
+        return 0;
+    }
+}
+#endif
+
 #if (USE_MCU_IDLE == 1)
 //#define indicate_loading_inter { LED_ORANGE = LED_ON; }
+
+#if (SILSIM != 1 && BOARD_TYPE == AUAV3_BOARD)
+
+#if (BOARD_TYPE == AUAV3_BOARD && IPL_MONITOR_EN != 0)
+
+// Push (pre-increment ipl_stack_ptr) current IPL onto stack: if ipl_stack_ptr is
+// already nonzero we are preempting another ISR, if zero, then no ISR was active.
+// Indicate current IPL on digtal outputs.
+#define indicate_entering_isr {setDigOut(push_ipl()); }
+
+// when current ISR returns, pop the current IPL off the stack, and set dig. out
+// to reflect the previous top of the stack
+#define indicate_exiting_isr {setDigOut(pop_ipl()); }
+#else
+#define indicate_entering_isr {}
+#define indicate_exiting_isr {}
+#endif
+
+#else
 #define indicate_loading_inter { }
+#endif
+
 #define indicate_loading_main  {}
 #else
 #define indicate_loading_inter \

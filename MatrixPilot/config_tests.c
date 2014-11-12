@@ -146,6 +146,8 @@
 	#error("NUM_OUTPUTS can't be more than 10.")
 #endif
 
+// To disable PWM output, NUM_OUTPUTS is set to zero
+#if (NUM_OUTPUTS > 0)
 #if (THROTTLE_OUTPUT_CHANNEL > NUM_OUTPUTS)
 	#error("THROTTLE_OUTPUT_CHANNEL > NUM_OUTPUTS.")
 #endif
@@ -193,7 +195,7 @@
 #if (PASSTHROUGH_D_OUTPUT_CHANNEL > NUM_OUTPUTS)
 	#error("PASSTHROUGH_D_OUTPUT_CHANNEL > NUM_OUTPUTS.")
 #endif
-
+#endif
 
 
 // Check HILSIM Settings

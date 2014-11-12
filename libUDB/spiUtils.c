@@ -149,7 +149,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _SPI1Interrupt(void)
 	// clear interrupt flag as soon as possible so as to not miss any interrupts
 	_SPI1IF = 0;
 
-	indicate_loading_inter;
+	indicate_entering_isr;
 	interrupt_save_set_corcon;
 
 	_SPI1IE = 0; // turn off SPI1 interrupts
@@ -169,6 +169,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _SPI1Interrupt(void)
 	(*SPI1_read_call_back)(); // execute the call back
 
 	interrupt_restore_corcon;
+        indicate_exiting_isr;
 }
 
 #else // no SPI FIFO
@@ -201,7 +202,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _SPI1Interrupt(void)
 	// clear interrupt flag as soon as possible so as to not miss any interrupts
 	_SPI1IF = 0;
 
-	indicate_loading_inter;
+	indicate_entering_isr;
 	interrupt_save_set_corcon;
 
 	if (SPI1_i == 0) {
@@ -225,6 +226,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _SPI1Interrupt(void)
 		(*SPI1_read_call_back) (); // execute the call back
 	}
 	interrupt_restore_corcon;
+        indicate_exiting_isr;
 }
 #endif
 
@@ -365,7 +367,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _SPI2Interrupt(void)
 	// clear the interrupt flag as soon as possible so as to not miss any interrupts
 	_SPI2IF = 0;
 
-	indicate_loading_inter;
+	indicate_entering_isr;
 	interrupt_save_set_corcon;
 
 	if (SPI2_i == 0) {
@@ -389,6 +391,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _SPI2Interrupt(void)
 		(*SPI2_read_call_back)(); // execute the call back
 	}
 	interrupt_restore_corcon;
+        indicate_exiting_isr;
 }
 
 #endif // BOARD_TYPE

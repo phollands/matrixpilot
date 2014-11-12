@@ -233,20 +233,22 @@ void MPU6000_read(void)
 void __attribute__((interrupt, no_auto_psv)) _INT1Interrupt(void)
 {
 	_INT1IF = 0; // Clear the INT1 interrupt flag
-	indicate_loading_inter;
+	indicate_entering_isr;
 	interrupt_save_set_corcon;
 	MPU6000_read();
 	interrupt_restore_corcon;
+        indicate_exiting_isr;
 }
 
 #elif (MPU_SPI == 2)
 void __attribute__((interrupt, no_auto_psv)) _INT3Interrupt(void)
 {
 	_INT3IF = 0; // Clear the INT3 interrupt flag
-	indicate_loading_inter;
+	indicate_entering_isr;
 	interrupt_save_set_corcon;
 	MPU6000_read();
 	interrupt_restore_corcon;
+        indicate_exiting_isr;
 }
 #else
 #error("invalid selection for MPU SPI port, must be 1 or 2")

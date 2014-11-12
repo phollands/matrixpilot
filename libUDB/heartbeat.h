@@ -27,7 +27,7 @@
 #define HEARTBEAT_HZ 200
 
 // number of servo updates per second
-#define SERVO_HZ 40
+#define SERVO_HZ 50
 
 
 // Read-only value increments with each heartbeat

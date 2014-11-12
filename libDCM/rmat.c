@@ -816,7 +816,7 @@ void dcm_run_imu_step(void) {
     // update the matrix, renormalize it, adjust for roll and
     // pitch drift, and send it to the servos.
 
-#if (SILSIM != 1 && BOARD_TYPE == AUAV3_BOARD)
+#if (SILSIM != 1 && BOARD_TYPE == AUAV3_BOARD && IPL_MONITOR_EN == 0)
     // assert digital out 0
     DIG0 = 1;
 #endif
@@ -853,7 +853,7 @@ void dcm_run_imu_step(void) {
     // this routine uses globals errorRP and errorYawplane for yaw drift correction
     PI_feedback(); // local
     calibrate_gyros(); // local
-#if (SILSIM != 1 && BOARD_TYPE == AUAV3_BOARD)
+#if (SILSIM != 1 && BOARD_TYPE == AUAV3_BOARD && IPL_MONITOR_EN == 0)
     // assert digital out 0
     DIG0 = 0;
 #endif

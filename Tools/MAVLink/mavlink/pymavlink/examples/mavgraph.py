@@ -57,7 +57,7 @@ def plotit(x, y, fields, colors=[]):
         if axes[i] == 2:
             if ax2 == None:
                 ax2 = ax1.twinx()
-            ax = ax2
+            ax1 = ax2
             if not opts.xaxis:
                 ax2.xaxis.set_major_locator(locator)
                 ax2.xaxis.set_major_formatter(formatter)
@@ -67,7 +67,7 @@ def plotit(x, y, fields, colors=[]):
             ax2_labels.append(label)
         else:
             ax1_labels.append(fields[i])
-            ax = ax1
+            ax1 = ax1
         if opts.xaxis:
             if opts.marker is not None:
                 marker = opts.marker
@@ -77,7 +77,7 @@ def plotit(x, y, fields, colors=[]):
                 linestyle = opts.linestyle
             else:
                 linestyle = 'None'
-            ax.plot(x[i], y[i], color=color, label=fields[i],
+            ax1.plot(x[i], y[i], color=color, label=fields[i],
                     linestyle=linestyle, marker=marker)
         else:
             if opts.marker is not None:
@@ -88,7 +88,7 @@ def plotit(x, y, fields, colors=[]):
                 linestyle = opts.linestyle
             else:
                 linestyle = '-'
-            ax.plot_date(x[i], y[i], color=color, label=fields[i],
+            ax1.plot_date(x[i], y[i], color=color, label=fields[i],
                          linestyle=linestyle, marker=marker, tz=None)
         pylab.draw()
         empty = False

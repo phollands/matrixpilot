@@ -106,7 +106,7 @@ void udb_gps_start_sending_data(void)
 void __attribute__((__interrupt__,__no_auto_psv__)) _U1TXInterrupt(void)
 {
 	_U1TXIF = 0; // clear the interrupt
-	indicate_loading_inter;
+	indicate_entering_isr;
 	interrupt_save_set_corcon;
 
 #if (USE_HILSIM_USB != 1)
@@ -119,12 +119,13 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _U1TXInterrupt(void)
 		U1TXREG = (uint8_t)txchar;
 	}
 	interrupt_restore_corcon;
+        indicate_exiting_isr;
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _U1RXInterrupt(void)
 {
 	_U1RXIF = 0; // clear the interrupt
-	indicate_loading_inter;
+	indicate_entering_isr;
 	interrupt_save_set_corcon;
 	
 	while (U1STAbits.URXDA)
@@ -136,6 +137,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U1RXInterrupt(void)
 	}
 	U1STAbits.OERR = 0;
 	interrupt_restore_corcon;
+        indicate_exiting_isr;
 }
 
 
@@ -208,7 +210,7 @@ void udb_serial_start_sending_data(void)
 void __attribute__((__interrupt__, __no_auto_psv__)) _U2TXInterrupt(void)
 {
 	_U2TXIF = 0; // clear the interrupt
-	indicate_loading_inter;
+	indicate_entering_isr;
 	interrupt_save_set_corcon;
 
 	int16_t txchar = udb_serial_callback_get_byte_to_send();
@@ -217,13 +219,14 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U2TXInterrupt(void)
 		U2TXREG = (uint8_t)txchar;
 	}
 	interrupt_restore_corcon;
+        indicate_exiting_isr;
 }
 #else
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _U2TXInterrupt(void)
 {
 	_U2TXIF = 0; // clear the interrupt
-	indicate_loading_inter;
+	indicate_entering_isr;
 	interrupt_save_set_corcon;
 
 	char txchar;
@@ -233,6 +236,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U2TXInterrupt(void)
 		U2TXREG = (unsigned char) txchar;
 
 	interrupt_restore_corcon;
+        indicate_exiting_isr;
 	return;
 }
 #endif  // USE_RING_BUFFER
@@ -240,7 +244,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U2TXInterrupt(void)
 void __attribute__((__interrupt__, __no_auto_psv__)) _U2RXInterrupt(void)
 {
 	_U2RXIF = 0; // clear the interrupt
-	indicate_loading_inter;
+	indicate_entering_isr;
 	interrupt_save_set_corcon;
 
 	while (U2STAbits.URXDA)
@@ -250,6 +254,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U2RXInterrupt(void)
 	}
 	U2STAbits.OERR = 0;
 	interrupt_restore_corcon;
+        indicate_exiting_isr;
 }
 #if (USE_SBUS_INPUT == 1)
 // S.bus and Spektrum satellite input will be on (internal) UART3, if enabled
@@ -410,7 +415,7 @@ void udb_init_Sbus(void) {
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _U3RXInterrupt(void) {
-    indicate_loading_inter;
+    indicate_entering_isr;
     interrupt_save_set_corcon;
 
     while (U3STAbits.URXDA) {
@@ -422,6 +427,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U3RXInterrupt(void) {
     _U3RXIF = 0; // clear the interrupt
 
     interrupt_restore_corcon;
+    indicate_exiting_isr;
     return;
 }
 #endif  // USE_SBUS_INPUT

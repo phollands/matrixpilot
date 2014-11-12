@@ -207,7 +207,7 @@ void udb_init_ADC(void)
 
 void __attribute__((__interrupt__,__no_auto_psv__)) _DMA0Interrupt(void)
 {
-	indicate_loading_inter;
+	indicate_entering_isr;
 	interrupt_save_set_corcon;
 
 #if (RECORD_FREE_STACK_SPACE == 1)

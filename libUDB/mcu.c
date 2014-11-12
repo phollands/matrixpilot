@@ -130,6 +130,72 @@ uint16_t get_reset_flags(void)
 }
 
 #if (BOARD_TYPE == AUAV3_BOARD)
+void DigOutSignal(int bit) {
+    DIG0 = 1;
+    DIG1 = 1;
+    DIG2 = 1;
+    DIG0 = 0;
+    DIG1 = 0;
+    DIG2 = 0;
+    switch (bit) {
+        case 0:
+            DIG0 = 1;
+            break;
+        case 1:
+            DIG1 = 1;
+            break;
+        case 2:
+            DIG2 = 1;
+            break;
+        default:
+            break;
+    }
+}
+void setDigOut(int v) {
+    switch (v) {
+        case 0:
+            DIG2 = 0;
+            DIG1 = 0;
+            DIG0 = 0;
+            break;
+        case 1:
+            DIG2 = 0;
+            DIG1 = 0;
+            DIG0 = 1;
+            break;
+        case 2:
+            DIG2 = 0;
+            DIG1 = 1;
+            DIG0 = 0;
+            break;
+        case 3:
+            DIG2 = 0;
+            DIG1 = 1;
+            DIG0 = 1;
+            break;
+        case 4:
+            DIG2 = 1;
+            DIG1 = 0;
+            DIG0 = 0;
+            break;
+        case 5:
+            DIG2 = 1;
+            DIG1 = 0;
+            DIG0 = 1;
+            break;
+        case 6:
+            DIG2 = 1;
+            DIG1 = 1;
+            DIG0 = 0;
+            break;
+        case 7:
+            DIG2 = 1;
+            DIG1 = 1;
+            DIG0 = 1;
+            break;
+    }
+}
+
 // This method assigns all PPS registers
 void configurePPS(void) 
 {

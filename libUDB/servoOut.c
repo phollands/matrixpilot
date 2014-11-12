@@ -61,16 +61,6 @@
 #error Invalid BOARD_TYPE
 #endif
 
-//#if (MIPS == 64)
-//#define SCALE_FOR_PWM_OUT(x)    (x/2)
-//#elif (MIPS == 32)
-//#define SCALE_FOR_PWM_OUT(x)    (x*2)
-//#elif (MIPS == 16)
-//#define SCALE_FOR_PWM_OUT(x)    (x)
-//#else
-//#error Invalid MIPS Configuration
-//#endif
-
 // make udb_pwOut values independent of clock and timer rates
 // this scaling is relative to the legacy FCY of 16e6 (minimum)
 // Shift decimal point 3 bits to the right to allow max FCY of 127MHz
@@ -85,12 +75,12 @@
 inline uint16_t scale_pwm_out(uint16_t p) {
     union longww pww;
     pww.WW = __builtin_muluu(p, PWMOUTSCALE);
-		pww.WW <<= 3;
+    pww.WW <<= 3;
     return pww._.W1;
 }
 
 int16_t udb_pwOut[NUM_OUTPUTS+1];   // pulse widths for servo outputs
-int16_t outputNum;
+static int16_t outputNum;
 
 
 void udb_init_pwm(void) // initialize the PWM
@@ -149,6 +139,7 @@ void udb_set_action_state(boolean newValue)
 	ACTION_OUT_PIN = newValue;
 }
 
+//extern void DigOutSignal(int);
 
 // Call this to start sending out pulses to all the PWM output channels sequentially
 void start_pwm_outputs(void)
@@ -156,12 +147,12 @@ void start_pwm_outputs(void)
 	if (NUM_OUTPUTS > 0)
 	{
 		outputNum = 0;
-//		PR4 = SCALE_FOR_PWM_OUT(200);   // set timer to delay 0.1ms
 		PR4 = scale_pwm_out(200);   // set timer to delay 0.1ms
 		
 		TMR4 = 0;                       // start timer at 0
 		_T4IF = 0;                      // clear the interrupt
 		_T4IE = 1;                      // enable timer 4 interrupt
+//                DigOutSignal(0);
 	}
 }
 
@@ -195,20 +186,20 @@ extern uint16_t maxstack;
 	}                                                   \
 }
 
-
 void __attribute__((__interrupt__,__no_auto_psv__)) _T4Interrupt(void)
 {
-	indicate_loading_inter;
-	// interrupt_save_set_corcon;
-
+	indicate_entering_isr;
+	interrupt_save_set_corcon;
 	switch (outputNum) {
 		case 0:
+//                        DigOutSignal(1);
 			HANDLE_SERVO_OUT(1, SERVO_OUT_PIN_1);
 			break;
-	case 1:
-		SERVO_OUT_PIN_1 = 0;
+                case 1:
+//                        DigOutSignal(2);
+                        SERVO_OUT_PIN_1 = 0;
 			HANDLE_SERVO_OUT(2, SERVO_OUT_PIN_2);
-		break;
+                        break;
 		case 2:
 			SERVO_OUT_PIN_2 = 0;
 			HANDLE_SERVO_OUT(3, SERVO_OUT_PIN_3);
@@ -267,5 +258,6 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _T4Interrupt(void)
 	}
 #endif
 
-	// interrupt_restore_corcon;
+	interrupt_restore_corcon;
+        indicate_exiting_isr;
 }

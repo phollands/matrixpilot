@@ -1915,7 +1915,7 @@ void mavlink_output(void)
 						magFieldEarth[0], magFieldEarth[1], magFieldEarth[2],
 						svs, hdop);
 #else
-					mavlink_msg_serial_udb_extra_f2_a_send(MAVLINK_COMM_0, tow.WW,
+					mavlink_msg_serial_udb_extra_f2_a_send(MAVLINK_COMM_0, tow.WW, systime_usec,
 						((udb_flags._.radio_on << 2) + (dcm_flags._.nav_capable << 1) + flags._.GPS_steering),
 						lat_gps.WW, long_gps.WW, alt_sl_gps.WW, waypointIndex,
 						rmat[0], rmat[1], rmat[2], rmat[3], rmat[4], rmat[5], rmat[6], rmat[7], rmat[8],

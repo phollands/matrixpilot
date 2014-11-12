@@ -21,6 +21,8 @@
 
 // used for the AUAV3 with dsPIC33EP512MU810
 
+// implemented in mcu.c for AUAV3 only
+extern void setDigOut(int);
 
 #define ACCEL_RANGE         4       // MPU6000 accelerometer g range
 

@@ -34,13 +34,6 @@
 #define OPTIONS_H
 //#pragma message "mw"
 
-// use ring buffer and software flow control for onboard openlog
-// **** not compatible with mavlink binary uplink ****
-// TODO: add option to use separate UART for mavlink uplink
-// TODO: port gimbal parameter setting code for use instead of mavlink uplink
-//       (could use "console" instead)
-#define USE_RING_BUFFER
-
 // define this to add debug text messages to mavlink stream
 #undef USE_MAVLINK_DBGIO
 
@@ -109,8 +102,8 @@
 // experimental: use rudder to ...
 #define ROLL_CONTROL_RUDDER                 0
 #define PITCH_STABILIZATION                 1
-#define YAW_STABILIZATION_RUDDER            0
 #define YAW_STABILIZATION_AILERON           0
+#define YAW_STABILIZATION_RUDDER            0
 
 // Aileron and Rudder Navigation
 // Set either of these to 0 to disable use of that control surface for navigation.
@@ -262,6 +255,7 @@
 //   6 also enables E4 as the 6th output channel
 //   NOTE: If USE_PPM_INPUT is enabled above, up to 9 outputs are available.)
 // For UDB4 boards: Set to 3-8 (or up to 10 using pins RA4 and RA1.)
+// To disable PWM output, set to zero
 #define NUM_OUTPUTS							4
 
 // Channel numbers for each output
@@ -498,7 +492,7 @@
 // Aileron/Roll Control Gains
 // ROLLKP is the proportional gain
 // ROLLKD is the derivative (gyro) gain
-// YAWKP_AILERON is the proportional feedback gain for ailerons in response to yaw error
+// YAWKP_AILERON determines the maximum bank angle setpoint as a fraction of +/- 90 degrees
 // YAWKD_AILERON is the derivative feedback gain for ailerons in response to yaw rotation
 // AILERON_BOOST is the additional gain multiplier for the manually commanded aileron deflection
 #define ROLLKP				0.1 //0.22
@@ -647,7 +641,7 @@
 // when within HEIGHT_MARGIN of the target height.
 // Use ALT_HOLD_THROTTLE_MIN when above HEIGHT_MARGIN of the target height.
 // Throttle values are from 0.0 - 1.0.
-#define ALT_HOLD_THROTTLE_MIN 0.25
+#define ALT_HOLD_THROTTLE_MIN 0.0
 #define ALT_HOLD_THROTTLE_MAX                1.0
 
 // Use ALT_HOLD_PITCH_MAX when below HEIGHT_MARGIN of the target height.

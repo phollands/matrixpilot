@@ -102,7 +102,7 @@ static void serviceI2C1(void) // service the I2C
 
 void __attribute__((__interrupt__,__no_auto_psv__)) _MI2C1Interrupt(void)
 {
-	indicate_loading_inter;
+	indicate_entering_isr;
 	interrupt_save_set_corcon;
 	
 	_MI2C1IF = 0;                       // clear the interrupt

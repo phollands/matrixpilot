@@ -20,6 +20,7 @@
 
 
 #include "libUDB_internal.h"
+#include "libUDB_defines.h"
 #include "oscillator.h"
 #include "interrupt.h"
 #include "events.h"
@@ -185,7 +186,11 @@ void udb_run(void)
 		// and completion of the Idle instruction, but the off time will be little more than
 		// the ISR servicing latency. The Idle timer will still be cycle-accurate.
 //		LED_ORANGE = LED_OFF;
-		Idle();
+#if (SILSIM != 1 && BOARD_TYPE == AUAV3_BOARD && IPL_MONITOR_EN == 0)
+                // indicate IPL0 on digtal outputs
+                DIG0 = 0; DIG1 = 0; DIG2 = 0;
+#endif
+                Idle();
 #else
 		// pause cpu counting timer while not in an ISR
 		indicate_loading_main;
