@@ -50,16 +50,15 @@ if __name__ == '__main__':
     # specific case for IPL analysis
     # in the "new" logic analyzer capture, the first 3 data channels are IPL level [lsb:msb]
     # the 4th channel is PWM output 1
-    # channels 5 and 6 are the IPL stack level, [lsb:msb]
+    # channels [5:7] are the IPL stack level, [lsb:msb]
     iplVals = np.zeros(nRecs, dtype='uint8')
     pwm1 = np.zeros(nRecs, dtype='uint8')
     iplSP = np.zeros(nRecs, dtype='uint8')
     for i in range(0, nRecs):
         iplVals[i] = dvals[0,i] + 2 * dvals[1,i] + 4 * dvals[2,i]
         pwm1[i] = dvals[3,i]
-        iplSP[i] = dvals[4,i] + 2 * dvals[5,i]
+        iplSP[i] = dvals[4,i] + 2 * dvals[5,i] + 4 * dvals[6,i]
         
-    
     ofile.write("time,duration,IPL\n")
         
     iplAccum = np.zeros(8)
@@ -86,15 +85,15 @@ if __name__ == '__main__':
     traceTime = []
     tracedt = []
     traceIPL = []
-
+    
     # calculate time spent at each IPL
     for i in range(1, nRecs):
         dt = tvals[i] - tvals[i-1]
-        lastIPL = iplVals[i-1]
-        
+        lastIPL = iplVals[i]
+              
         # ignore glitches due to non-atomic DIGn assignment
-        if dt < 1e-6: 
-            continue
+        if dt < 1000e-9:
+            continue       
         
         traceTime.append(tvals[i-1])
         tracedt.append(dt)
@@ -121,6 +120,26 @@ if __name__ == '__main__':
             if bin_num >= nbins: bin_num = nbins-1
             interval_histo[lastIPL, bin_num] += 1
         last_start_time[lastIPL] = tvals[i]
+        
+    # deglitch the stack level data
+    traceSP = []
+    for i in range(1, nRecs):
+        dt = tvals[i] - tvals[i-1]
+        lastIPL = iplVals[i]
+              
+        # ignore glitches due to non-atomic DIGn assignment
+        if dt < 300e-9:
+            continue       
+        traceSP.append(iplSP[i-1])
+
+    trace_SP = np.array(traceSP)
+    maxSP = np.max(trace_SP)
+    maxspcnt = 0
+    for i in range(trace_SP.size):
+        if trace_SP[i] == maxspcnt:
+            maxspcnt += 1
+        
+    print("max number of active ISRs: %d, events: %d" % (maxSP, maxspcnt))
         
     avgIntvl = duration / nRecs
     print("avg interrupt interval: %5.3f usec, %d cycles" % (1e6 * avgIntvl, 70e6 * avgIntvl))
