@@ -28,8 +28,9 @@ static int ipl_stack[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 static int ipl_stack_ptr = 0;
 void disp_ipl_stack_level() {
     // assign MSB first
-    _LATG1 = (ipl_stack_ptr>>1) & 0x1;    // servo out 6
-    _LATG14 = ipl_stack_ptr & 0x1;    // servo out 5
+    _LATF13 = (ipl_stack_ptr>>2) & 0x1; // servo out 7
+    _LATG1 = (ipl_stack_ptr>>1) & 0x1;  // servo out 6
+    _LATG14 = ipl_stack_ptr & 0x1;      // servo out 5
 }
 // using pre-increment, the bottom stack entry is always zero
 // and the ptr points at the current IPL
