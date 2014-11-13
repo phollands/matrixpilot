@@ -89,10 +89,10 @@ if __name__ == '__main__':
     # calculate time spent at each IPL
     for i in range(1, nRecs):
         dt = tvals[i] - tvals[i-1]
-        lastIPL = iplVals[i]
+        lastIPL = iplVals[i-1]
               
         # ignore glitches due to non-atomic DIGn assignment
-        if dt < 1000e-9:
+        if dt < 1100e-9:
             continue       
         
         traceTime.append(tvals[i-1])
