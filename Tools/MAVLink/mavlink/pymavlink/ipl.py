@@ -11,8 +11,9 @@ import matplotlib.cm as cmx
 import sys
 
 if __name__ == '__main__':
-    file = open('./ipldata/ipl_new.csv', 'ro')
-    ofile = open('./ipldata/iplvals.csv', 'w')
+    file = open('./ipldata/ipl.csv', 'ro')
+    ipl_ofile = open('./ipldata/iplvals.csv', 'w')
+    sp_ofile = open('./ipldata/spvals.csv', 'w')
     chData = []
     lnumber = 0
     for line in file:
@@ -53,13 +54,14 @@ if __name__ == '__main__':
     # channels [5:7] are the IPL stack level, [lsb:msb]
     iplVals = np.zeros(nRecs, dtype='uint8')
     pwm1 = np.zeros(nRecs, dtype='uint8')
-    iplSP = np.zeros(nRecs, dtype='uint8')
+    spVals = np.zeros(nRecs, dtype='uint8')
     for i in range(0, nRecs):
         iplVals[i] = dvals[0,i] + 2 * dvals[1,i] + 4 * dvals[2,i]
         pwm1[i] = dvals[3,i]
-        iplSP[i] = dvals[4,i] + 2 * dvals[5,i] + 4 * dvals[6,i]
+        spVals[i] = dvals[4,i] + 2 * dvals[5,i] + 4 * dvals[6,i]
         
-    ofile.write("time,duration,IPL\n")
+    ipl_ofile.write("time,duration,IPL\n")
+    sp_ofile.write("time,duration,nestlevel\n")
         
     iplAccum = np.zeros(8)
     iplCount = np.zeros(8)
@@ -67,7 +69,6 @@ if __name__ == '__main__':
     maxdt = np.zeros(8)
     maxdt_time = np.zeros(8)
     last_start_time = np.zeros(8)    
-    cur_ipl = iplVals[0]
 
     duration = tvals[-1] - tvals[0]   
     for i in range(0, 8):
@@ -85,52 +86,73 @@ if __name__ == '__main__':
     traceTime = []
     tracedt = []
     traceIPL = []
-    
-    # calculate time spent at each IPL
-    for i in range(1, nRecs):
-        dt = tvals[i] - tvals[i-1]
-        lastIPL = iplVals[i-1]
-              
-        # ignore glitches due to non-atomic DIGn assignment
-        if dt < 1100e-9:
-            continue       
-        
-        traceTime.append(tvals[i-1])
-        tracedt.append(dt)
-        traceIPL.append(lastIPL)
-        ofile.write("%10.9f,%10.9f,%d\n" % (tvals[i-1], dt, lastIPL))
+    prevIPL = iplVals[0]
+    lastIPLtransition = tvals[0]
 
-        if dt < mindt[lastIPL]: 
-            mindt[lastIPL] = dt
-            
-        if dt > maxdt[lastIPL]: 
-            maxdt[lastIPL] = dt
-            maxdt_time[lastIPL] = tvals[i]
-            
-        iplAccum[lastIPL] += dt
-        iplCount[lastIPL] += 1
+    # i is a counter of discrete events representing each change in the data vector 
+    for i in range(1, nRecs):
+        # if IPLvals has changed, record info on prevIPL
+        if (iplVals[i] != prevIPL):
+            dt = tvals[i] - lastIPLtransition
+            if dt < 100e-9:
+                # prevIPL is a glitch, throw it away
+                prevIPL = iplVals[i]
+            else:
+                # this is a valid transition
+                # generate lists of valid IPL times, values and durations
+                traceTime.append(lastIPLtransition)
+                tracedt.append(dt)
+                traceIPL.append(prevIPL)
+                ipl_ofile.write("%10.9f,%10.9f,%d\n" % (lastIPLtransition, dt, prevIPL))
         
-        bin_num = dt / bin_width
-        if bin_num >= nbins: bin_num = nbins-1
-        duration_histo[lastIPL, bin_num] += 1
-        
-        if last_start_time[lastIPL] != 0:
-            tint = tvals[i] - last_start_time[lastIPL]
-            bin_num = tint / ibin_width
-            if bin_num >= nbins: bin_num = nbins-1
-            interval_histo[lastIPL, bin_num] += 1
-        last_start_time[lastIPL] = tvals[i]
+                # keep track of min/max dt
+                if dt < mindt[prevIPL]: 
+                    mindt[prevIPL] = dt
+                    
+                if dt > maxdt[prevIPL]: 
+                    maxdt[prevIPL] = dt
+                    maxdt_time[prevIPL] = tvals[i]
+                    
+                # track total time at each IPL
+                iplAccum[prevIPL] += dt
+                iplCount[prevIPL] += 1
+                
+                # histogram the durations
+                bin_num = dt / bin_width
+                if bin_num >= nbins: bin_num = nbins-1
+                duration_histo[prevIPL, bin_num] += 1
+                
+                # histogram the intervals
+                if last_start_time[prevIPL] != 0:
+                    tint = tvals[i] - last_start_time[prevIPL]
+                    bin_num = tint / ibin_width
+                    if bin_num >= nbins: bin_num = nbins-1
+                    interval_histo[prevIPL, bin_num] += 1
+                
+                # record last interval start time for each level
+                last_start_time[prevIPL] = lastIPLtransition
+                # update to new IPL level
+                prevIPL = iplVals[i]
+                lastIPLtransition = tvals[i]
+            
         
     # deglitch the stack level data
     traceSP = []
+    prevSP = spVals[0]
+    lastSPtransition = tvals[0]
     for i in range(1, nRecs):
-        dt = tvals[i] - tvals[i-1]
-        lastIPL = iplVals[i]
-              
-        # ignore glitches due to non-atomic DIGn assignment
-        if dt < 300e-9:
-            continue       
-        traceSP.append(iplSP[i-1])
+        # if spVals has changed, record info on prevSP
+        if (spVals[i] != prevSP):
+            dt = tvals[i] - lastSPtransition
+            if dt < 500e-9:
+                # prevSP is a glitch
+                prevSP = spVals[i]
+            else:           
+                traceSP.append(prevSP)
+                sp_ofile.write("%10.9f,%10.9f,%d\n" % (lastSPtransition, dt, prevSP))
+                # update to new SP level
+                prevSP = spVals[i]
+                lastSPtransition = tvals[i]
 
     trace_SP = np.array(traceSP)
     maxSP = np.max(trace_SP)
