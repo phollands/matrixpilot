@@ -32,6 +32,7 @@
         <itemPath>../../libUDB/uart.h</itemPath>
         <itemPath>../../libUDB/oscillator.h</itemPath>
         <itemPath>../../libUDB/filters.h</itemPath>
+        <itemPath>../../libUDB/ipl_trace.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="libVectorMatrix" projectFiles="true">
         <itemPath>../../libVectorMatrix/dspcommon.inc</itemPath>
@@ -235,6 +236,7 @@
         <itemPath>../../libUDB/read.c</itemPath>
         <itemPath>../../libUDB/uart.c</itemPath>
         <itemPath>../../libUDB/write.c</itemPath>
+        <itemPath>../../libUDB/ipl_trace.c</itemPath>
       </logicalFolder>
       <logicalFolder name="MatrixPilot" displayName="MatrixPilot" projectFiles="true">
         <itemPath>../config_tests.c</itemPath>

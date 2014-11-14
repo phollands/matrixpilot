@@ -69,11 +69,6 @@ uint16_t SP_start(void);
 uint16_t SP_limit(void);
 uint16_t SP_current(void);
 
-void push_ipl(void);
-int pop_ipl(void);
-void indicate_entering_isr(void);
-void indicate_exiting_isr(void);
-
 #if (USE_MCU_IDLE == 1)
 #define indicate_loading_main  {}
 #else
