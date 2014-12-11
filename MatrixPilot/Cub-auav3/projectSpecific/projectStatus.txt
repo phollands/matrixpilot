@@ -257,3 +257,9 @@
 	in 8.75 meters, which agrees well. This is still with the 0.25 second forward
 	extrapolation in gpsParseCommon.c. Will assume this is within the specified
 	2 meter (CEP 50%) horizontal accuracy with WAAS.
+
+7 November 2014:
+	modify dead_reckon() to use 32 bit precision GPSlocation (16 bits below decimal point)
+	Cub-auav3 flight log 2602 shows good agreement between GPS and IMU paths in
+	Google Earth, and bomb drop accuracy/repeatability was 2x3 meters (short dimension
+	was cross-track) for 5 successive drops.

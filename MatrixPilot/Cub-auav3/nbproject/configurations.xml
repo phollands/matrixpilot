@@ -66,11 +66,7 @@
           <itemPath>../../MAVLink/include/common/mavlink_msg_data_stream.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_debug.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_debug_vect.h</itemPath>
-          <itemPath>../../MAVLink/include/common/mavlink_msg_file_transfer_dir_list.h</itemPath>
-          <itemPath>../../MAVLink/include/common/mavlink_msg_file_transfer_res.h</itemPath>
-          <itemPath>../../MAVLink/include/common/mavlink_msg_file_transfer_start.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_global_position_int.h</itemPath>
-          <itemPath>../../MAVLink/include/common/mavlink_msg_global_position_setpoint_int.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_global_vision_position_estimate.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_gps_global_origin.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_gps_raw_int.h</itemPath>
@@ -82,7 +78,6 @@
           <itemPath>../../MAVLink/include/common/mavlink_msg_hil_state.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_local_position_ned.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_local_position_ned_system_global_offset.h</itemPath>
-          <itemPath>../../MAVLink/include/common/mavlink_msg_local_position_setpoint.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_manual_control.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_manual_setpoint.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_memory_vect.h</itemPath>
@@ -112,26 +107,13 @@
           <itemPath>../../MAVLink/include/common/mavlink_msg_rc_channels_raw.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_rc_channels_scaled.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_request_data_stream.h</itemPath>
-          <itemPath>../../MAVLink/include/common/mavlink_msg_roll_pitch_yaw_rates_thrust_setpoint.h</itemPath>
-          <itemPath>../../MAVLink/include/common/mavlink_msg_roll_pitch_yaw_speed_thrust_setpoint.h</itemPath>
-          <itemPath>../../MAVLink/include/common/mavlink_msg_roll_pitch_yaw_thrust_setpoint.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_safety_allowed_area.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_safety_set_allowed_area.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_scaled_imu.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_scaled_pressure.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_servo_output_raw.h</itemPath>
-          <itemPath>../../MAVLink/include/common/mavlink_msg_set_global_position_setpoint_int.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_set_gps_global_origin.h</itemPath>
-          <itemPath>../../MAVLink/include/common/mavlink_msg_set_local_position_setpoint.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_set_mode.h</itemPath>
-          <itemPath>../../MAVLink/include/common/mavlink_msg_set_quad_motors_setpoint.h</itemPath>
-          <itemPath>../../MAVLink/include/common/mavlink_msg_set_quad_swarm_led_roll_pitch_yaw_thrust.h</itemPath>
-          <itemPath>../../MAVLink/include/common/mavlink_msg_set_quad_swarm_roll_pitch_yaw_thrust.h</itemPath>
-          <itemPath>../../MAVLink/include/common/mavlink_msg_set_roll_pitch_yaw_speed_thrust.h</itemPath>
-          <itemPath>../../MAVLink/include/common/mavlink_msg_set_roll_pitch_yaw_thrust.h</itemPath>
-          <itemPath>../../MAVLink/include/common/mavlink_msg_setpoint_6dof.h</itemPath>
-          <itemPath>../../MAVLink/include/common/mavlink_msg_setpoint_8dof.h</itemPath>
-          <itemPath>../../MAVLink/include/common/mavlink_msg_state_correction.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_statustext.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_sys_status.h</itemPath>
           <itemPath>../../MAVLink/include/common/mavlink_msg_system_time.h</itemPath>
