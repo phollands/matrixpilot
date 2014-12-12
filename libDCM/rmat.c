@@ -820,7 +820,6 @@ void dcm_run_imu_step(void) {
     // assert digital out 0
     DIG0 = 1;
 #endif
-    // TODO: dead reckoning is currently disabled to test GPS-only accuracy
     dead_reckon(); // in libDCM:deadReconing.c
 
 #ifndef DISABLE_CENTRIPETAL_COMP
@@ -830,18 +829,20 @@ void dcm_run_imu_step(void) {
     normalize(); // local
     roll_pitch_drift(); // local
 #if (MAG_YAW_DRIFT == 1)
-    // mag yaw drift correction is not applied if MAG_YAW_ENABLE == 0
-    if (magMessage == 7) {
-        // sets errorYawplane for drift correction (only if mag_drift_req is set
-        // which means a reading has just been taken) 4Hz
-        mag_drift(); // local
+    if (ground_velocity_magnitudeXY < GPS_SPEED_MIN) {
+        // mag yaw drift correction is computed but not applied if MAG_YAW_ENABLE == 0
+        if (magMessage == 7) {
+            // sets errorYawplane for drift correction (only if mag_drift_req is set
+            // which means a reading has just been taken) 4Hz
+            mag_drift(); // local
+        }
     }
 #endif
-#if (MAG_YAW_DRIFT == 0 || MAG_YAW_ENABLE == 0)
-    // use GPS for yaw drift correction
-    // runs at GPS_RATE (1 to 4 Hz)
-    yaw_drift(); // local
-#endif
+    if (ground_velocity_magnitudeXY > GPS_SPEED_MIN) {
+        // use GPS for yaw drift correction
+        // runs at GPS_RATE (1 to 4 Hz)
+        yaw_drift(); // local
+    }
 #if (0 && SILSIM == 1)
     // print omegacorrP and omegacorrI
     if ((udb_heartbeat_counter % HEARTBEAT_HZ) == 0) {

@@ -175,7 +175,6 @@ void rotate(struct relative2D *xy, int8_t angle)
 void rotate_f(struct relative2D_f *xy, float angle)
 {       // total 5487 + 680 = 6167 cycles
 	//  rotates xy by angle in degrees, measured in a counter clockwise sense.
-	//  A mathematical angle of plus or minus pi is represented digitally as plus or minus 180.
 	float cosang, sinang;
         // convert from degress to radians
         angle *= DEG_TO_RADIANS;

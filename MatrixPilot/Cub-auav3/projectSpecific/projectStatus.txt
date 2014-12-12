@@ -261,5 +261,10 @@
 7 November 2014:
 	modify dead_reckon() to use 32 bit precision GPSlocation (16 bits below decimal point)
 	Cub-auav3 flight log 2602 shows good agreement between GPS and IMU paths in
-	Google Earth, and bomb drop accuracy/repeatability was 2x3 meters (short dimension
-	was cross-track) for 5 successive drops.
+	Google Earth (for 1m precision), and bomb drop accuracy/repeatability was 2x3 meters (short dimension
+	was cross-track) for 5 successive drops. Drive tests on 6 Nov and 11 Dec 2014 indicate
+	problems:
+		1) turns show the IMU path deviating about 10 meters to the outside
+		2) stops show the IMU path deviating laterally also
+	Log 2615 shows problems on drive test. Log 2617 shows same problems with
+	reporting latency compensation disabled.

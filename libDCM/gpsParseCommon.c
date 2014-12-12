@@ -231,6 +231,9 @@ void udb_background_callback_triggered(void) {
         loc_f[0] = ((float) (long_gps.WW - long_origin.WW) / 89.983f) * cos_lat_f; // 122 + 109
         loc_f[2] = (float) (alt_sl_gps.WW - alt_origin.WW) / 100.0f; // 122 + 361
 
+#if 1
+        // apply reporting latency compensation
+
         // convert from unit16_t deg*100 to FP degrees and Cartesian angle [-180, 180) degrees
         cog_circ_f = circ360_f(90.0f - (cog_gps.BB / 100.0f)); // 2*122 + 361
 
@@ -255,17 +258,47 @@ void udb_background_callback_triggered(void) {
         GPSloc_f.x = loc_f[0] + location_deltaXY_f.x; // 3 * 122
         GPSloc_f.y = loc_f[1] + location_deltaXY_f.y;
         GPSloc_f.z = loc_f[2] + location_deltaZ_f;
-
         location_prev_f[0] = loc_f[0];
         location_prev_f[1] = loc_f[1];
         location_prev_f[2] = loc_f[2];
-
         //________________________________________________________________________
 
         // assign 32 bit GPSlocation from GPSloc_f
         GPSlocation_32.x = (int32_t) (65536 * GPSloc_f.x);
         GPSlocation_32.y = (int32_t) (65536 * GPSloc_f.y);
         GPSlocation_32.z = (int32_t) (65536 * GPSloc_f.z);
+#else
+        // do NOT apply reporting latency compensation
+        //________________________________________________________________________
+
+        // assign 32 bit GPSlocation from loc_f
+        GPSlocation_32.x = (int32_t) (65536 * loc_f[0]);
+        GPSlocation_32.y = (int32_t) (65536 * loc_f[1]);
+        GPSlocation_32.z = (int32_t) (65536 * loc_f[2]);
+
+#endif
+#if 0
+        // call to dead_reckon() is commented out in rmat.c
+        // make IMUlocation and IMUvelocity identical to GPSlocation
+
+        // assign 32 bit IMUlocation from GPSloc_f (instead of using dead_reckon())
+        IMUlocationx.WW = GPSlocation_32.x;
+        IMUlocationy.WW = GPSlocation_32.y;
+        IMUlocationz.WW = GPSlocation_32.z;
+
+        // used in navigate.c
+        IMUintegralAccelerationx._.W0 = 0;
+        IMUintegralAccelerationy._.W0 = 0;
+        IMUintegralAccelerationz._.W0 = 0;
+
+        IMUintegralAccelerationx._.W1 = GPSvelocity.x;
+        IMUintegralAccelerationy._.W1 = GPSvelocity.y;
+        IMUintegralAccelerationz._.W1 = GPSvelocity.z;
+
+        IMUvelocityx._.W1 = GPSvelocity.x;
+        IMUvelocityy._.W1 = GPSvelocity.y;
+        IMUvelocityz._.W1 = GPSvelocity.z;
+#endif
 
 #if (HILSIM == 1)
         air_speed_3DGPS = as_sim.BB; // use Xplane as a pitot
