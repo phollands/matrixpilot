@@ -26,7 +26,7 @@
 #include "rmat.h"
 #include <stdio.h>
 
-    // magnetic field in the body frame of reference
+// magnetic field in the body frame of reference
 int16_t udb_magFieldBody[3];
 // magnetic offset in the sensor frame of reference
 int16_t udb_magOffset[3] = { 2 * MAG_XOFFSET, 2 * MAG_YOFFSET, 2 * MAG_ZOFFSET};
