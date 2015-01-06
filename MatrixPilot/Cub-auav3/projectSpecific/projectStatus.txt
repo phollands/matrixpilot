@@ -268,3 +268,11 @@
 		2) stops show the IMU path deviating laterally also
 	Log 2615 shows problems on drive test. Log 2617 shows same problems with
 	reporting latency compensation disabled.
+
+12 December 2014:
+	32 bit dead reckoning is looking good on a drive test (LOG 2623) with mag drift correction
+	used below GPS_SPEED_MIN, and GPS COG used above that.
+
+14 December 2014:
+	Log 2624: flight test Cub-auav3: dead reckoning is reducing horizontal accuracy of IMU path.
+	Also, IMU altitude seems to now be divided by 100 relative to Log 2623.

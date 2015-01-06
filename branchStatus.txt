@@ -203,7 +203,3 @@ Bug??? using COF linker output format, linking with static lib VectorMatrix.a do
 	115.2K baud telemetry is supporting 50Hz RC, servo, raw_imu data in addition
 	to the standard SUE rate of 8Hz. Python program logPlotter.py in pymavlink/examples
 	is set up to read the logfiles with SUE data and generate pyplot plots.
-
-12 December 2014:
-	32 bit dead reckoning is looking good on a drive test with mag drift correction
-	used below GPS_SPEED_MIN, and GPS COG used above that.
