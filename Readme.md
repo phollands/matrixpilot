@@ -1,11 +1,7 @@
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/kd0aij/MatrixPilot?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-////////////////////////////////////////////////////////////////////////////////
-//
-// MatrixPilot
-//
-// Firmware for Bill Premerlani's IMU based UAV Dev Board
-//
+MatrixPilot
+Firmware for Bill Premerlani's IMU based UAV Dev Board
 
 Welcome to the MatrixPilot codebase. This code currently supports three board types, the UDB4 and UDB5 from SparkFun, and the AUAV3 from Arsov RC Technology.
 
