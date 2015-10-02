@@ -1,7 +1,6 @@
 /**
   ******************************************************************************
   * File Name          : freertos.c
-  * Date               : 24/03/2015 16:08:50
   * Description        : Code for freertos applications
   ******************************************************************************
   *
@@ -38,6 +37,7 @@
 #include "cmsis_os.h"
 
 /* USER CODE BEGIN Includes */     
+#include "libUDB.h"
 #include <stdio.h>
 /* USER CODE END Includes */
 
@@ -92,7 +92,7 @@ void vApplicationMallocFailedHook(void)
 
 /* Init FreeRTOS */
 
-void MX_FREERTOS_Init() {
+void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
