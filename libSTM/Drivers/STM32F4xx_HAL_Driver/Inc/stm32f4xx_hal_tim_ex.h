@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    stm32f4xx_hal_tim_ex.h
   * @author  MCD Application Team
-  * @version V1.2.0
-  * @date    26-December-2014
+  * @version V1.4.0
+  * @date    14-August-2015
   * @brief   Header file of TIM HAL Extension module.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2014 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2015 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -93,19 +93,19 @@ typedef struct {
   */ 
 typedef struct
 {
-  uint32_t OffStateRunMode;	        /*!< TIM off state in run mode.
+  uint32_t OffStateRunMode;            /*!< TIM off state in run mode.
                                          This parameter can be a value of @ref TIM_OSSR_Off_State_Selection_for_Run_mode_state */
-  uint32_t OffStateIDLEMode;	      /*!< TIM off state in IDLE mode.
+  uint32_t OffStateIDLEMode;          /*!< TIM off state in IDLE mode.
                                          This parameter can be a value of @ref TIM_OSSI_Off_State_Selection_for_Idle_mode_state */
-  uint32_t LockLevel;	 	            /*!< TIM Lock level.
+  uint32_t LockLevel;                     /*!< TIM Lock level.
                                          This parameter can be a value of @ref TIM_Lock_level */                             
-  uint32_t DeadTime;	 	            /*!< TIM dead Time. 
+  uint32_t DeadTime;                     /*!< TIM dead Time. 
                                          This parameter can be a number between Min_Data = 0x00 and Max_Data = 0xFF */
-  uint32_t BreakState;	 	          /*!< TIM Break State. 
+  uint32_t BreakState;                   /*!< TIM Break State. 
                                          This parameter can be a value of @ref TIM_Break_Input_enable_disable */
-  uint32_t BreakPolarity;	 	        /*!< TIM Break input polarity. 
+  uint32_t BreakPolarity;                 /*!< TIM Break input polarity. 
                                          This parameter can be a value of @ref TIM_Break_Polarity */
-  uint32_t AutomaticOutput;	 	      /*!< TIM Automatic Output Enable state. 
+  uint32_t AutomaticOutput;               /*!< TIM Automatic Output Enable state. 
                                          This parameter can be a value of @ref TIM_AOE_Bit_Set_Reset */           
 }TIM_BreakDeadTimeConfigTypeDef;
 /**
@@ -130,14 +130,29 @@ typedef struct
 #define TIM_TIM5_RTC                           (0x000000C0)
 #define TIM_TIM11_GPIO                         (0x00000000)
 #define TIM_TIM11_HSE                          (0x00000002)
+
+#if defined (STM32F446xx) 
+#define TIM_TIM11_SPDIFRX                        (0x00000001)
+#endif /* STM32F446xx */
 /**
   * @}
-  */   
- 
+  */
+
+#if defined(STM32F410Tx) || defined(STM32F410Cx) || defined(STM32F410Rx) 
+/** @defgroup TIMEx_SystemBreakInput  TIM System Break Input
+  * @{
+  */
+#define TIM_SYSTEMBREAKINPUT_HARDFAULT     ((uint32_t)0x00000001) /* Core Lockup lock output(Hardfault) is connected to Break Input of TIM1 and TIM8 */
+#define TIM_SYSTEMBREAKINPUT_PVD           ((uint32_t)0x00000004) /* PVD Interrupt is connected to Break Input of TIM1 and TIM8 */
+#define TIM_SYSTEMBREAKINPUT_HARDFAULT_PVD ((uint32_t)0x00000005) /* Core Lockup lock output(Hardfault) and PVD Interrupt are connected to Break Input of TIM1 and TIM8 */   
+/**
+  * @}
+  */
+#endif /* STM32F410Tx || STM32F410Cx || STM32F410Rx */
+
 /**
   * @}
   */ 
-    
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 /** @addtogroup TIMEx_Exported_Functions
@@ -264,7 +279,20 @@ HAL_TIM_StateTypeDef HAL_TIMEx_HallSensor_GetState(TIM_HandleTypeDef* htim);
 /** @defgroup TIMEx_Private_Macros TIM Private Macros
   * @{
   */
-#define IS_TIM_REMAP(TIM_REMAP)	 (((TIM_REMAP) == TIM_TIM2_TIM8_TRGO)||\
+#if defined (STM32F446xx) 
+#define IS_TIM_REMAP(TIM_REMAP)   (((TIM_REMAP) == TIM_TIM2_TIM8_TRGO)||\
+                                  ((TIM_REMAP) == TIM_TIM2_ETH_PTP)||\
+                                  ((TIM_REMAP) == TIM_TIM2_USBFS_SOF)||\
+                                  ((TIM_REMAP) == TIM_TIM2_USBHS_SOF)||\
+                                  ((TIM_REMAP) == TIM_TIM5_GPIO)||\
+                                  ((TIM_REMAP) == TIM_TIM5_LSI)||\
+                                  ((TIM_REMAP) == TIM_TIM5_LSE)||\
+                                  ((TIM_REMAP) == TIM_TIM5_RTC)||\
+                                  ((TIM_REMAP) == TIM_TIM11_GPIO)||\
+                                  ((TIM_REMAP) == TIM_TIM11_SPDIFRX)||\
+                                  ((TIM_REMAP) == TIM_TIM11_HSE))
+#else
+#define IS_TIM_REMAP(TIM_REMAP)   (((TIM_REMAP) == TIM_TIM2_TIM8_TRGO)||\
                                   ((TIM_REMAP) == TIM_TIM2_ETH_PTP)||\
                                   ((TIM_REMAP) == TIM_TIM2_USBFS_SOF)||\
                                   ((TIM_REMAP) == TIM_TIM2_USBHS_SOF)||\
@@ -274,6 +302,14 @@ HAL_TIM_StateTypeDef HAL_TIMEx_HallSensor_GetState(TIM_HandleTypeDef* htim);
                                   ((TIM_REMAP) == TIM_TIM5_RTC)||\
                                   ((TIM_REMAP) == TIM_TIM11_GPIO)||\
                                   ((TIM_REMAP) == TIM_TIM11_HSE))
+#endif /* STM32F446xx */                                  
+
+#if defined(STM32F410Tx) || defined(STM32F410Cx) || defined(STM32F410Rx)
+#define IS_TIM_SYSTEMBREAKINPUT(BREAKINPUT)   (((BREAKINPUT) == TIM_SYSTEMBREAKINPUT_HARDFAULT)||\
+                                               ((BREAKINPUT) == TIM_SYSTEMBREAKINPUT_PVD)||\
+                                               ((BREAKINPUT) == TIM_SYSTEMBREAKINPUT_HARDFAULT_PVD))
+
+#endif /* STM32F410Tx || STM32F410Cx || STM32F410Rx */ 
 
 #define IS_TIM_DEADTIME(DEADTIME)      ((DEADTIME) <= 0xFF) 
 /**
