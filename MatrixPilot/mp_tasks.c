@@ -25,7 +25,6 @@
 #include "config.h"
 
 #ifdef USE_FREERTOS
-
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
@@ -62,25 +61,11 @@ void init_tasks(void)
 
 void vApplicationIdleHook(void)
 {
-//	DPRINT(".");
-//	while (1)
-	{
-#if (USE_TELELOG == 1)
-		telemetry_log_service();
-#endif
-#if (USE_USB == 1)
-		USBPollingService();
-#endif
-#if (CONSOLE_UART != 0 && SILSIM == 0)
-		console();
-#endif
-		udb_run();
-	}
-//	return 0;
+	matrixpilot_loop();
 }
 
 #else
-void vApplicationIdleHook(void)
-{
-}
+//void vApplicationIdleHook(void)
+//{
+//}
 #endif // USE_FREERTOS

@@ -138,6 +138,10 @@ void set_pwm_outputs(uint16_t* pw)
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_LOW;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+
     //TODO: I need to check pw measurement because I need to divide by 2 again here
     //NOTE: I don't be sure that this is the correct way to update duty cycle.
     sConfigOC.Pulse = pw[0]/2;

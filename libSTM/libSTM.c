@@ -503,13 +503,18 @@ void PutChar(char ch)
 //	{
 //	}
 
-
+#if 0
 	while(__HAL_UART_GET_FLAG(&huart2, UART_FLAG_TXE) == RESET)
 	{
 	}
 	huart2.Instance->DR = ch;
-
 //	UART_PutChar(&huart2, ch);
+#else
+	while(__HAL_UART_GET_FLAG(&huart6, UART_FLAG_TXE) == RESET)
+	{
+	}
+	huart6.Instance->DR = ch;
+#endif
 }
 
 void FSInit(void) {}
@@ -523,8 +528,5 @@ void TAMP_STAMP_IRQHandler(void)
 {
 	tsirq = 1;
 }
-
-
-
 
 #endif // (BOARD_TYPE == PX4_BOARD)

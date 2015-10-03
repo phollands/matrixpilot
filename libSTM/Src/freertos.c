@@ -36,7 +36,7 @@
 #include "task.h"
 #include "cmsis_os.h"
 
-/* USER CODE BEGIN Includes */     
+/* USER CODE BEGIN Includes */
 #include "libUDB.h"
 #include <stdio.h>
 /* USER CODE END Includes */
@@ -168,6 +168,7 @@ void MX_FREERTOS_Init(void) {
 }
 
 /* StartDefaultTask function */
+#if 0
 void StartDefaultTask(void const * argument)
 {
   /* init code for FATFS */
@@ -182,6 +183,7 @@ void StartDefaultTask(void const * argument)
   }
   /* USER CODE END StartDefaultTask */
 }
+#endif
 
 /* StartTaskGPS function */
 void StartTaskGPS(void const * argument)

@@ -1,14 +1,12 @@
 /**
  ******************************************************************************
-  * @file    bsp_driver_sd.h (based on stm324x9i_eval_sd.h)
-  * @author  MCD Teams
-  * @version V1.0.0
-  * @date    24/03/2015 16:08:48
+  * @file    bsp_driver_sd.h (based on stm32469i_eval_sd.h)
   * @brief   This file contains the common defines and functions prototypes for 
   *          the bsp_driver_sd.c driver.
   ******************************************************************************
+  * @attention
   *
-  * COPYRIGHT(c) 2015 STMicroelectronics
+  * <h2><center>&copy; COPYRIGHT(c) 2015 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -42,6 +40,34 @@
 #ifdef __cplusplus
  extern "C" {
 #endif 
+
+/* Includes ------------------------------------------------------------------*/
+#include "stm32f4xx_hal.h"
+
+/* Exported constants --------------------------------------------------------*/ 
+
+/** 
+  * @brief SD Card information structure 
+  */
+#ifndef SD_CardInfo
+  #define SD_CardInfo HAL_SD_CardInfoTypedef
+#endif  
+
+/**  
+  * @brief  SD status structure definition  
+  */     
+#define   MSD_OK                        ((uint8_t)0x00)
+#define   MSD_ERROR                     ((uint8_t)0x01)
+#define   MSD_ERROR_SD_NOT_PRESENT      ((uint8_t)0x02)
+  
+/** @defgroup STM324x9I_EVAL_SD_Exported_Constants
+  * @{
+  */ 
+#define SD_PRESENT               ((uint8_t)0x01)
+#define SD_NOT_PRESENT           ((uint8_t)0x00) 
+#define SD_DATATIMEOUT           ((uint32_t)100000000)
+#define SD_PIN                   GPIO_PIN_15
+#define SD_PORT                  GPIOB
 
 /* USER CODE BEGIN 0 */
 /* Includes ------------------------------------------------------------------*/
@@ -97,7 +123,7 @@ HAL_SD_TransferStateTypedef BSP_SD_GetStatus(void);
 void BSP_SD_GetCardInfo(HAL_SD_CardInfoTypedef *CardInfo);
 uint8_t BSP_SD_IsDetected(void);
 /* USER CODE END 0 */ 
-   
+
 #ifdef __cplusplus
 }
 #endif
