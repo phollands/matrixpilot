@@ -1,7 +1,6 @@
 /**
   ******************************************************************************
   * @file    stm32f4xx_it.c
-  * @date    24/03/2015 16:08:53
   * @brief   Interrupt Service Routines.
   ******************************************************************************
   *
@@ -65,10 +64,8 @@ void SysTick_Handler(void)
   /* USER CODE BEGIN SysTick_IRQn 0 */
 
   /* USER CODE END SysTick_IRQn 0 */
-  if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
-    xPortSysTickHandler();
-  }
   HAL_IncTick();
+  osSystickHandler();
   /* USER CODE BEGIN SysTick_IRQn 1 */
     heartbeat();
   /* USER CODE END SysTick_IRQn 1 */

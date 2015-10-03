@@ -1,7 +1,6 @@
 /**
   ******************************************************************************
   * File Name          : USART.h
-  * Date               : 24/03/2015 16:08:53
   * Description        : This file provides code for the configuration
   *                      of the USART instances.
   ******************************************************************************
@@ -42,13 +41,25 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
+/* USER CODE BEGIN Includes */
+
+/* USER CODE END Includes */
+
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart6;
 
+/* USER CODE BEGIN Private defines */
+
+/* USER CODE END Private defines */
+
 void MX_USART1_UART_Init(void);
 void MX_USART2_UART_Init(void);
 void MX_USART6_UART_Init(void);
+
+/* USER CODE BEGIN Prototypes */
+
+/* USER CODE END Prototypes */
 
 #ifdef __cplusplus
 }

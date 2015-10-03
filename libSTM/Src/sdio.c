@@ -1,7 +1,6 @@
 /**
   ******************************************************************************
   * File Name          : SDIO.c
-  * Date               : 24/03/2015 16:08:51
   * Description        : This file provides code for the configuration
   *                      of the SDIO instances.
   ******************************************************************************
@@ -117,10 +116,10 @@ void HAL_SD_MspDeInit(SD_HandleTypeDef* hsd)
 
     HAL_GPIO_DeInit(GPIOD, GPIO_PIN_2);
 
+  }
   /* USER CODE BEGIN SDIO_MspDeInit 1 */
 
   /* USER CODE END SDIO_MspDeInit 1 */
-  }
 } 
 
 /* USER CODE BEGIN 1 */

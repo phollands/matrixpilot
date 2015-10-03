@@ -45,6 +45,8 @@
 osThreadId defaultTaskHandle;
 osThreadId TaskGPSHandle;
 osThreadId TaskIMUHandle;
+osSemaphoreId osSemaphoreIMUHandle;
+osSemaphoreId osSemaphoreGPSHandle;
 
 /* USER CODE BEGIN Variables */
 
@@ -55,12 +57,37 @@ void StartDefaultTask(void const * argument);
 void StartTaskGPS(void const * argument);
 void StartTaskIMU(void const * argument);
 
+extern void MX_FATFS_Init(void);
+void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
+
 /* USER CODE BEGIN FunctionPrototypes */
+int matrixpilot_loop(void);
 
 /* USER CODE END FunctionPrototypes */
+
 /* Hook prototypes */
+void vApplicationIdleHook(void);
 void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName);
 void vApplicationMallocFailedHook(void);
+
+/* USER CODE BEGIN 2 */
+
+void vApplicationIdleHook( void )
+{
+   /* vApplicationIdleHook() will only be called if configUSE_IDLE_HOOK is set
+   to 1 in FreeRTOSConfig.h. It will be called on each iteration of the idle
+   task. It is essential that code added to this hook function never attempts
+   to block in any way (for example, call xQueueReceive() with a block time
+   specified, or call vTaskDelay()). If the application makes use of the
+   vTaskDelete() API function (as this demo application does) then it is also
+   important that vApplicationIdleHook() is permitted to return to its calling
+   function, because it is the responsibility of the idle task to clean up
+   memory allocated by the kernel to any task that has since been deleted. */
+
+//	matrixpilot_loop();
+}
+
+/* USER CODE END 2 */
 
 /* USER CODE BEGIN 4 */
 void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName)
@@ -101,6 +128,15 @@ void MX_FREERTOS_Init(void) {
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
 
+  /* Create the semaphores(s) */
+  /* definition and creation of osSemaphoreIMU */
+  osSemaphoreDef(osSemaphoreIMU);
+  osSemaphoreIMUHandle = osSemaphoreCreate(osSemaphore(osSemaphoreIMU), 1);
+
+  /* definition and creation of osSemaphoreGPS */
+  osSemaphoreDef(osSemaphoreGPS);
+  osSemaphoreGPSHandle = osSemaphoreCreate(osSemaphore(osSemaphoreGPS), 1);
+
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
@@ -123,7 +159,6 @@ void MX_FREERTOS_Init(void) {
   TaskIMUHandle = osThreadCreate(osThread(TaskIMU), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
-// #define osThreadDef(name, thread, priority, instances, stacksz)
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
@@ -132,14 +167,34 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_QUEUES */
 }
 
+/* StartDefaultTask function */
+void StartDefaultTask(void const * argument)
+{
+  /* init code for FATFS */
+  MX_FATFS_Init();
+
+  /* USER CODE BEGIN StartDefaultTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(40);
+	matrixpilot_loop();
+  }
+  /* USER CODE END StartDefaultTask */
+}
+
 /* StartTaskGPS function */
 void StartTaskGPS(void const * argument)
 {
   /* USER CODE BEGIN StartTaskGPS */
-  /* Infinite loop */
+	(void)argument;
+	DPRINT("StartTaskGPS\r\n");
   for(;;)
   {
-    osDelay(1);
+		osSemaphoreWait(osSemaphoreGPSHandle, osWaitForever);
+//		udb_led_toggle(LED_RED);
+void udb_background_callback_triggered(void);
+//		udb_background_callback_triggered();
   }
   /* USER CODE END StartTaskGPS */
 }
@@ -148,15 +203,36 @@ void StartTaskGPS(void const * argument)
 void StartTaskIMU(void const * argument)
 {
   /* USER CODE BEGIN StartTaskIMU */
-  /* Infinite loop */
+	led_on(LED_ORANGE);
+	DPRINT("StartTaskIMU\r\n");
   for(;;)
   {
-    osDelay(1);
+		static int i = 0;
+
+//		osSemaphoreWait(osSemaphoreIMUHandle, osWaitForever);
+		osSemaphoreWait(osSemaphoreIMUHandle, 50);
+//		pulse();
+//		if (i++ > 200)
+		{
+			i = 0;
+			udb_led_toggle(LED_ORANGE);
+			DPRINT("#");
+		}
   }
   /* USER CODE END StartTaskIMU */
 }
 
 /* USER CODE BEGIN Application */
+
+void TriggerGPS(void)
+{
+	osSemaphoreRelease(osSemaphoreGPSHandle);
+}
+
+void TriggerIMU(void)
+{
+	osSemaphoreRelease(osSemaphoreIMUHandle);
+}
 
 /* USER CODE END Application */
 

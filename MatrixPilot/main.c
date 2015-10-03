@@ -118,6 +118,7 @@ int main(int argc, char** argv)
 int main(void)
 {
 	mcu_init();     // initialise the processor specific registers
+	// NOTE: STM32 port, mcu_init starts RTOS & never returns
 #endif
 	matrixpilot_init();
 
@@ -130,10 +131,9 @@ int main(void)
 //	MatrixPilot();
 //	dcm_fract_test(472580108);
 
-//#undef USE_FREERTOS
 #ifdef USE_FREERTOS
 	DPRINT("Initialising RTOS\r\n");
-	init_tasks();   // initialise the RTOS
+	init_tasks();   // initialise the RTOS Tasks (not used for STM32 port)
 	DPRINT("Starting Scheduler\r\n");
 	vTaskStartScheduler();  // start the RTOS running, this function should never return
 	return 0;

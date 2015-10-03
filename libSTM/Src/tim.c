@@ -1,7 +1,6 @@
 /**
   ******************************************************************************
   * File Name          : TIM.c
-  * Date               : 24/03/2015 16:08:52
   * Description        : This file provides code for the configuration
   *                      of the TIM instances.
   ******************************************************************************
@@ -86,25 +85,22 @@ void MX_TIM3_Init(void)
   HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig);
 
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 1500;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 
-  sConfigOC.Pulse = 1500;
   HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1);
 
-  sConfigOC.Pulse = 1500;
   HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2);
 
-  sConfigOC.Pulse = 1500;
   HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3);
 
-  sConfigOC.Pulse = 1500;
   HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4);
 
 }
 
 /* TIM5 init function */
-// It is used as free runing timer for IC
+// It is used as free running timer for IC
 void MX_TIM5_Init(void)
 {
     TIM_ClockConfigTypeDef sClockSourceConfig;

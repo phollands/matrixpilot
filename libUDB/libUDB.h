@@ -142,7 +142,7 @@ void mav_printf(const char * format, ...);
 // #define SERVOSAT
 
 
-void mcu_init(void);
+int mcu_init(void);
 void udb_init(void);
 void udb_run(void);
 

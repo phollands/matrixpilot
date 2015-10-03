@@ -24,8 +24,8 @@
 #include "../libUDB/heartbeat.h"
 #include "config.h"
 
-//#ifdef USE_FREERTOS
-#if defined USE_FREERTOS || defined PX4
+#ifdef USE_FREERTOS
+//#if defined USE_FREERTOS || defined PX4
 
 #include "FreeRTOS.h"
 #include "task.h"

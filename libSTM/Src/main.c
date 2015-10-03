@@ -1,7 +1,6 @@
 /**
   ******************************************************************************
   * File Name          : main.c
-  * Date               : 24/03/2015 16:08:54
   * Description        : Main program body
   ******************************************************************************
   *
@@ -111,18 +110,6 @@ int main(void)
   MX_TIM5_Init();     //Input Capture CH1 and CH2 timer base
   MX_TIM3_Init();       //PWM Output CH1 to CH4
 
-// Led Test. Turn On
-  HAL_GPIO_WritePin(LED1_Port, LED1, RESET);
-  HAL_GPIO_WritePin(LED2_Port, LED2, RESET);
-  HAL_GPIO_WritePin(LED3_Port, LED3, RESET);
-  HAL_GPIO_WritePin(LED4_Port, LED4, RESET);
-  HAL_Delay(1000);
-  //Turn Off
-  HAL_GPIO_WritePin(LED1_Port, LED1, SET);
-  HAL_GPIO_WritePin(LED2_Port, LED2, SET);
-  HAL_GPIO_WritePin(LED3_Port, LED3, SET);
-  HAL_GPIO_WritePin(LED4_Port, LED4, SET);
-
   /* USER CODE BEGIN 2 */
     radioIn_init();     //elgarbe**************************************************
     start_pwm_outputs();
@@ -136,6 +123,10 @@ int main(void)
   osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
   /* Infinite loop */

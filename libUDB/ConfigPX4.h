@@ -81,6 +81,16 @@
 #define LED_SAFETY      2
 #define LED_ORANGE      3
  */
+#define LED1    GPIO_PIN_4
+#define LED2    GPIO_PIN_5
+#define LED3    GPIO_PIN_10
+#define LED4    GPIO_PIN_2
+
+#define LED1_Port    GPIOC
+#define LED2_Port    GPIOC
+#define LED3_Port    GPIOC
+#define LED4_Port    GPIOB
+
 // SPI SS pin definitions
 #define SPI1_SS             _LATE4
 #define SPI2_SS             _LATE7

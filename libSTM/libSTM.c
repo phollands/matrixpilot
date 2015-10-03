@@ -219,16 +219,63 @@ int16_t FindFirstBitFromLeft(int16_t val)
 //ToTo: Use parameter x and remove fixed GPIO_PIN_5
 void udb_led_toggle(uint8_t x)
 {
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+//    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+	switch (x)
+	{
+	case LED_RED:
+		HAL_GPIO_TogglePin(LED1_Port, LED1);
+		break;
+	case LED_GREEN:
+		HAL_GPIO_TogglePin(LED2_Port, LED2);
+		break;
+	case LED_ORANGE:
+		HAL_GPIO_TogglePin(LED3_Port, LED3);
+		break;
+	case LED_BLUE:
+		HAL_GPIO_TogglePin(LED4_Port, LED4);
+		break;
+	}
 }
+
 void led_on(uint8_t x)
 {
 //void HAL_GPIO_WritePin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState);
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 1);
+//    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 1);
+	switch (x)
+	{
+	case LED_RED:
+		HAL_GPIO_WritePin(LED1_Port, LED1, RESET);
+		break;
+	case LED_GREEN:
+		HAL_GPIO_WritePin(LED2_Port, LED2, RESET);
+		break;
+	case LED_ORANGE:
+		HAL_GPIO_WritePin(LED3_Port, LED3, RESET);
+		break;
+	case LED_BLUE:
+		HAL_GPIO_WritePin(LED4_Port, LED4, RESET);
+		break;
+	}
 }
+
 void led_off(uint8_t x)
 {
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 0);
+//    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 0);
+	switch (x)
+	{
+	case LED_RED:
+		HAL_GPIO_WritePin(LED1_Port, LED1, SET);
+		break;
+	case LED_GREEN:
+		HAL_GPIO_WritePin(LED2_Port, LED2, SET);
+		break;
+	case LED_ORANGE:
+		HAL_GPIO_WritePin(LED3_Port, LED3, SET);
+		break;
+	case LED_BLUE:
+		HAL_GPIO_WritePin(LED4_Port, LED4, SET);
+		break;
+	}
 }
 
 uint16_t register_event_p(void (*event_callback)(void), eventPriority priority) { return 0; }
@@ -265,7 +312,7 @@ void __delay32(unsigned long cycles)
 //#endif // CONSOLE_UART
 
 //void Reset_Handler(void) {} // this must be loosely defined in the startup code and the default seems to call main()
-//void mcu_init(void) {} // now provided by main() in the STMCubeMX generated code (redef'd to mcu_init()
+//int mcu_init(void) {} // now provided by main() in the STMCubeMX generated code (redef'd to mcu_init()
 
 void heartbeat(void) // called from MPU6000 ISR
 {

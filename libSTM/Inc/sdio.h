@@ -1,7 +1,6 @@
 /**
   ******************************************************************************
   * File Name          : SDIO.h
-  * Date               : 24/03/2015 16:08:51
   * Description        : This file provides code for the configuration
   *                      of the SDIO instances.
   ******************************************************************************
@@ -42,10 +41,22 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
+/* USER CODE BEGIN Includes */
+
+/* USER CODE END Includes */
+
 extern SD_HandleTypeDef hsd;
 extern HAL_SD_CardInfoTypedef SDCardInfo;
 
+/* USER CODE BEGIN Private defines */
+
+/* USER CODE END Private defines */
+
 void MX_SDIO_SD_Init(void);
+
+/* USER CODE BEGIN Prototypes */
+
+/* USER CODE END Prototypes */
 
 #ifdef __cplusplus
 }

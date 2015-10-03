@@ -1,7 +1,6 @@
 /**
   ******************************************************************************
   * File Name          : SPI.h
-  * Date               : 24/03/2015 16:08:51
   * Description        : This file provides code for the configuration
   *                      of the SPI instances.
   ******************************************************************************
@@ -43,9 +42,21 @@
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_spi.h"
 
+/* USER CODE BEGIN Includes */
+
+/* USER CODE END Includes */
+
 extern SPI_HandleTypeDef hspi2;
 
+/* USER CODE BEGIN Private defines */
+
+/* USER CODE END Private defines */
+
 void MX_SPI2_Init(void);
+
+/* USER CODE BEGIN Prototypes */
+
+/* USER CODE END Prototypes */
 
 #ifdef __cplusplus
 }
