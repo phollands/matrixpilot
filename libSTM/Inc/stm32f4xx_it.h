@@ -46,13 +46,17 @@
 /* Exported functions ------------------------------------------------------- */
 
 void SysTick_Handler(void);
-void I2C1_EV_IRQHandler(void);
-void USART2_IRQHandler(void);
-void USART1_IRQHandler(void);
-void I2C1_ER_IRQHandler(void);
+void EXTI0_IRQHandler(void);
+void DMA1_Stream3_IRQHandler(void);
+void DMA1_Stream4_IRQHandler(void);
 void TIM1_UP_TIM10_IRQHandler(void);
-void USART6_IRQHandler(void);
+void I2C1_EV_IRQHandler(void);
+void I2C1_ER_IRQHandler(void);
 void SPI2_IRQHandler(void);
+void USART1_IRQHandler(void);
+void USART2_IRQHandler(void);
+void TIM5_IRQHandler(void);
+void USART6_IRQHandler(void);
 
 #ifdef __cplusplus
 }

@@ -53,12 +53,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 
-uint8_t retSD;    /* Return value for SD */
-char SD_Path[4];  /* SD logical drive path */
-
-FATFS SDFatFs;  /* File system object for SD card logical drive */
-FIL MyFile;     /* File object */
-
 /* USER CODE BEGIN PV */
 #define LED1	GPIO_PIN_4
 #define LED2	GPIO_PIN_5
@@ -103,12 +97,12 @@ int main(void)
   MX_I2C1_Init();
   MX_SDIO_SD_Init();
   MX_SPI2_Init();
+  MX_TIM3_Init();       //PWM Output CH1 to CH4
+  MX_TIM5_Init();     //Input Capture CH1 and CH2 timer base
   MX_TIM10_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_USART6_UART_Init();
-  MX_TIM5_Init();     //Input Capture CH1 and CH2 timer base
-  MX_TIM3_Init();       //PWM Output CH1 to CH4
 
   /* USER CODE BEGIN 2 */
     radioIn_init();     //elgarbe**************************************************
@@ -126,13 +120,11 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  while (1)
+  {
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-  /* Infinite loop */
-  while (1)
-  {
-
   }
   /* USER CODE END 3 */
 
@@ -168,14 +160,21 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
   HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2);
 
+  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/8000);
+
+  HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK_DIV8);
+
 }
 
 /* USER CODE BEGIN 4 */
 extern int tsirq;
+uint8_t retSD;    /* Return value for SD */
+char SD_Path[4];  /* SD logical drive path */
 
-/* USER CODE END 4 */
+FATFS SDFatFs;  /* File system object for SD card logical drive */
+FIL MyFile;     /* File object */
 
-void StartDefaultTask(void const * argument)
+void StartFileSystem(void)
 {
     FRESULT res;                                            /* FatFs function common result code */
 	uint8_t wtext[] = "Matrix Pilot with FatFs support";    /* File write buffer */
@@ -205,9 +204,9 @@ void StartDefaultTask(void const * argument)
     /*##-11- Unlink the micro SD disk I/O driver ###############################*/
     FATFS_UnLinkDriver(SD_Path);
 
+void StartDefaultTask(void const * argument)
+{
 int16_t pw[8];
-
-  /* USER CODE BEGIN 5 */
 
 	setvbuf(stdout, NULL, _IONBF, 0);
 
@@ -245,11 +244,8 @@ int16_t pw[8];
 
 //		osDelay(1);
   }
-
-  /* USER CODE END 5 */
-
 }
-
+/* USER CODE END 4 */
 
 #ifdef USE_FULL_ASSERT
 
@@ -265,6 +261,7 @@ void assert_failed(uint8_t* file, uint32_t line)
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+	printf("assert_failed %s %d\r\n", file, line);
   /* USER CODE END 6 */
 
 }

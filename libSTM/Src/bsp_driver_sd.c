@@ -1,9 +1,6 @@
 /**
  ******************************************************************************
   * @file    bsp_driver_sd.c (based on stm324x9i_eval_sd.c)
-  * @author  MCD Teams
-  * @version V1.0.0
-  * @date    24/03/2015 16:08:48
   * @brief   This file includes a generic uSD card driver.
   ******************************************************************************
   *
@@ -33,7 +30,6 @@
   *
   ******************************************************************************
   */
-
 /* USER CODE BEGIN 0 */
 /* Includes ------------------------------------------------------------------*/
 #include "bsp_driver_sd.h"
@@ -295,6 +291,8 @@ void BSP_SD_GetCardInfo(HAL_SD_CardInfoTypedef* CardInfo)
   HAL_SD_Get_CardInfo(&hsd, CardInfo);
 }
 
+/* USER CODE END 0 */
+
 /**
  * @brief  Detects if SD card is correctly plugged in the memory slot or not.
  * @param  None
@@ -304,10 +302,16 @@ uint8_t BSP_SD_IsDetected(void)
 {
   __IO uint8_t status = SD_PRESENT;
 
-  /* TBI: add user code here depending on the hardware configuration used */
+  /* Check SD card detect pin */
+  if (HAL_GPIO_ReadPin(SD_PORT,SD_PIN) == GPIO_PIN_RESET) {
+    status = SD_NOT_PRESENT;
+  }
   
   return status;
 }
-/* USER CODE END 0 */
+
+/* USER CODE BEGIN AdditionalCode */
+/* user code can be inserted here */
+/* USER CODE END AdditionalCode */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

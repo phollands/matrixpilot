@@ -40,18 +40,27 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
-#include "stm32f4xx_hal_tim.h"
 
-extern TIM_HandleTypeDef htim10;
-extern TIM_HandleTypeDef htim5;
+/* USER CODE BEGIN Includes */
+
+/* USER CODE END Includes */
+
 extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim5;
+extern TIM_HandleTypeDef htim10;
 
-void MX_TIM10_Init(void);
-void MX_TIM5_Init(void);
+/* USER CODE BEGIN Private defines */
+
+/* USER CODE END Private defines */
+
 void MX_TIM3_Init(void);
-//void MX_TIM4_Init(void);
+void MX_TIM5_Init(void);
+void MX_TIM10_Init(void);
 
+/* USER CODE BEGIN Prototypes */
 void start_ic(void);
+
+/* USER CODE END Prototypes */
 
 #ifdef __cplusplus
 }
