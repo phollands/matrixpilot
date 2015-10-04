@@ -203,6 +203,7 @@ void StartFileSystem(void)
     }
     /*##-11- Unlink the micro SD disk I/O driver ###############################*/
     FATFS_UnLinkDriver(SD_Path);
+}
 
 void StartDefaultTask(void const * argument)
 {
