@@ -65,14 +65,14 @@ volatile union longbbbb tow;
 
 void gps_print(void)
 {
-	printf("lat_gps:    %i\r\n", lat_gps);
-	printf("lon_gps:    %i\r\n", lon_gps);
-	printf("alt_sl_gps: %i\r\n", alt_sl_gps);
+	printf("lat_gps:    %i\r\n", (int)lat_gps.WW);
+	printf("lon_gps:    %i\r\n", (int)lon_gps.WW);
+	printf("alt_sl_gps: %i\r\n", (int)alt_sl_gps.WW);
 	printf("hdop:       %i\r\n", hdop);
 	printf("svs:        %i\r\n", svs);
-	printf("cog_gps:    %i\r\n", cog_gps);
-	printf("sog_gps:    %i\r\n", sog_gps);
-	printf("climb_gps:  %i\r\n", climb_gps);
+	printf("cog_gps:    %i\r\n", cog_gps.BB);
+	printf("sog_gps:    %i\r\n", sog_gps.BB);
+	printf("climb_gps:  %i\r\n", climb_gps.BB);
 
 	printf("loc x: %i y: %i z: %i\r\n", GPSlocation.x, GPSlocation.y, GPSlocation.z);
 	printf("vel x: %i y: %i z: %i\r\n", GPSvelocity.x, GPSvelocity.y, GPSvelocity.z);

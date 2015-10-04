@@ -71,7 +71,7 @@ void SysTick_Handler(void)
   HAL_IncTick();
   osSystickHandler();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-    heartbeat();
+ //   heartbeat();
   /* USER CODE END SysTick_IRQn 1 */
 }
 
