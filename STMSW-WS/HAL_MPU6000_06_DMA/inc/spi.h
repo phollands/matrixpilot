@@ -1,7 +1,6 @@
 /**
   ******************************************************************************
   * File Name          : SPI.h
-  * Date               : 25/04/2015 20:33:26
   * Description        : This file provides code for the configuration
   *                      of the SPI instances.
   ******************************************************************************
@@ -165,10 +164,18 @@
 
 extern SPI_HandleTypeDef hspi2;
 
+/* USER CODE BEGIN Private defines */
+
+
+/* USER CODE END Private defines */
+
 void MX_SPI2_Init(void);
+/* USER CODE BEGIN Prototypes */
 void MPU6000_init16(void);
 HAL_StatusTypeDef writeMPUSPIreg16(uint8_t addr, uint8_t cmd);
 void func_SPI_Write_Byte(uint8_t address, uint8_t data, uint8_t *j);
+
+/* USER CODE END Prototypes */
 
 #ifdef __cplusplus
 }

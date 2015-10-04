@@ -1,7 +1,6 @@
 /**
   ******************************************************************************
   * File Name          : dma.h
-  * Date               : 02/05/2015 19:37:37
   * Description        : This file contains all the function prototypes for
   *                      the dma.c file
   ******************************************************************************
@@ -43,7 +42,19 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
+/* USER CODE BEGIN Includes */
+
+/* USER CODE END Includes */
+
+/* USER CODE BEGIN Private defines */
+
+/* USER CODE END Private defines */
+
 void MX_DMA_Init(void);
+
+/* USER CODE BEGIN Prototypes */
+
+/* USER CODE END Prototypes */
 
 #ifdef __cplusplus
 }

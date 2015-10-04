@@ -1,7 +1,6 @@
 /**
   ******************************************************************************
   * File Name          : USART.c
-  * Date               : 04/04/2015 18:38:13
   * Description        : This file provides code for the configuration
   *                      of the USART instances.
   ******************************************************************************
@@ -133,7 +132,6 @@ PUTCHAR_PROTOTYPE
 
   return ch;
 }
-/* USER CODE END 1 */
 // ***********************
 // Funcion para enviar un caracter por el UART 2
 void UART_Sendchar(char c)
@@ -236,6 +234,7 @@ void UART_printDouble(double n, uint8_t frac_digits) {
         remainder -= i32;
     }
 }
+/* USER CODE END 1 */
 
 
 /**

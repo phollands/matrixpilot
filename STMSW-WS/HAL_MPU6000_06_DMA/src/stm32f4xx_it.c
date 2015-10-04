@@ -38,16 +38,17 @@
 #include "spi.h"
 
 /* USER CODE BEGIN 0 */
+#include "mpu6000.h"
+extern double tempC;
+extern double X_accel, Y_accel, Z_accel;
+uint8_t data[17]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern SPI_HandleTypeDef hspi2;
-extern DMA_HandleTypeDef hdma_spi2_tx;
 extern DMA_HandleTypeDef hdma_spi2_rx;
-extern double tempC;
-extern double X_accel, Y_accel, Z_accel;
-uint8_t data[17]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+extern DMA_HandleTypeDef hdma_spi2_tx;
+extern SPI_HandleTypeDef hspi2;
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
 /******************************************************************************/
@@ -57,8 +58,12 @@ uint8_t data[17]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 */
 void SysTick_Handler(void)
 {
+  /* USER CODE BEGIN SysTick_IRQn 0 */
+  /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   HAL_SYSTICK_IRQHandler();
+  /* USER CODE BEGIN SysTick_IRQn 1 */
+  /* USER CODE END SysTick_IRQn 1 */
 }
 
 /******************************************************************************/
@@ -69,11 +74,13 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-* @brief This function handles EXTI Line0 interrupt.
+* @brief This function handles EXTI line0 interrupt.
 * This interrupt is fire by MPU data ready
 */
 void EXTI0_IRQHandler(void)
 {
+  /* USER CODE BEGIN EXTI0_IRQn 0 */
+	// This interrupt is fire by MPU data ready
 	if(__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_0) != RESET)
 	{
 		__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_0);
@@ -84,6 +91,11 @@ void EXTI0_IRQHandler(void)
 		//Receive with DMA 16 byte + address byte
 		HAL_SPI_Receive_DMA(&hspi2, data, 17);
 	}
+
+  /* USER CODE END EXTI0_IRQn 0 */
+  /* USER CODE BEGIN EXTI0_IRQn 1 */
+
+  /* USER CODE END EXTI0_IRQn 1 */
 }
 // DMA Receive Complete ISR Callback
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
@@ -103,21 +115,39 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 */
 void SPI2_IRQHandler(void)
 {
+  /* USER CODE BEGIN SPI2_IRQn 0 */
+
+  /* USER CODE END SPI2_IRQn 0 */
   HAL_SPI_IRQHandler(&hspi2);
+  /* USER CODE BEGIN SPI2_IRQn 1 */
+
+  /* USER CODE END SPI2_IRQn 1 */
 }
 /**
-* @brief This function handles DMA1 Stream3 global interrupt.
+* @brief This function handles DMA1 stream3 global interrupt.
 */
 void DMA1_Stream3_IRQHandler(void)
 {
+  /* USER CODE BEGIN DMA1_Stream3_IRQn 0 */
+
+  /* USER CODE END DMA1_Stream3_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_spi2_rx);
+  /* USER CODE BEGIN DMA1_Stream3_IRQn 1 */
+
+  /* USER CODE END DMA1_Stream3_IRQn 1 */
 }
 /**
-* @brief This function handles DMA1 Stream4 global interrupt.
+* @brief This function handles DMA1 stream4 global interrupt.
 */
 void DMA1_Stream4_IRQHandler(void)
 {
+  /* USER CODE BEGIN DMA1_Stream4_IRQn 0 */
+
+  /* USER CODE END DMA1_Stream4_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_spi2_tx);
+  /* USER CODE BEGIN DMA1_Stream4_IRQn 1 */
+
+  /* USER CODE END DMA1_Stream4_IRQn 1 */
 }
 
 

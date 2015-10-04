@@ -1,7 +1,6 @@
 /**
   ******************************************************************************
   * File Name          : SPI.c
-  * Date               : 25/04/2015 20:33:26
   * Description        : This file provides code for the configuration
   *                      of the SPI instances.
   ******************************************************************************
@@ -47,8 +46,8 @@ uint8_t mpu_data[16], mpuCnt = 0;
 
 
 SPI_HandleTypeDef hspi2;
-DMA_HandleTypeDef hdma_spi2_tx;
 DMA_HandleTypeDef hdma_spi2_rx;
+DMA_HandleTypeDef hdma_spi2_tx;
 
 /* SPI2 init function */
 void MX_SPI2_Init(void)
@@ -107,20 +106,6 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 
     /* Peripheral DMA init*/
 
-    hdma_spi2_tx.Instance = DMA1_Stream4;
-    hdma_spi2_tx.Init.Channel = DMA_CHANNEL_0;
-    hdma_spi2_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    hdma_spi2_tx.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_spi2_tx.Init.MemInc = DMA_MINC_DISABLE;
-    hdma_spi2_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_spi2_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_spi2_tx.Init.Mode = DMA_NORMAL;
-    hdma_spi2_tx.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_spi2_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    HAL_DMA_Init(&hdma_spi2_tx);
-
-    __HAL_LINKDMA(hspi,hdmatx,hdma_spi2_tx);
-
     hdma_spi2_rx.Instance = DMA1_Stream3;
     hdma_spi2_rx.Init.Channel = DMA_CHANNEL_0;
     hdma_spi2_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
@@ -134,6 +119,20 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
     HAL_DMA_Init(&hdma_spi2_rx);
 
     __HAL_LINKDMA(hspi,hdmarx,hdma_spi2_rx);
+
+    hdma_spi2_tx.Instance = DMA1_Stream4;
+    hdma_spi2_tx.Init.Channel = DMA_CHANNEL_0;
+    hdma_spi2_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_spi2_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_spi2_tx.Init.MemInc = DMA_MINC_DISABLE;
+    hdma_spi2_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_spi2_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_spi2_tx.Init.Mode = DMA_NORMAL;
+    hdma_spi2_tx.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_spi2_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    HAL_DMA_Init(&hdma_spi2_tx);
+
+    __HAL_LINKDMA(hspi,hdmatx,hdma_spi2_tx);
 
     /* Peripheral interrupt init*/
     HAL_NVIC_SetPriority(SPI2_IRQn, 0, 5);
@@ -166,8 +165,8 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_10|GPIO_PIN_12);
 
     /* Peripheral DMA DeInit*/
-    HAL_DMA_DeInit(hspi->hdmatx);
     HAL_DMA_DeInit(hspi->hdmarx);
+    HAL_DMA_DeInit(hspi->hdmatx);
 
     /* Peripheral interrupt Deinit*/
     HAL_NVIC_DisableIRQ(SPI2_IRQn);

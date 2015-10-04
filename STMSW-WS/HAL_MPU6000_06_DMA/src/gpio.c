@@ -1,7 +1,6 @@
 /**
   ******************************************************************************
   * File Name          : gpio.c
-  * Date               : 25/04/2015 20:33:25
   * Description        : This file provides code for the configuration
   *                      of all used GPIO pins.
   ******************************************************************************
@@ -111,5 +110,17 @@ void MX_GPIO_Init(void)
   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 4);
   //I've enable interrupt after MPU6000 init
 }
+
+/* USER CODE BEGIN 2 */
+
+/* USER CODE END 2 */
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -18,16 +18,30 @@
 #include "gpio.h"
 #include "usart.h"
 #include "dma.h"
+/* Private variables ---------------------------------------------------------*/
 
+/* USER CODE BEGIN PV */
 volatile double tempC;
 volatile double X_accel, Y_accel, Z_accel;
 
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+
+/* USER CODE BEGIN PFP */
+
+/* USER CODE END PFP */
 
 int main(void)
 {
+
+  /* USER CODE BEGIN 1 */
 	uint32_t i;
 	char msg[50];
+
+  /* USER CODE END 1 */
+
   /* MCU Configuration----------------------------------------------------------*/
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
@@ -55,6 +69,7 @@ int main(void)
 
   MPU6000_init16();
 
+  /* USER CODE BEGIN 3 */
   /* Infinite loop */
   while (1)
   {
@@ -72,6 +87,8 @@ int main(void)
 	//some delay...
 	for(i=0;i<4000000;i++);
   }
+  /* USER CODE END 3 */
+
 }
 
 /** System Clock Configuration
