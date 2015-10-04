@@ -257,7 +257,12 @@ void led_on(uint8_t x)
 		break;
 	}
 }
-
+/*
+LED2 GREEN
+LED4 BLUE
+LED1 RED
+LED3 ORANGE
+ */
 void led_off(uint8_t x)
 {
 //    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 0);
@@ -392,7 +397,8 @@ PUTCHAR_PROTOTYPE      //  __io_putchar()
 // CONSOLE_UART
   /* Place your implementation of fputc here */
   /* e.g. write a character to the EVAL_COM1 and Loop until the end of transmission */
-  HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
+//  HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
+  HAL_UART_Transmit(&huart6, (uint8_t *)&ch, 1, 0xFFFF);
 
   return ch;
 }

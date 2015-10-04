@@ -43,10 +43,10 @@
 
 /* USER CODE END 0 */
 
-TIM_HandleTypeDef htim10;
-TIM_HandleTypeDef htim5;
-TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim3;    // TIM base for PWM CH1 to CH4
+TIM_HandleTypeDef htim4;
+TIM_HandleTypeDef htim5;
+TIM_HandleTypeDef htim10;
 
 /* TIM10 init function */
 void MX_TIM10_Init(void)

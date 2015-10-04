@@ -43,17 +43,25 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
-
-//#include "radioIn.h"
-
+#include "dma.h"
 
 /* USER CODE BEGIN Includes */
+//#include "radioIn.h"
+#include "libUDB.h"
+#include "radioIn.h"
+#include "serialIO.h"
+#include "servoOut.h"
+#include "mpu6000.h"
+#include "heartbeat.h"
 #include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+volatile double tempC;
+volatile double X_accel, Y_accel, Z_accel;
+
 #define LED1	GPIO_PIN_4
 #define LED2	GPIO_PIN_5
 #define LED3	GPIO_PIN_10
@@ -94,8 +102,11 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_I2C1_Init();
+  MX_I2C3_Init();
   MX_SDIO_SD_Init();
+  MX_SPI1_Init();
   MX_SPI2_Init();
   MX_TIM3_Init();       //PWM Output CH1 to CH4
   MX_TIM5_Init();     //Input Capture CH1 and CH2 timer base
@@ -105,9 +116,13 @@ int main(void)
   MX_USART6_UART_Init();
 
   /* USER CODE BEGIN 2 */
+#if 1
     radioIn_init();     //elgarbe**************************************************
     start_pwm_outputs();
-      MPU6000_init16();
+	MPU6000_init16(&heartbeat);
+#else
+	matrixpilot_init();
+#endif
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
@@ -203,6 +218,7 @@ void StartFileSystem(void)
     }
     /*##-11- Unlink the micro SD disk I/O driver ###############################*/
     FATFS_UnLinkDriver(SD_Path);
+}
 
 void StartDefaultTask(void const * argument)
 {
@@ -213,7 +229,8 @@ int16_t pw[8];
 	printf("MatrixPilot STM32-nucleo\r\n");
 
 	matrixpilot_init();
-	udb_init_GPS();
+//	udb_init_GPS();
+	udb_init_GPS(&udb_gps_callback_get_byte_to_send, &udb_gps_callback_received_byte);
 
   /* Infinite loop */
   for(;;)
