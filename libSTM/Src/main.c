@@ -116,13 +116,10 @@ int main(void)
   MX_USART6_UART_Init();
 
   /* USER CODE BEGIN 2 */
-#if 1
-    radioIn_init();     //elgarbe**************************************************
-    start_pwm_outputs();
+	radioIn_init();     //elgarbe**************************************************
+	start_pwm_outputs();
 	MPU6000_init16(&heartbeat);
-#else
-	matrixpilot_init();
-#endif
+
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
@@ -220,9 +217,9 @@ void StartFileSystem(void)
     FATFS_UnLinkDriver(SD_Path);
 }
 
-void StartDefaultTask(void const * argument)
+void _StartDefaultTask(void const * argument)
 {
-int16_t pw[8];
+	int16_t pw[8];
 
 	setvbuf(stdout, NULL, _IONBF, 0);
 
@@ -237,7 +234,7 @@ int16_t pw[8];
   {
 		static int i = 0;
 		matrixpilot_loop();
-		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+//		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 		HAL_Delay(25); // should give us very roughly 40Hz
 
 //		if (++i > 5){
@@ -278,7 +275,7 @@ void assert_failed(uint8_t* file, uint32_t line)
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-	printf("assert_failed %s %d\r\n", file, line);
+	printf("assert_failed %s %d\r\n", file, (int)line);
   /* USER CODE END 6 */
 
 }

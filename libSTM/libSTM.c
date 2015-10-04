@@ -397,12 +397,17 @@ PUTCHAR_PROTOTYPE      //  __io_putchar()
 // CONSOLE_UART
   /* Place your implementation of fputc here */
   /* e.g. write a character to the EVAL_COM1 and Loop until the end of transmission */
-//  HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
-  HAL_UART_Transmit(&huart6, (uint8_t *)&ch, 1, 0xFFFF);
+  HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
+//  HAL_UART_Transmit(&huart6, (uint8_t *)&ch, 1, 0xFFFF);
 
   return ch;
 }
-
+/*
+int __io_getchar(void)
+{
+	return GetChar();
+}
+ */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   // we want to signal the process responsible for this uart
@@ -509,7 +514,7 @@ void PutChar(char ch)
 //	{
 //	}
 
-#if 0
+#if 1
 	while(__HAL_UART_GET_FLAG(&huart2, UART_FLAG_TXE) == RESET)
 	{
 	}

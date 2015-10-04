@@ -154,7 +154,16 @@ static HAL_StatusTypeDef MP_UART_Receive_IT(UART_HandleTypeDef *huart)
   if (1)
   {
 		uint8_t rxchar = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FF);
-		udb_gps_callback_received_byte(rxchar);
+		if (huart->Instance == USART2)
+		{
+//			udb_serial_callback_received_byte(rxchar);
+		}
+
+		if (huart->Instance == USART6)
+		{
+			udb_gps_callback_received_byte(rxchar);
+		}
+
 /*
     if(huart->Init.WordLength == UART_WORDLENGTH_9B)
     {

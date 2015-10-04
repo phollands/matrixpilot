@@ -38,6 +38,7 @@
 
 /* USER CODE BEGIN Includes */
 #include "libUDB.h"
+#include "heartbeat.h"
 #include <stdio.h>
 /* USER CODE END Includes */
 
@@ -168,22 +169,17 @@ void MX_FREERTOS_Init(void) {
 }
 
 /* StartDefaultTask function */
-#if 0
 void StartDefaultTask(void const * argument)
 {
   /* init code for FATFS */
   MX_FATFS_Init();
 
   /* USER CODE BEGIN StartDefaultTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(40);
-	matrixpilot_loop();
-  }
+	DPRINT("StartDefaultTask: %p\r\n", argument);
+void _StartDefaultTask(void const * argument);
+	_StartDefaultTask(argument);
   /* USER CODE END StartDefaultTask */
 }
-#endif
 
 /* StartTaskGPS function */
 void StartTaskGPS(void const * argument)
@@ -212,14 +208,16 @@ void StartTaskIMU(void const * argument)
 		static int i = 0;
 
 //		osSemaphoreWait(osSemaphoreIMUHandle, osWaitForever);
-		osSemaphoreWait(osSemaphoreIMUHandle, 50);
-//		pulse();
-//		if (i++ > 200)
+		if (osSemaphoreWait(osSemaphoreIMUHandle, 500) == osOK)
+		{
+			pulse();
+		}
+		if (i++ > 0)
 		{
 			i = 0;
-			udb_led_toggle(LED_ORANGE);
-			DPRINT("#");
+//			DPRINT("#");
 		}
+		udb_led_toggle(LED_ORANGE);
   }
   /* USER CODE END StartTaskIMU */
 }

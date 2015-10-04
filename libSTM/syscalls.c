@@ -175,10 +175,7 @@ int _write(int file, char *ptr, int len) {
 int _write(int file, char *ptr, int len)
 {
 #if 0
-//	HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
 	if (HAL_UART_Transmit(&huart6, (uint8_t *)ptr, len, 0xFFFF) !=  HAL_OK)
-
-//	if (HAL_UART_Transmit(&UartHandle, (uint8_t*)ptr, len, 5000) !=  HAL_OK)
 	{
 //		Error_Handler();
 	}
