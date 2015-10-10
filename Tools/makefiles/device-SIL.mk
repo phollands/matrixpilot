@@ -8,6 +8,6 @@ TARGET_TYPE := out
 endif
 CPU :=
 
-modules += Tools/MatrixPilot-SIL
-incpath +=
+modules += Tools/MatrixPilot-SIL FreeRTOS
+incpath += FreeRTOS/include FreeRTOS/portable FreeRTOS/portable/MSVC-MingW
 #cfgpath := Config

@@ -80,6 +80,23 @@
 #define portSTACK_TYPE	unsigned portLONG
 #define portBASE_TYPE	portLONG
 
+//
+//---------------------------------------------------------
+//
+typedef portSTACK_TYPE StackType_t;
+typedef long BaseType_t;
+typedef unsigned long UBaseType_t;
+#if( configUSE_16_BIT_TICKS == 1 )
+	typedef uint16_t TickType_t;
+//	#define portMAX_DELAY ( TickType_t ) 0xffff
+#else
+	typedef uint32_t TickType_t;
+//	#define portMAX_DELAY ( TickType_t ) 0xffffffffUL
+#endif
+//
+//---------------------------------------------------------
+//
+
 #if( configUSE_16_BIT_TICKS == 1 )
     typedef unsigned portSHORT portTickType;
     #define portMAX_DELAY ( portTickType ) 0xffff
