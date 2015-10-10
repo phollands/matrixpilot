@@ -43,21 +43,21 @@ extern double X_accel, Y_accel, Z_accel;
 uint8_t data[17]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 /* USER CODE END 0 */
+
 /* External variables --------------------------------------------------------*/
 extern void xPortSysTickHandler(void);
 extern I2C_HandleTypeDef hi2c1;
 extern DMA_HandleTypeDef hdma_spi2_rx;
 extern DMA_HandleTypeDef hdma_spi2_tx;
 extern SPI_HandleTypeDef hspi2;
-extern TIM_HandleTypeDef htim4;     //Input Capture CH3 to CH6 timer base
-extern TIM_HandleTypeDef htim5;     //Input Capture CH1 and CH2 timer base
+extern TIM_HandleTypeDef htim5;
 extern TIM_HandleTypeDef htim10;
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart6;
 
 /******************************************************************************/
-/*            Cortex-M4 Processor Interruption and Exception Handlers         */
+/*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
 /******************************************************************************/
 
 /**
@@ -73,6 +73,55 @@ void SysTick_Handler(void)
   /* USER CODE BEGIN SysTick_IRQn 1 */
  //   heartbeat();
   /* USER CODE END SysTick_IRQn 1 */
+}
+
+/******************************************************************************/
+/* STM32F4xx Peripheral Interrupt Handlers                                    */
+/* Add here the Interrupt Handlers for the used peripherals.                  */
+/* For the available peripheral interrupt handler names,                      */
+/* please refer to the startup file (startup_stm32f4xx.s).                    */
+/******************************************************************************/
+
+/**
+* @brief This function handles EXTI line0 interrupt.
+*/
+void EXTI0_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI0_IRQn 0 */
+
+  /* USER CODE END EXTI0_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
+  /* USER CODE BEGIN EXTI0_IRQn 1 */
+
+  /* USER CODE END EXTI0_IRQn 1 */
+}
+
+/**
+* @brief This function handles DMA1 stream3 global interrupt.
+*/
+void DMA1_Stream3_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Stream3_IRQn 0 */
+
+  /* USER CODE END DMA1_Stream3_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_spi2_rx);
+  /* USER CODE BEGIN DMA1_Stream3_IRQn 1 */
+
+  /* USER CODE END DMA1_Stream3_IRQn 1 */
+}
+
+/**
+* @brief This function handles DMA1 stream4 global interrupt.
+*/
+void DMA1_Stream4_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Stream4_IRQn 0 */
+
+  /* USER CODE END DMA1_Stream4_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_spi2_tx);
+  /* USER CODE BEGIN DMA1_Stream4_IRQn 1 */
+
+  /* USER CODE END DMA1_Stream4_IRQn 1 */
 }
 
 /**
@@ -102,6 +151,7 @@ void I2C1_EV_IRQHandler(void)
 
   /* USER CODE END I2C1_EV_IRQn 1 */
 }
+
 /**
 * @brief This function handles I2C1 error interrupt.
 */
@@ -160,13 +210,11 @@ void USART2_IRQHandler(void)
   /* USER CODE END USART2_IRQn 1 */
 }
 
-//IC on CH1 or CH2
 /**
 * @brief This function handles TIM5 global interrupt.
 */
 void TIM5_IRQHandler(void)
 {
-    //Go to global HAL ISR
   /* USER CODE BEGIN TIM5_IRQn 0 */
 
   /* USER CODE END TIM5_IRQn 0 */
@@ -174,13 +222,6 @@ void TIM5_IRQHandler(void)
   /* USER CODE BEGIN TIM5_IRQn 1 */
 
   /* USER CODE END TIM5_IRQn 1 */
-}
-
-//IC on CH3 or CH6
-void TIM4_IRQHandler(void)
-{
-    //Go to global HAL ISR
-	HAL_TIM_IRQHandler(&htim4);
 }
 
 /**
@@ -200,20 +241,6 @@ void USART6_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
-/**
-* @brief This function handles EXTI Line0 interrupt.
-*/
-void EXTI0_IRQHandler(void)
-{
-  /* USER CODE BEGIN EXTI0_IRQn 0 */
-
-  /* USER CODE END EXTI0_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
-  /* USER CODE BEGIN EXTI0_IRQn 1 */
-
-  /* USER CODE END EXTI0_IRQn 1 */
-}
-
 /**
   * @brief  EXTI line detection callbacks.
   * @param  GPIO_Pin: Specifies the pins connected EXTI line

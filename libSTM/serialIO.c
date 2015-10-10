@@ -104,7 +104,7 @@ void Test_HAL_UART_Transmit_IT(void)
 	for (i = 0; i < 10; i++)
 	{
 //HAL_StatusTypeDef HAL_UART_Transmit_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size);
-		HAL_UART_Transmit_IT(&huart6, Test_Data, strlen(Test_Data));
+		HAL_UART_Transmit_IT(&huart6, (uint8_t*)Test_Data, strlen(Test_Data));
 		HAL_Delay(50);
 	}
 }
@@ -140,7 +140,7 @@ void MP_UART_ErrorCallback(UART_HandleTypeDef *huart)
 
 
 
-	printf("MP_UART_ErrorCallback code: %u\r\n", huart->ErrorCode);
+	printf("MP_UART_ErrorCallback code: %u\r\n", (unsigned int)huart->ErrorCode);
 	huart->ErrorCode = HAL_UART_ERROR_NONE;
 }
 

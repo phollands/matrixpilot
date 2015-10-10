@@ -379,7 +379,7 @@ static void init_pll(void)
 #endif // BOARD_TYPE
 }
 
-void mcu_init(void)
+int mcu_init(void)
 {
 	defaultCorcon = CORCON;
 
@@ -408,4 +408,5 @@ void mcu_init(void)
 		    osc_fail_count);
 	}
 #endif // CONSOLE_UART
+	return 0;
 }

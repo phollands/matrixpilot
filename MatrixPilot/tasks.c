@@ -35,21 +35,3 @@
 #include "console.h"
 #endif
 
-
-void init_tasks(void)
-{
-	while (1)
-	{
-#if (USE_TELELOG == 1)
-		telemetry_log_service();
-#endif
-#if (USE_USB == 1)
-		USBPollingService();
-#endif
-#if (CONSOLE_UART != 0 && SILSIM == 0)
-		console();
-#endif
-		udb_run();
-	}
-//	return 0;
-}

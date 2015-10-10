@@ -30,20 +30,17 @@
   *
   ******************************************************************************
   */
-
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
-#include "ff.h"
-#include "ff_gen_drv.h"
-#include "sd_diskio.h" /* defines SD_Driver as external */
+#include "dma.h"
+#include "fatfs.h"
 #include "i2c.h"
 #include "sdio.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
-#include "dma.h"
 
 /* USER CODE BEGIN Includes */
 //#include "radioIn.h"
@@ -127,7 +124,7 @@ int main(void)
 
   /* Start scheduler */
   osKernelStart();
-
+  
   /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
@@ -152,11 +149,11 @@ void SystemClock_Config(void)
 
   __PWR_CLK_ENABLE();
 
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = 6;
+  RCC_OscInitStruct.HSICalibrationValue = 16;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 16;
@@ -209,9 +206,18 @@ void StartFileSystem(void)
                 {
                     /*##-6- Close the open text file #################################*/
                     f_close(&MyFile);
-                }
-            }
-        }
+                } else {
+					printf("f_write() - FAILED\r\n");
+				}
+
+            } else {
+				printf("f_open() - FAILED\r\n");
+			}
+        } else {
+			printf("f_mount() - FAILED\r\n");
+		}
+    } else {
+		printf("FATFS_LinkDriver() - FAILED\r\n");
     }
     /*##-11- Unlink the micro SD disk I/O driver ###############################*/
     FATFS_UnLinkDriver(SD_Path);
@@ -228,6 +234,8 @@ void _StartDefaultTask(void const * argument)
 	matrixpilot_init();
 //	udb_init_GPS();
 	udb_init_GPS(&udb_gps_callback_get_byte_to_send, &udb_gps_callback_received_byte);
+
+	StartFileSystem();
 
   /* Infinite loop */
   for(;;)
@@ -284,10 +292,10 @@ void assert_failed(uint8_t* file, uint32_t line)
 
 /**
   * @}
-  */
+  */ 
 
 /**
   * @}
-*/
+*/ 
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

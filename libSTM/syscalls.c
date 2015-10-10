@@ -172,27 +172,58 @@ int _write(int file, char *ptr, int len) {
     return len;
 }
  */
+void _out(char ch)
+{
+	if (trap_handling)
+	{
+		PutChar(ch);
+	}
+	else
+	{
+	__io_putchar(ch);
+	}
+}
+
 int _write(int file, char *ptr, int len)
 {
-#if 0
-	if (HAL_UART_Transmit(&huart6, (uint8_t *)ptr, len, 0xFFFF) !=  HAL_OK)
-	{
-//		Error_Handler();
-	}
+#if 1
+    switch (file) {
+    case STDOUT_FILENO: // stdout
+		if (HAL_UART_Transmit(&huart2, (uint8_t *)ptr, len, 0xFFFF) !=  HAL_OK)
+		{
+//			Error_Handler();
+		}
+        break;
+    case STDERR_FILENO: // stderr
+		if (HAL_UART_Transmit(&huart2, (uint8_t *)ptr, len, 0xFFFF) !=  HAL_OK)
+		{
+//			Error_Handler();
+		}
+        break;
+    default:
+        errno = EBADF;
+        return -1;
+    }
 #else
-	int DataIdx;
+    int n;
+    switch (file) {
+    case STDOUT_FILENO: // stdout
+        for (n = 0; n < len; n++) {
+//            Usart1Put(*ptr++ & (uint16_t)0x01FF);
+			_out(*ptr++);
+        }
+        break;
+    case STDERR_FILENO: // stderr
+        for (n = 0; n < len; n++) {
+//            Usart1Put(*ptr++ & (uint16_t)0x01FF);
+			_out(*ptr++);
+        }
+        break;
+    default:
+        errno = EBADF;
+        return -1;
+    }
 
-	for (DataIdx = 0; DataIdx < len; DataIdx++)
-	{
-		if (trap_handling)
-		{
-			PutChar(*ptr++);
-		}
-		else
-		{
-			__io_putchar( *ptr++ );
-		}
-	}
 #endif
 	return len;
 }
