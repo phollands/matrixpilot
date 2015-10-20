@@ -290,7 +290,6 @@ void BSP_SD_GetCardInfo(HAL_SD_CardInfoTypedef* CardInfo)
   /* Get SD card Information */
   HAL_SD_Get_CardInfo(&hsd, CardInfo);
 }
-
 /* USER CODE END 0 */
 
 /**

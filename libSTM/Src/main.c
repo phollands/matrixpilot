@@ -56,9 +56,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-volatile double tempC;
-volatile double X_accel, Y_accel, Z_accel;
-
+/*
 #define LED1	GPIO_PIN_4
 #define LED2	GPIO_PIN_5
 #define LED3	GPIO_PIN_10
@@ -68,6 +66,7 @@ volatile double X_accel, Y_accel, Z_accel;
 #define LED2_Port	GPIOC
 #define LED3_Port	GPIOC
 #define LED4_Port	GPIOB
+ */
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -75,6 +74,7 @@ void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 
 /* USER CODE BEGIN PFP */
+extern int tsirq;
 
 /* USER CODE END PFP */
 
@@ -82,7 +82,7 @@ void MX_FREERTOS_Init(void);
 #define main mcu_init
 /* USER CODE END 0 */
 
-int main(void)
+int main(void) // this becomes: int mcu_init(void)
 {
 
   /* USER CODE BEGIN 1 */
@@ -105,17 +105,23 @@ int main(void)
   MX_SDIO_SD_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
-  MX_TIM3_Init();       //PWM Output CH1 to CH4
-  MX_TIM5_Init();     //Input Capture CH1 and CH2 timer base
+  MX_TIM3_Init();
+  MX_TIM5_Init();
   MX_TIM10_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_USART6_UART_Init();
 
   /* USER CODE BEGIN 2 */
-	radioIn_init();     //elgarbe**************************************************
-	start_pwm_outputs();
-	MPU6000_init16(&heartbeat);
+	led_off(LED_RED);
+	led_off(LED_BLUE);
+	led_off(LED_GREEN);
+	led_off(LED_ORANGE);
+	led_on(LED_RED);
+
+//	radioIn_init();     //elgarbe**************************************************
+//	start_pwm_outputs();
+	MPU6000_init16(&heartbeat); // initialise mpu in STM32 builds
 
   /* USER CODE END 2 */
 
@@ -124,7 +130,7 @@ int main(void)
 
   /* Start scheduler */
   osKernelStart();
-  
+
   /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
@@ -176,53 +182,6 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-extern int tsirq;
-uint8_t retSD;    /* Return value for SD */
-char SD_Path[4];  /* SD logical drive path */
-
-FATFS SDFatFs;  /* File system object for SD card logical drive */
-FIL MyFile;     /* File object */
-
-void StartFileSystem(void)
-{
-    FRESULT res;                                            /* FatFs function common result code */
-	uint8_t wtext[] = "Matrix Pilot with FatFs support";    /* File write buffer */
-    uint32_t byteswritten;                                  /* File write counts */
-    /*## FatFS: Link the SD driver ###########################*/
-    //  retSD = FATFS_LinkDriver(&SD_Driver, SD_Path);
-    if(FATFS_LinkDriver(&SD_Driver, SD_Path) == 0)
-    {
-        /*##-2- Register the file system object to the FatFs module ##############*/
-        res=f_mount(&SDFatFs, (TCHAR const*)SD_Path, 0);
-        if(res == FR_OK)
-        {
-            /*##-4- Create and Open a new text file object with write access #####*/
-            res=f_open(&MyFile, "MP_Nucleo.TXT", FA_CREATE_ALWAYS | FA_WRITE);
-            if(res == FR_OK)
-            {
-                /*##-5- Write data to the text file ################################*/
-                res = f_write(&MyFile, wtext, sizeof(wtext), (void *)&byteswritten);
-                if((byteswritten == 0) || (res == FR_OK))
-                {
-                    /*##-6- Close the open text file #################################*/
-                    f_close(&MyFile);
-                } else {
-					printf("f_write() - FAILED\r\n");
-				}
-
-            } else {
-				printf("f_open() - FAILED\r\n");
-			}
-        } else {
-			printf("f_mount() - FAILED\r\n");
-		}
-    } else {
-		printf("FATFS_LinkDriver() - FAILED\r\n");
-    }
-    /*##-11- Unlink the micro SD disk I/O driver ###############################*/
-    FATFS_UnLinkDriver(SD_Path);
-}
-
 void _StartDefaultTask(void const * argument)
 {
 	int16_t pw[8];
@@ -231,11 +190,11 @@ void _StartDefaultTask(void const * argument)
 
 	printf("MatrixPilot STM32-nucleo\r\n");
 
-	matrixpilot_init();
+	matrixpilot_init(); // initialise from default CMSOS task
 //	udb_init_GPS();
 	udb_init_GPS(&udb_gps_callback_get_byte_to_send, &udb_gps_callback_received_byte);
 
-	StartFileSystem();
+	filesys_init(); // attempts to mount a file system (STM builds)
 
   /* Infinite loop */
   for(;;)
@@ -292,10 +251,10 @@ void assert_failed(uint8_t* file, uint32_t line)
 
 /**
   * @}
-  */ 
+  */
 
 /**
   * @}
-*/ 
+*/
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

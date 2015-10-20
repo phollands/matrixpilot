@@ -73,5 +73,6 @@ extern mavlink_flags_t mavlink_flags;
 void mavlink_input_byte(uint8_t byte);
 void mavlink_output_40hz(void);
 
+void mavlink_init(void);
 
 #endif // _MAVLINK_H_

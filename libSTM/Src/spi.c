@@ -66,32 +66,30 @@ void MX_SPI1_Init(void)
   HAL_SPI_Init(&hspi1);
 
 }
-
 /* SPI2 init function */
 void MX_SPI2_Init(void)
 {
-	//SPI2 is on APB1. APB1 max freq is 42 or 50 MHz (CCLK/2)
-	//So 1MHz is max mpu6000 config freq. We need a division by 42/52.
-	//We choose 64 and obtain 42MHz/64 = 656Khz.
+
   hspi2.Instance = SPI2;
   hspi2.Init.Mode = SPI_MODE_MASTER;
   hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-  //TODO: Change to 16 bit mode and re test functions
   hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
-//  hspi2.Init.DataSize = SPI_DATASIZE_16BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;
+  hspi2.Init.NSS = SPI_NSS_HARD_OUTPUT;
+//  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLED;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;
   hspi2.Init.CRCPolynomial = 10;
   HAL_SPI_Init(&hspi2);
+
 }
 
 void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 {
+
   GPIO_InitTypeDef GPIO_InitStruct;
   if(hspi->Instance==SPI1)
   {
@@ -124,11 +122,11 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
   /* USER CODE END SPI2_MspInit 0 */
     /* Peripheral clock enable */
     __SPI2_CLK_ENABLE();
-
-    /**SPI2 GPIO Configuration
+  
+    /**SPI2 GPIO Configuration    
     PC2     ------> SPI2_MISO
     PC3     ------> SPI2_MOSI
-    PB10     ------> SPI2_SCK
+    PB10     ------> SPI2_SCK 
     */
     GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -218,11 +216,11 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
   /* USER CODE END SPI2_MspDeInit 0 */
     /* Peripheral clock disable */
     __SPI2_CLK_DISABLE();
-
-    /**SPI2 GPIO Configuration
+  
+    /**SPI2 GPIO Configuration    
     PC2     ------> SPI2_MISO
     PC3     ------> SPI2_MOSI
-    PB10     ------> SPI2_SCK
+    PB10     ------> SPI2_SCK 
     */
     HAL_GPIO_DeInit(GPIOC, GPIO_PIN_2|GPIO_PIN_3);
 
@@ -239,7 +237,7 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
 
   /* USER CODE END SPI2_MspDeInit 1 */
   }
-}
+} 
 
 /* USER CODE BEGIN 1 */
 

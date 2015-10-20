@@ -24,13 +24,14 @@
 //#include "../libUDB/interrupt.h"
 #include "../libUDB/serialIO.h"
 #include "stm32f4xx_hal.h"
+#include "usart.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 // GPS
 
-extern UART_HandleTypeDef huart6;
+extern UART_HandleTypeDef UART_GPS;
 
 int32_t gps_baud_rate = 0;
 void udb_gps_set_rate(int32_t rate) { gps_baud_rate = rate; }
@@ -41,19 +42,19 @@ void udb_init_GPS(int16_callback_fptr_t tx_fptr, callback_uint8_fptr_t rx_fptr)
 {
 //	HAL_StatusTypeDef HAL_UART_Init(UART_HandleTypeDef *huart)
     /* Process Locked */
-    __HAL_LOCK(&huart6);
+    __HAL_LOCK(&UART_GPS);
 
     /* Enable the UART Parity Error Interrupt */
-    __HAL_UART_ENABLE_IT(&huart6, UART_IT_PE);
+    __HAL_UART_ENABLE_IT(&UART_GPS, UART_IT_PE);
 
     /* Enable the UART Error Interrupt: (Frame error, noise error, overrun error) */
-    __HAL_UART_ENABLE_IT(&huart6, UART_IT_ERR);
+    __HAL_UART_ENABLE_IT(&UART_GPS, UART_IT_ERR);
 
     /* Process Unlocked */
-    __HAL_UNLOCK(&huart6);
+    __HAL_UNLOCK(&UART_GPS);
 
     /* Enable the UART Data Register not empty Interrupt */
-    __HAL_UART_ENABLE_IT(&huart6, UART_IT_RXNE);
+    __HAL_UART_ENABLE_IT(&UART_GPS, UART_IT_RXNE);
 }
 
 //#include "../MatrixPilot/defines.h" // TODO: remove, temporarily here for options to work correctly
@@ -73,23 +74,23 @@ void udb_gps_start_sending_data(void)
 //HAL_StatusTypeDef HAL_UART_Transmit_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size);
 	if (pData != 0 && Size != 0)
 	{
-		HAL_UART_Transmit_IT(&huart6, pData, Size);
+		HAL_UART_Transmit_IT(&UART_GPS, pData, Size);
 	}
 #if 0
     /* Process Locked */
-    __HAL_LOCK(&huart6);
+    __HAL_LOCK(&UART_GPS);
 
     /* Enable the UART Parity Error Interrupt */
-    __HAL_UART_ENABLE_IT(&huart6, UART_IT_PE);
+    __HAL_UART_ENABLE_IT(&UART_GPS, UART_IT_PE);
 
     /* Enable the UART Error Interrupt: (Frame error, noise error, overrun error) */
-    __HAL_UART_ENABLE_IT(&huart6, UART_IT_ERR);
+    __HAL_UART_ENABLE_IT(&UART_GPS, UART_IT_ERR);
 
     /* Process Unlocked */
-    __HAL_UNLOCK(&huart6);
+    __HAL_UNLOCK(&UART_GPS);
 
     /* Enable the UART Transmit data register empty Interrupt */
-    __HAL_UART_ENABLE_IT(&huart6, UART_IT_TXE);
+    __HAL_UART_ENABLE_IT(&UART_GPS, UART_IT_TXE);
 #endif
 }
 
@@ -104,7 +105,7 @@ void Test_HAL_UART_Transmit_IT(void)
 	for (i = 0; i < 10; i++)
 	{
 //HAL_StatusTypeDef HAL_UART_Transmit_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size);
-		HAL_UART_Transmit_IT(&huart6, (uint8_t*)Test_Data, strlen(Test_Data));
+		HAL_UART_Transmit_IT(&UART_GPS, (uint8_t*)Test_Data, strlen(Test_Data));
 		HAL_Delay(50);
 	}
 }
@@ -156,7 +157,7 @@ static HAL_StatusTypeDef MP_UART_Receive_IT(UART_HandleTypeDef *huart)
 		uint8_t rxchar = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FF);
 		if (huart->Instance == USART2)
 		{
-//			udb_serial_callback_received_byte(rxchar);
+			udb_serial_callback_received_byte(rxchar);
 		}
 
 		if (huart->Instance == USART6)
@@ -165,32 +166,7 @@ static HAL_StatusTypeDef MP_UART_Receive_IT(UART_HandleTypeDef *huart)
 		}
 
 /*
-    if(huart->Init.WordLength == UART_WORDLENGTH_9B)
-    {
-      tmp = (uint16_t*) huart->pRxBuffPtr;
-      if(huart->Init.Parity == UART_PARITY_NONE)
-      {
-        *tmp = (uint16_t)(huart->Instance->DR & (uint16_t)0x01FF);
-        huart->pRxBuffPtr += 2;
-      }
-      else
-      {
-        *tmp = (uint16_t)(huart->Instance->DR & (uint16_t)0x00FF);
-        huart->pRxBuffPtr += 1;
-      }
-    }
-    else
-    {
-      if(huart->Init.Parity == UART_PARITY_NONE)
-      {
-        *huart->pRxBuffPtr++ = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FF);
-      }
-      else
-      {
-        *huart->pRxBuffPtr++ = (uint8_t)(huart->Instance->DR & (uint8_t)0x007F);
-      }
-    }
-
+    *huart->pRxBuffPtr++ = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FF);
     if(--huart->RxXferCount == 0)
     {
       __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);
@@ -225,30 +201,12 @@ static HAL_StatusTypeDef MP_UART_Receive_IT(UART_HandleTypeDef *huart)
 
 static HAL_StatusTypeDef MP_UART_Transmit_IT(UART_HandleTypeDef *huart)
 {
-  uint16_t* tmp;
   uint32_t tmp1 = 0;
 
   tmp1 = huart->State;
   if((tmp1 == HAL_UART_STATE_BUSY_TX) || (tmp1 == HAL_UART_STATE_BUSY_TX_RX))
   {
-    if(huart->Init.WordLength == UART_WORDLENGTH_9B)
-    {
-      tmp = (uint16_t*) huart->pTxBuffPtr;
-      huart->Instance->DR = (uint16_t)(*tmp & (uint16_t)0x01FF);
-      if(huart->Init.Parity == UART_PARITY_NONE)
-      {
-        huart->pTxBuffPtr += 2;
-      }
-      else
-      {
-        huart->pTxBuffPtr += 1;
-      }
-    }
-    else
-    {
-      huart->Instance->DR = (uint8_t)(*huart->pTxBuffPtr++ & (uint8_t)0x00FF);
-    }
-
+    huart->Instance->DR = (uint8_t)(*huart->pTxBuffPtr++ & (uint8_t)0x00FF);
     if(--huart->TxXferCount == 0)
     {
       /* Disable the UART Transmit Complete Interrupt */
@@ -369,57 +327,27 @@ void MP_UART_IRQHandler(UART_HandleTypeDef *huart)
   }
 }
 
-
 //void USART2_IRQHandler(void)
 
 /*
-void __attribute__((__interrupt__,__no_auto_psv__)) _U1ErrInterrupt(void)
-{
-	_U1EIF = 0; // clear the interrupt
-	indicate_loading_inter;
-	interrupt_save_set_corcon;
-
-	U1STAbits.PERR = 0;
-	U1STAbits.FERR = 0;
-	U1STAbits.OERR = 0;
-	interrupt_restore_corcon;
-}
- */
-/*
 void __attribute__((__interrupt__,__no_auto_psv__)) _U1TXInterrupt(void)
 {
-	_U1TXIF = 0; // clear the interrupt
-	indicate_loading_inter;
-	interrupt_save_set_corcon;
-
-#if (HILSIM_USB != 1)
 	int16_t txchar = udb_gps_callback_get_byte_to_send();
-#else
-	int16_t txchar = -1;
-#endif // HILSIM_USB
 	if (txchar != -1)
 	{
 		U1TXREG = (uint8_t)txchar;
 	}
-	interrupt_restore_corcon;
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _U1RXInterrupt(void)
 {
-	_U1RXIF = 0; // clear the interrupt
-	indicate_loading_inter;
-	interrupt_save_set_corcon;
-
 	while (U1STAbits.URXDA)
 	{
 		uint8_t rxchar = U1RXREG;
-#if (HILSIM_USB != 1)
 		udb_gps_callback_received_byte(rxchar);
-#endif // HILSIM_USB
 	}
-	U1STAbits.OERR = 0;
-	interrupt_restore_corcon;
 }
+
  */
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -442,35 +370,23 @@ boolean udb_serial_check_rate(int32_t rate)
 }
 
 /*
+
 void __attribute__((__interrupt__, __no_auto_psv__)) _U2TXInterrupt(void)
 {
-	_U2TXIF = 0; // clear the interrupt
-	indicate_loading_inter;
-	interrupt_save_set_corcon;
-
 	int16_t txchar = udb_serial_callback_get_byte_to_send();
 	if (txchar != -1)
 	{
 		U2TXREG = (uint8_t)txchar;
-		uart2_tx_count++;
 	}
-	interrupt_restore_corcon;
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _U2RXInterrupt(void)
 {
-	_U2RXIF = 0; // clear the interrupt
-	indicate_loading_inter;
-	interrupt_save_set_corcon;
-
 	while (U2STAbits.URXDA)
 	{
 		uint8_t rxchar = U2RXREG;
 		udb_serial_callback_received_byte(rxchar);
-		uart2_rx_count++;
 	}
-	U2STAbits.OERR = 0;
-	interrupt_restore_corcon;
 }
  */
 

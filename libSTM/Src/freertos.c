@@ -181,19 +181,24 @@ void _StartDefaultTask(void const * argument);
   /* USER CODE END StartDefaultTask */
 }
 
+/* USER CODE BEGIN 6 */
+void RunTaskGPS(void);
+void RunTaskIMU(void);
+
+/* USER CODE END 6 */
+
 /* StartTaskGPS function */
 void StartTaskGPS(void const * argument)
 {
   /* USER CODE BEGIN StartTaskGPS */
 	(void)argument;
 	DPRINT("StartTaskGPS\r\n");
-  for(;;)
-  {
+	for(;;)
+	{
 		osSemaphoreWait(osSemaphoreGPSHandle, osWaitForever);
+		RunTaskGPS();
 //		udb_led_toggle(LED_RED);
-void udb_background_callback_triggered(void);
-//		udb_background_callback_triggered();
-  }
+	}
   /* USER CODE END StartTaskGPS */
 }
 
@@ -203,14 +208,19 @@ void StartTaskIMU(void const * argument)
   /* USER CODE BEGIN StartTaskIMU */
 	led_on(LED_ORANGE);
 	DPRINT("StartTaskIMU\r\n");
-  for(;;)
-  {
+	for(;;)
+	{
 		static int i = 0;
 
 //		osSemaphoreWait(osSemaphoreIMUHandle, osWaitForever);
 		if (osSemaphoreWait(osSemaphoreIMUHandle, 500) == osOK)
 		{
-			pulse();
+//			pulse(); // now called from RunTaskIMU below:
+			RunTaskIMU();
+		}
+		else
+		{
+			// timeout
 		}
 		if (i++ > 0)
 		{
@@ -218,7 +228,8 @@ void StartTaskIMU(void const * argument)
 //			DPRINT("#");
 		}
 		udb_led_toggle(LED_ORANGE);
-  }
+//		udb_led_toggle(LED_BLUE);  // blue led not working?
+	}
   /* USER CODE END StartTaskIMU */
 }
 

@@ -20,321 +20,163 @@
 
 
 #include "../libUDB/libUDB.h"
-
-#if (BOARD_TYPE != UDB4_BOARD)
-
 #include "../libUDB/oscillator.h"
 #include "../libUDB/interrupt.h"
 #include "mpu_spi.h"
+#include "mpu6000.h"
 //#include <delay.h>
 //#include <spi.h>
 //#include "stm32f4xx_hal_spi.h"
+//#include <string.h> // for memset, during testing
 
 extern SPI_HandleTypeDef hspi2;
 
-static void no_call_back(void);
+volatile double tempC;
+volatile double X_accel, Y_accel, Z_accel;
+volatile double X_gyro, Y_gyro, Z_gyro;
+uint8_t mpu_dma[15]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+
+//void TriggerIMU(void);
+void process_MPU_data(uint8_t* mpu_data);
+
+
+//static void no_call_back(void);
+static void no_call_back(void)
+{
+}
 
 static void (*mpu_call_back)(void) = &no_call_back;
-/*
-static uint16_t* SPI_data;
-static uint8_t SPI_high;
-static uint8_t SPI_low;
-#ifndef __dsPIC33E__
-static int16_t SPI_i;
-static int16_t SPI_j;
-static int16_t SPI_n;
-#endif
- */
+
+static void mpu_spi_error(int err)
+{
+	DPRINT("ERROR: mpu_spi_error: ");
+	switch (err) {
+		case HAL_ERROR:
+			DPRINT("HAL_ERROR");
+			break;
+		case HAL_TIMEOUT:
+			DPRINT("HAL_TIMEOUT");
+			break;
+		case HAL_BUSY:
+			DPRINT("HAL_BUSY");
+			break;
+		case HAL_OK:
+			DPRINT("HAL_OK\r\n");
+			break;
+		default:
+			break;
+	}
+	DPRINT("\r\n");
+}
 
 // Configure SPI module in 16-bit master mode
 void initMPUSPI_master16(uint16_t priPre, uint16_t secPre)
 {
-/*
-	uint16_t SPICON1Value;      // holds the information about SPI configuration
-	uint16_t SPICON2Value;
-	uint16_t SPISTATValue;      // holds the information about SPI Enable/Disable
+}
 
-	MPU_SS = 1;                 // deassert MPU SS
-	MPU_SS_TRIS = 0;            // make MPU SS an output
-	CloseSPI();                 // turn off SPI module
-	ConfigIntSPI(SPI_INT_DIS & SPI_INT_PRI_6);
+// DMA Receive Complete ISR Callback
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET); //CS goes HIGH
+	//Process MPU register data
+	int16_t tmp = 0;
+    X_accel = (int16_t)((mpu_dma[1]<<8) | mpu_dma[2])/16384.0;
+    Y_accel = (int16_t)((mpu_dma[3]<<8) | mpu_dma[4])/16384.0;
+    Z_accel = (int16_t)((mpu_dma[5]<<8) | mpu_dma[6])/16384.0;
+//    tmp=(mpu_dma[7]<<8) | mpu_dma[8];
+//    tempC = (double)(tmp)/340.0 + 36.53;
+    tempC = (double)(((int16_t)(mpu_dma[7]<<8) | mpu_dma[8]))/340.0 + 36.53;
+    X_gyro = (int16_t)((mpu_dma[9]<<8)  | mpu_dma[10])/16384.0;
+    Y_gyro = (int16_t)((mpu_dma[11]<<8) | mpu_dma[12])/16384.0;
+    Z_gyro = (int16_t)((mpu_dma[13]<<8) | mpu_dma[14])/16384.0;
+//	process_MPU_data(&mpu_dma[1]);
 
-#if defined(__dsPIC33E__)
-	SPICON1Value =
-	    ENABLE_SDO_PIN & SPI_MODE16_ON & ENABLE_SCK_PIN &
-	    SPI_SMP_OFF & SPI_CKE_OFF &
-	    SLAVE_ENABLE_OFF &
-	    CLK_POL_ACTIVE_LOW &
-	    MASTER_ENABLE_ON &
-	    secPre & priPre;
-	SPICON2Value = FRAME_ENABLE_OFF & FRAME_SYNC_OUTPUT; // & FIFO_BUFFER_DISABLE;
-	SPISTATValue = SPI_ENABLE & SPI_IDLE_CON & SPI_RX_OVFLOW_CLR & BUF_INT_SEL_5;
-	// BUF_INT_SEL_5 == Interrupt when the last bit is shifted out of SPIxSR, and the transmit is complete
-#else
-	SPICON1Value =
-	    ENABLE_SDO_PIN & SPI_MODE16_ON & ENABLE_SCK_PIN &
-	    SPI_SMP_ON & SPI_CKE_OFF &
-	    SLAVE_ENABLE_OFF &
-	    CLK_POL_ACTIVE_LOW &
-	    MASTER_ENABLE_ON &
-	    secPre & priPre;
-	SPICON2Value = FRAME_ENABLE_OFF & FRAME_SYNC_OUTPUT;
-	SPISTATValue = SPI_ENABLE & SPI_IDLE_CON & SPI_RX_OVFLOW_CLR;
-#endif
+    //X_accel
+    mpu_dma[0] = mpu_dma[2];
+    //Y_accel
+    mpu_dma[2] = mpu_dma[4];
+    //Z_accel
+    mpu_dma[4] = mpu_dma[6];
+    //Temperature
+    mpu_dma[6] = mpu_dma[8];
+    //X_gyro
+	mpu_dma[8] = mpu_dma[10];
+    //Y_gyro
+	mpu_dma[10] = mpu_dma[12];
+    //Z_gyro
+	mpu_dma[12] = mpu_dma[14];
+	process_MPU_data(mpu_dma);
 
-#ifdef __PIC32MX__
-//	 * Example: OpenSPI1(SPI_MODE32_ON|SPI_SMP_ON|MASTER_ENABLE_ON|SEC_PRESCAL_1_1|PRI_PRESCAL_1_1, SPI_ENABLE);
-	OpenSPI(SPICON1Value, SPISTATValue);
-#else
-	OpenSPI(SPICON1Value, SPICON2Value, SPISTATValue);
-//	printf("SPI1STAT %04X, SPI1CON1 %04X, SPI1CON2 %04X\r\n", SPI1STAT, SPI1CON1, SPI1CON2);
-#endif
+// ((num & 0xff) >> 8) | (num << 8)
 
-	_SPIROV = 0;                // clear SPI receive overflow
-	_SPIIF  = 0;                // clear any pending interrupts
-	_SPIIP  = INT_PRI_MPUSPI;   // set interrupt priority
-//	_SPIIE  = 1;                // turn on SPI interrupts
- */
- }
+//	TriggerIMU();
+}
 
-// Blocking 16 bit write to SPI
-HAL_StatusTypeDef writeMPUSPIreg16(uint8_t addr, uint8_t cmd)
+/**
+  * @brief  EXTI line detection callbacks.
+  * @param  GPIO_Pin: Specifies the pins connected EXTI line
+  * @retval None
+  */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if (GPIO_PIN_0 == GPIO_Pin) // MPU-6000
+	{
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET); //CS goes LOW
+		mpu_dma[0] = MPUREG_ACCEL_XOUT_H | 0x80;
+		HAL_SPI_Receive_DMA(&hspi2, mpu_dma, sizeof(mpu_dma));
+	}
+	if (GPIO_PIN_13 == GPIO_Pin) // Push button
+	{
+	}
+}
+
+#define DIR_READ			0x80
+#define DIR_WRITE			0x00
+
+uint8_t read_reg(uint8_t reg)
 {
 	HAL_StatusTypeDef err;
-	//HAL_SPI_Transmit expect 8 bit pointer on pData parameter, so
-	//I have to do this:
-	uint8_t dato[2] = {0,0};
-	dato[0] = addr;
-	dato[1] = cmd;
-	//I would like to do this:
-//	uint16_t dato = (addr<<8)|cmd;
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-	err = HAL_SPI_Transmit(&hspi2, dato, 2, 10);
+	uint8_t data[2];
+
+	data[0] = reg | DIR_READ;
+	data[1] = 0;
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
+	err = HAL_SPI_Receive(&hspi2, data, 2, 10); // transfer two bytes in 8 bit mode
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
+	if (err != HAL_OK){
+		mpu_spi_error(err);
+		while(1);
+	}
+	// this delay is necessary; it appears that SS must be de-asserted for one or
+	// more SPI clock cycles between writes.
+    // NOTE: From original MP code.
+    // TODO: It's 1ms delay, it would be 2us. Check on MPU6000 data sheet this issue
+    HAL_Delay(1);
+	return data[1];
+}
+void write_reg(uint8_t reg, uint8_t value)
+{
+	HAL_StatusTypeDef err;
+	uint8_t data[2];
+
+	data[0] = reg | DIR_WRITE;
+	data[1] = value;
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
+	err = HAL_SPI_Transmit(&hspi2, data, 2, 10);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
+	if(err != HAL_OK){
+		//TODO: Do something with possible error here
+		mpu_spi_error(err);
+		while(1);
+	}
 	// this delay is necessary; it appears that SS must be deasserted for one or
 	// more SPI clock cycles between writes.
     // NOTE: From original MP code.
     // TODO: It's 1 mseg delay, it would be 2useg. Check on MPU6000 data sheet this issue
     HAL_Delay(1);
-    return err;
-/*
-	int16_t k;
-
-	MPU_SS = 0;                 // assert chip select
-	k = SPIBUF;
-	_SPIIE = 0;                 // ensure the interrupt is disabled
-	_SPIIF = 0;                 // ensure the interrupt flag is clear
-	SPIBUF = addr << 8 | data;  // send address and data
-#if 1
-	while (!_SPIIF);            // wait for transfer to complete
-	_SPIIF = 0;                 // clear interrupt flag
-#else
-	delay_us(32+2);             // allow 16 cycles at 500kHz for the write
-#endif
-	k = SPIBUF;                 // dump received data
-	MPU_SS = 1;                 // deassert chip select
-	// this delay is necessary; it appears that SS must be deasserted for one or
-	// more SPI clock cycles between writes
-//	delayUs(1);
-	delay_us(1);
- */
 }
-
-static void no_call_back(void)
+void write_checked_reg(uint8_t reg, uint8_t value)
 {
+	write_reg(reg, value);
 }
-
-#if defined(__dsPIC33E__)
-
-// SPI module has 8 word FIFOs
-// burst read 2n bytes starting at addr;
-// Since first byte is address, max of 15 data bytes may be transferred with n=7
-void readMPUSPI_burst16n(uint8_t data[], int16_t n, uint16_t addr, void (*call_back)(void))
-{
-	HAL_StatusTypeDef err;
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-    //TODO: The problem here is SPI_Receive need address on data[0]. It will call
-    //HAL_SPI_TransmitReceive_IT->SPI_TxISR->SPI_TxColseIRQHandler->HAL_SPI_TxCpltCallback
-    //wWe should implement HAL_SPI_TxCpltCallback to do what we need to do.
-    data[0] = addr;
-	err = HAL_SPI_Receive_IT(&hspi2, data, 2*n);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-	if(err != HAL_OK){
-		//TODO: Do something with posible error here
-		while(1);
-	}
-//	uint16_t i;
-//
-//	MPU_SS = 0;                 // assert chip select
-//	mpu_call_back = call_back;  // store the address of the call back routine
-//	SPI_data = &data[0];        // store address of data buffer
-//	i = SPIBUF;                 // empty read buffer
-//	addr |= 0x80;               // write address-1 in high byte + n-1 dummy words to TX FIFO
-//	SPIBUF = addr << 8;         // issue read command
-//	for (i = 0; i < n; i++) {
-//		SPIBUF = 0;             // queue 'n' null words into the SPI transmit buffer
-//	}
-//	_SPIIE = 1;                 // turn on SPI interrupts
-}
-
-
-// this ISR empties the RX FIFO into the SPI_data buffer
-// no possibility of overrun if buffer length is at least 8 words
-void __attribute__((__interrupt__, __no_auto_psv__)) SPIInterrupt(void)
-{
-	uint16_t spibuf;
-
-	_SPIIF = 0;                 // clear interrupt flag as soon as possible so as to not miss any interrupts
-	indicate_loading_inter;
-	interrupt_save_set_corcon;
-	_SPIIE = 0;                 // turn off SPI interrupts
-	spibuf = SPIBUF;            // get first byte from first word
-	SPI_high = 0xFF & spibuf;
-
-	while (!_SRXMPT) {          // empty the FIFO
-		spibuf = SPIBUF;
-		SPI_low = spibuf >> 8;
-		*SPI_data++ = SPI_high << 8 | SPI_low;
-		SPI_high = 0xFF & spibuf;
-	}
-	MPU_SS = 1;
-	(*mpu_call_back)();
-	interrupt_restore_corcon;
-}
-
-#else // no SPI FIFO
-
-// burst read 2n bytes starting at addr
-void readMPUSPI_burst16n(uint16_t data[], int16_t n, uint16_t addr, void (*call_back)(void))
-{
-/*
-	uint16_t spibuf;
-
-	MPU_SS = 0;                 // assert chip select
-	mpu_call_back = call_back;  // save address of call back routine
-	SPI_i = 0;                  // initialize indices
-	SPI_j = 0;
-	SPI_n = n;
-	SPI_data = &data[0];        // save address of data buffer
-	addr |= 0x80;
-	spibuf = SPIBUF;
-	SPIBUF = addr << 8;         // issue read command
-	_SPIIE = 1;                 // turn on SPI interrupts
- */
- }
-
-void __attribute__((__interrupt__, __no_auto_psv__)) SPIInterrupt(void)
-{
-/*
-	uint16_t spibuf;
-
-	_SPIIF = 0;                 // clear interrupt flag as soon as possible so as to not miss any interrupts
-	indicate_loading_inter;
-	interrupt_save_set_corcon;
-#if 1
-	if (SPI_i == 0) {
-		spibuf = SPIBUF;                               // could move this to before the conditional
-		SPIBUF = 0x0000;
-		SPI_high = 0xFF & spibuf;                      // could move this to after the conditional
-		SPI_i = 1;
-	} else if (SPI_i < SPI_n) {
-		spibuf = SPIBUF;                               // could move this to before the conditional
-		SPIBUF = 0x0000;
-		SPI_low = spibuf >> 8;                         // could move this to before the conditional
-		*(SPI_data + SPI_j) = SPI_high << 8 | SPI_low; // could move this to before the conditional
-		SPI_high = 0xFF & spibuf;                      // could move this to after the conditional
-		SPI_i++;
-		SPI_j++;
-	} else {
-		spibuf = SPIBUF;                               // could move this to before the conditional
-		SPI_low = spibuf >> 8;                         // could move this to before the conditional
-		*(SPI_data + SPI_j) = SPI_high << 8 | SPI_low; // could move this to before the conditional
-		MPU_SS = 1;
-		_SPIIE = 0;             // turn off SPI interrupts
-		(*mpu_call_back)();
-	}
-#else
-	spibuf = SPIBUF;
-	SPI_low = spibuf >> 8;
-	*(SPI_data + SPI_j) = SPI_high << 8 | SPI_low;
-	SPI_i++;
-	if (SPI_i == 1) {
-		SPIBUF = 0x0000;
-	} else if (SPI_i <= SPI_n) {
-		SPIBUF = 0x0000;
-		SPI_j++;
-	} else {
-		MPU_SS = 1;
-		_SPIIE = 0;             // turn off SPI interrupts
-		(*mpu_call_back)();
-	}
-	SPI_high = 0xFF & spibuf;
-#endif // 0
-	interrupt_restore_corcon;
- */
- }
-
-#endif // (__dsPIC33E__)
-
-uint16_t readMPUSPIreg16(uint16_t addr)
-{
-	int16_t data = 0;
-/*
-#if defined(__dsPIC33E__)
-	while (_SRXMPT == 0)        // clear receive FIFO
-#endif
-	{
-		data = SPIBUF;          // empty receive buffer
-	}
-	MPU_SS = 0;                 // assert chip select
-	_SPIIE = 0;                 // ensure the interrupt is disabled
-	_SPIIF = 0;                 // ensure the interrupt flag is clear
-	addr |= 0x80;               // set the read bit in addr byte
-	SPIBUF = addr << 8;         // issue read command
-//	while (!_SRMPT);            // wait for transfer to complete
-	while (!_SPIIF);            // wait for transfer to complete
-	_SPIIF = 0;                 // clear interrupt flag
-	data = SPIBUF;
-	MPU_SS = 1;
-//	delayUs(40);
-	delay_us(40);
- */
- 	return data;
-}
-
-#if 0 // experimental blocking 8 bit read for dsPIC33EP
-
-// FIXME: why doesn't this work? read FIFO is all zeros even though non-zero data is observed on MISO
-uint8_t readMPUSPIreg16(uint16_t addr)
-{
-	int16_t k, data[8];
-
-//	while (_SRXMPT == 0) {
-//		data[k] = SPIBUF;       // clear receive FIFO
-//	}
-	k = SPISTAT;
-	_SPIROV = 0;
-	MPU_SS = 0;                 // assert chip select
-	addr |= 0x80;               // set the read bit in addr byte
-	SPIBUF = addr << 8;         // issue read command
-	while (_SPIBEC);            // wait for TX FIFO to empty
-	while (!_SRMPT);            // wait for last transfer to complete
-	MPU_SS = 1;
-	delay_us(20);
-	MPU_SS = 0;
-	SPIBUF = addr << 8;         // issue read command
-	while (_SPIBEC);            // wait for TX FIFO to empty
-	while (!_SRMPT);            // wait for last transfer to complete
-	data[0] = SPIBUF;
-	data[1] = SPIBUF;
-//	for (k = 0; k < 8; k++) {
-//		data[k] = SPIBUF;       // read one word from FIFO
-//	}
-	MPU_SS = 1;                 // deassert chip select for a while
-	delay_us(40);
-	return 0xFF & data[0];
-}
-
-#endif // 0
-
-#endif // BOARD_TYPE

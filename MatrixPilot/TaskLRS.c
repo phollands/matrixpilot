@@ -22,7 +22,9 @@
 #include "defines.h"
 #include "../libUDB/heartbeat.h"
 
-#ifdef USE_FREERTOS
+#if 0
+
+#ifdef USE_FREERTOS // (NOTE: not defined for STM32F4 builds
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -94,7 +96,7 @@ uint8_t bindReceive(uint32_t timeout)
 				rx_reset_bind(); // __bindReceive()
 //	DPRINT("Sent\r\n");
 			}
- 
+
 			if (rfmIntFlags & 0x0080) // Word Sync Detected
 			{
 //	DPRINT("Sync\r\n");
@@ -149,7 +151,7 @@ static void TaskLRS(void* pvParameters)
 //OLS3 = !OLS3;
 		if (xSemaphoreTake(xSemaphoreLRS, xDelay) == pdTRUE)
 		{
-OLS3 = 0;
+//OLS3 = 0;
 #if 1
 			uint16_t rfmIntFlags = rfmGetIntFlags(); // returns int1 in highbyte
 #else
@@ -176,18 +178,18 @@ OLS3 = 0;
   if (RF_Mode == RF_RECEIVE_REQ) {
     RF_Mode = RF_RECEIVE_SIG;
   }
-OLS1 = 1;
+//OLS1 = 1;
 				rx_poll();
 			    channel_hop();
 				linkAcquired = true;
-OLS1 = 0;
+//OLS1 = 0;
 			}
 			if (rfmIntFlags & 0x0080) // Word Sync Detected
 			{
 //OLS2 = !OLS2;
-OLS2 = 1;
+//OLS2 = 1;
 				sample_rssi();
-OLS2 = 0;
+//OLS2 = 0;
 			}
 			if (rfmIntFlags & 0x0040) // Valid Preamble Detected
 			{
@@ -202,8 +204,8 @@ OLS2 = 0;
 		}
 		else // semaphore timeout
 		{
-OLS2 = 1;
-delay_ms(1); // just so i can see the OLS pulse..
+//OLS2 = 1;
+//delay_ms(1); // just so i can see the OLS pulse..
 			if (linkAcquired)
 			{
 				if (link_poll())
@@ -219,7 +221,7 @@ delay_ms(1); // just so i can see the OLS pulse..
 				    channel_hop();
     			}
 			}
-OLS2 = 0;
+//OLS2 = 0;
 		}
 	}
 }
@@ -229,7 +231,7 @@ void TaskLRS_Trigger(void)
 	static portBASE_TYPE xHigherPriorityTaskWoken;
 
 	configASSERT(xSemaphoreLRS);
-OLS3 = 1;
+//OLS3 = 1;
 	xHigherPriorityTaskWoken = pdFALSE;
 	xSemaphoreGiveFromISR(xSemaphoreLRS, &xHigherPriorityTaskWoken);
 	if (xHigherPriorityTaskWoken == pdTRUE)
@@ -249,3 +251,4 @@ void TaskLRS_Init(void)
 }
 
 #endif // USE_FREERTOS
+#endif // 0

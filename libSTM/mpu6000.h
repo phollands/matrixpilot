@@ -142,8 +142,40 @@
 #define MPU6000_66HZ                2
 #define MPU6000_50HZ                3
 
+//#define MPU_WHOAMI_6000 0x70
+//#define MPU_WHOAMI_6000 0x68
+/*
+WHO_AM_I
+Type: Read Only
+WHO_AM_I[6:1]
+Description:
+This register is used to verify the identity of the device. The contents of WHO_AM_I are the upper 6 bits of the MPU-60X0’s 7-bit I2C address. The least significant bit of the MPU-60X0’s I2C address is determined by the value of the AD0 pin. The value of the AD0 pin is not reflected in this register.
+The default value of the register is 0x68.
+Bits 0 and 7 are reserved. (Hard coded to 0)
+Parameters:
+WHO_AM_I Contains the 6-bit I2C address of the MPU-60X0.
+The Power-On-Reset value of Bit6:Bit1 is 110 100.
+*/
 
-void MPU6000_print(void);
+#define MPU_WHOAMI_6000			0x68
+
+// Product ID Description for MPU6000
+// high 4 bits 	low 4 bits
+// Product Name	Product Revision
+#define MPU6000ES_REV_C4		0x14
+#define MPU6000ES_REV_C5		0x15
+#define MPU6000ES_REV_D6		0x16
+#define MPU6000ES_REV_D7		0x17
+#define MPU6000ES_REV_D8		0x18
+#define MPU6000_REV_C4			0x54
+#define MPU6000_REV_C5			0x55
+#define MPU6000_REV_D6			0x56
+#define MPU6000_REV_D7			0x57
+#define MPU6000_REV_D8			0x58
+#define MPU6000_REV_D9			0x59
+#define MPU6000_REV_D10			0x5A
+
+void MPU6000_print(uint8_t*);
 
 typedef void (*callback_fptr_t)(void);
 

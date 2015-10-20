@@ -24,7 +24,7 @@
 #include "../libUDB/heartbeat.h"
 #include "config.h"
 
-#ifdef USE_FREERTOS
+#ifdef USE_FREERTOS // (NOTE: not defined for STM32F4 builds
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"

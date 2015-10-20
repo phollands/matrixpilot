@@ -133,6 +133,7 @@ void dcm_heartbeat_callback(void)   // was called dcm_servo_callback_prepare_out
 		// otherwise, there is not anything to do
 		manualPassthrough();        // Allow manual control while starting up
 	}
+#endif // AIRFRAME_TYPE
 #if (USE_MAVLINK == 1)
 	if (udb_heartbeat_counter % (HEARTBEAT_HZ/40) == 0)
 	{
@@ -140,5 +141,4 @@ void dcm_heartbeat_callback(void)   // was called dcm_servo_callback_prepare_out
 	}
 #endif // SERIAL_OUTPUT_FORMAT
 	mp_osd_run_step(udb_heartbeat_counter);
-#endif // AIRFRAME_TYPE
 }

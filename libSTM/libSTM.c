@@ -6,11 +6,6 @@
 //  Copyright (c) 2014 MatrixPilot. All rights reserved.
 //
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "../libUDB/libUDB.h"
 #include "../libUDB/ADchannel.h"
 #include "../libUDB/heartbeat.h"
@@ -19,26 +14,36 @@
 #include "../libUDB/events.h"
 #include "../libUDB/osd.h"
 #include "../libUDB/mpu6000.h"
-
 #include "../libUDB/uart.h"
 
-#if (BOARD_TYPE == PX4_BOARD)
+//#if (BOARD_TYPE == PX4_BOARD)
 
 #include "stm32f4xx_hal.h"
+#include "cmsis_os.h"
+#include "dma.h"
+#include "fatfs.h"
+#include "i2c.h"
+#include "sdio.h"
+#include "spi.h"
+#include "tim.h"
 #include "usart.h"
+#include "gpio.h"
 
-//#include "cmsis_os.h"
-//#include "ff.h"
-//#include "ff_gen_drv.h"
-//#include "sd_diskio.h" /* defines SD_Driver as external */
+/* USER CODE BEGIN Includes */
+//#include "libUDB.h"
+#include "radioIn.h"
+#include "serialIO.h"
+#include "servoOut.h"
+//#include "mpu6000.h"
+//#include "heartbeat.h"
 
-//#include "SIL-config.h"
-//#include "SIL-udb.h"
-//#include "SIL-ui.h"
-//#include "SIL-events.h"
-//#include "SIL-eeprom.h"
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
-uint16_t udb_heartbeat_counter;
+
+//uint16_t udb_heartbeat_counter;
 
 //This is already defined on radioIn.c
 //TODO: Where is the correct place to define this?
@@ -84,7 +89,6 @@ uint16_t mp_rcon = 3;                           // default RCON state at normal 
 extern int mp_argc;
 extern char **mp_argv;
 
-uint8_t leds[5] = {0, 0, 0, 0, 0};
 uint8_t sil_radio_on;
 
 // Functions only included with nv memory.
@@ -201,91 +205,9 @@ void HILSIM_MagData(magnetometer_callback_funcptr callback)
 
 #endif // MAG_YAW_DRIFT
 
-int16_t FindFirstBitFromLeft(int16_t val)
-{
-	int16_t i = 0;
-
-	if (val != 0)
-	{
-		for (i = 1; i <= 16; i++)
-		{
-			if (val & 0x8000) break;
-			val <<= 1;
-		}
-	}
-	return i;
-}
-
-//ToTo: Use parameter x and remove fixed GPIO_PIN_5
-void udb_led_toggle(uint8_t x)
-{
-//    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-	switch (x)
-	{
-	case LED_RED:
-		HAL_GPIO_TogglePin(LED1_Port, LED1);
-		break;
-	case LED_GREEN:
-		HAL_GPIO_TogglePin(LED2_Port, LED2);
-		break;
-	case LED_ORANGE:
-		HAL_GPIO_TogglePin(LED3_Port, LED3);
-		break;
-	case LED_BLUE:
-		HAL_GPIO_TogglePin(LED4_Port, LED4);
-		break;
-	}
-}
-
-void led_on(uint8_t x)
-{
-//void HAL_GPIO_WritePin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState);
-//    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 1);
-	switch (x)
-	{
-	case LED_RED:
-		HAL_GPIO_WritePin(LED1_Port, LED1, RESET);
-		break;
-	case LED_GREEN:
-		HAL_GPIO_WritePin(LED2_Port, LED2, RESET);
-		break;
-	case LED_ORANGE:
-		HAL_GPIO_WritePin(LED3_Port, LED3, RESET);
-		break;
-	case LED_BLUE:
-		HAL_GPIO_WritePin(LED4_Port, LED4, RESET);
-		break;
-	}
-}
-/*
-LED2 GREEN
-LED4 BLUE
-LED1 RED
-LED3 ORANGE
- */
-void led_off(uint8_t x)
-{
-//    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 0);
-	switch (x)
-	{
-	case LED_RED:
-		HAL_GPIO_WritePin(LED1_Port, LED1, SET);
-		break;
-	case LED_GREEN:
-		HAL_GPIO_WritePin(LED2_Port, LED2, SET);
-		break;
-	case LED_ORANGE:
-		HAL_GPIO_WritePin(LED3_Port, LED3, SET);
-		break;
-	case LED_BLUE:
-		HAL_GPIO_WritePin(LED4_Port, LED4, SET);
-		break;
-	}
-}
-
 uint16_t register_event_p(void (*event_callback)(void), eventPriority priority) { return 0; }
 void trigger_event(uint16_t hEvent) {}
-
+/*
 void osd_init(void) {}
 void osd_reset(void) {}
 void osd_spi_init(void) {}
@@ -296,8 +218,52 @@ void osd_spi_write_string(const uint8_t* str) {}
 void osd_spi_write_vertical_string_at_location(int16_t loc, const uint8_t* str) {}
 void osd_spi_erase_chars(uint8_t n) {}
 void osd_spi_write_number(int32_t val, int8_t num_digits, int8_t decimal_places, int8_t num_flags, int8_t header, int8_t footer) {}
+ */
+uint8_t retSD;    /* Return value for SD */
+char SD_Path[4];  /* SD logical drive path */
 
-void filesys_init(void) {}
+FATFS SDFatFs;  /* File system object for SD card logical drive */
+FIL MyFile;     /* File object */
+
+void filesys_init(void)
+{
+    FRESULT res;                                            /* FatFs function common result code */
+	uint8_t wtext[] = "Matrix Pilot with FatFs support";    /* File write buffer */
+    uint32_t byteswritten;                                  /* File write counts */
+    /*## FatFS: Link the SD driver ###########################*/
+    //  retSD = FATFS_LinkDriver(&SD_Driver, SD_Path);
+    if(FATFS_LinkDriver(&SD_Driver, SD_Path) == 0)
+    {
+        /*##-2- Register the file system object to the FatFs module ##############*/
+        res=f_mount(&SDFatFs, (TCHAR const*)SD_Path, 0);
+        if(res == FR_OK)
+        {
+            /*##-4- Create and Open a new text file object with write access #####*/
+            res=f_open(&MyFile, "MP_Nucleo.TXT", FA_CREATE_ALWAYS | FA_WRITE);
+            if(res == FR_OK)
+            {
+                /*##-5- Write data to the text file ################################*/
+                res = f_write(&MyFile, wtext, sizeof(wtext), (void *)&byteswritten);
+                if((byteswritten == 0) || (res == FR_OK))
+                {
+                    /*##-6- Close the open text file #################################*/
+                    f_close(&MyFile);
+                } else {
+					printf("f_write() - FAILED\r\n");
+				}
+
+            } else {
+				printf("f_open() - FAILED\r\n");
+			}
+        } else {
+			printf("f_mount() - FAILED\r\n");
+		}
+    } else {
+		printf("FATFS_LinkDriver() - FAILED\r\n");
+    }
+    /*##-11- Unlink the micro SD disk I/O driver ###############################*/
+    FATFS_UnLinkDriver(SD_Path);
+}
 
 //static jmp_buf default_jmp_buf;
 
@@ -319,33 +285,16 @@ void __delay32(unsigned long cycles)
 //void Reset_Handler(void) {} // this must be loosely defined in the startup code and the default seems to call main()
 //int mcu_init(void) {} // now provided by main() in the STMCubeMX generated code (redef'd to mcu_init()
 
-void heartbeat(void) // called from MPU6000 ISR
-{
-}
-
-void pulse(void) // called from TaskIMU
-{
-}
-
 void udb_init(void)
 {
-	int16_t i;
-
-	for (i = 0; i < 4; i++)
-	{
-		leds[i] = LED_OFF;
-	}
-
 	udb_heartbeat_counter = 0;
 	udb_flags.B = 0;
 	sil_radio_on = 1;
-
 //	sil_ui_init(mp_rcon);
-
-	MPU6000_init16(&heartbeat);
+	MPU6000_init16(&heartbeat); // initialise mpu from udb_init() from matrixpilot_init()
 }
 
-void udb_run(void)
+void udb_run(void) // traditionally only idled or stopped the clock
 {
 //			udb_callback_read_sensors();
 
@@ -372,52 +321,88 @@ void udb_run(void)
 //			if (nextHeartbeatTime > UDB_WRAP_TIME) nextHeartbeatTime -= UDB_WRAP_TIME;
 }
 
+background_callback gps_trigger_callback = NULL;
+
 void udb_background_trigger(background_callback callback)
 {
-	if (callback) callback();
+	gps_trigger_callback = callback;
+	TriggerGPS();
+//	if (callback) callback();
 }
+
+void RunTaskGPS(void) // called from OS TaskGPS
+{
+	if (gps_trigger_callback) gps_trigger_callback();
+//void udb_background_callback_triggered(void);
+//		udb_background_callback_triggered();
+//	udb_background_trigger(&gps_parse_common_callback);
+}
+
+int one_hertz_flag = 0;
+uint16_t udb_heartbeat_counter = 0;
+uint16_t udb_heartbeat_40hz_counter = 0;
+#define HEARTBEAT_MAX 57600 // Evenly divisible by many common values: 2^8 * 3^2 * 5^2
+
+void heartbeat(void) // called from MPU6000 ISR
+{
+	// Capture cpu_timer once per second.
+	if (udb_heartbeat_counter % (HEARTBEAT_HZ/1) == 0)
+	{
+//		cpu_load_calc();
+		one_hertz_flag = 1;
+	}
+
+	// This calls the state machine implemented in MatrixPilot/states.c
+	// it is called at high priority to ensure manual control takeover can
+	// occur, even if the lower priority tasks hang
+	// Call the periodic callback at 40 Hz
+	if (udb_heartbeat_counter % (HEARTBEAT_HZ/40) == 0)
+	{
+		// call the FSM. implemented in states.c
+		udb_heartbeat_40hz_callback(); // this was called udb_background_callback_periodic()
+		udb_heartbeat_40hz_counter = (udb_heartbeat_40hz_counter+1) % HEARTBEAT_MAX;
+	}
+
+	udb_heartbeat_counter = (udb_heartbeat_counter+1) % HEARTBEAT_MAX;
+	TriggerIMU();
+}
+
+//void pulse(void) // called from TaskIMU
+void RunTaskIMU(void) // called from OS TaskIMU
+{
+//	led_off(LED_BLUE);     // indicates logfile activity
+
+#if (NORADIO != 1)
+	// 20Hz testing of radio link
+	if ((udb_heartbeat_counter % (HEARTBEAT_HZ/20)) == 1)
+	{
+		radioIn_failsafe_check();
+	}
+	// Computation of noise rate
+	// Noise pulses are counted when they are detected, and reset once a second
+	if (udb_heartbeat_counter % (HEARTBEAT_HZ/1) == 1)
+	{
+		radioIn_failsafe_reset();
+	}
+#endif // NORADIO
+
+#ifdef VREF
+	vref_adj = (udb_vref.offset>>1) - (udb_vref.value>>1);
+#else
+	vref_adj = 0;
+#endif // VREF
+
+//	calculate_analog_sensor_values();
+	udb_callback_read_sensors();
+	udb_flags._.a2d_read = 1; // signal the A/D to start the next summation
+
+	// process sensor data, run flight controller, generate outputs. implemented in libDCM.c
+	udb_heartbeat_callback(); // this was called udb_servo_callback_prepare_outputs()
+}
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __GNUC__
-  /* With GCC/RAISONANCE, small printf (option LD Linker->Libraries->Small printf
-     set to 'Yes') calls __io_putchar() */
-  #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
-#else
-  #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
-#endif /* __GNUC__ */
-
-/**
-  * @brief  Retargets the C library printf function to the USART.
-  * @param  None
-  * @retval None
-  */
-PUTCHAR_PROTOTYPE      //  __io_putchar()
-{
-// CONSOLE_UART
-  /* Place your implementation of fputc here */
-  /* e.g. write a character to the EVAL_COM1 and Loop until the end of transmission */
-  HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
-//  HAL_UART_Transmit(&huart6, (uint8_t *)&ch, 1, 0xFFFF);
-
-  return ch;
-}
-/*
-int __io_getchar(void)
-{
-	return GetChar();
-}
- */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-  // we want to signal the process responsible for this uart
-}
-
-//void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart);
-void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
-{
-
-}
 /*
 void vApplicationIdleHook(void)
 {
@@ -436,96 +421,11 @@ void vApplicationIdleHook(void)
 }
  */
 
+////////////////////////////////////////////////////////////////////////////////
+
 void ClrError(void)
 {
 //	if (U##x##STAbits.OERR) U##x##STAbits.OERR = 0;
-}
-
-uint8_t buffered_char = 0;
-uint8_t buffered_full = 0;
-
-char IsPressed(void)
-{
-	HAL_StatusTypeDef status;
-	uint8_t Data[2];
-
-// HAL_StatusTypeDef HAL_UART_Receive(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout)
-
-	if (buffered_full == 1)
-	{
-		return 1;
-	}
-
-	status = HAL_UART_Receive(&huart2, &Data[0], 1, 0);
-	if (status == HAL_OK)
-	{
-		buffered_char = Data[0];
-		buffered_full = 1;
-		return 1;
-	}
-
-//	if (U##x##STAbits.URXDA)
-	return 0;
-}
-
-char GetChar(void)
-{
-	HAL_StatusTypeDef status;
-	uint8_t Data[2];
-	char Temp;
-//	while (!IsPressed());
-//	Temp = U##x##RXREG;
-
-	if (buffered_full == 1)
-	{
-		Temp = buffered_char;
-		buffered_full = 0;
-	}
-	else
-	{
-		status = HAL_UART_Receive(&huart2, &Data[0], 1, 0);
-		if (status == HAL_OK)
-		{
-			Temp = Data[0];
-		}
-	}
-//	ClrError();
-	return Temp;
-}
-
-/*
-void UART_PutChar(UART_HandleTypeDef *huart, char ch);
-void UART_PutChar(UART_HandleTypeDef *huart, char ch)
-{
-	if (UART_WaitOnFlagUntilTimeout(huart, UART_FLAG_TXE, RESET, 0xffff) == HAL_OK)
-	{
-		huart->Instance->DR = ch;
-	}
-}
-static HAL_StatusTypeDef UART_WaitOnFlagUntilTimeout(UART_HandleTypeDef *huart, uint32_t Flag, FlagStatus Status, uint32_t Timeout);
-//HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
- */
-void PutChar(char ch)
-{
-//	HAL_StatusTypeDef status;
-
-//	status = HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
-//	if (status == HAL_OK)
-//	{
-//	}
-
-#if 1
-	while(__HAL_UART_GET_FLAG(&huart2, UART_FLAG_TXE) == RESET)
-	{
-	}
-	huart2.Instance->DR = ch;
-//	UART_PutChar(&huart2, ch);
-#else
-	while(__HAL_UART_GET_FLAG(&huart6, UART_FLAG_TXE) == RESET)
-	{
-	}
-	huart6.Instance->DR = ch;
-#endif
 }
 
 void FSInit(void) {}
@@ -540,4 +440,41 @@ void TAMP_STAMP_IRQHandler(void)
 	tsirq = 1;
 }
 
-#endif // (BOARD_TYPE == PX4_BOARD)
+//! Test if in interrupt mode
+inline int isInterrupt(void)
+{
+    return (SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) != 0 ;
+}
+
+static __IO uint32_t uwTick;
+
+/**
+  * @brief This function is called to increment  a global variable "uwTick"
+  *        used as application time base.
+  * @note In the default implementation, this variable is incremented each 1ms
+  *       in Systick ISR.
+ * @note This function is declared as __weak to be overwritten in case of other
+  *      implementations in user file.
+  * @retval None
+  */
+void HAL_IncTick(void)
+{
+  uwTick++;
+}
+
+/**
+  * @brief Provides a tick value in millisecond.
+  * @note This function is declared as __weak to be overwritten in case of other
+  *       implementations in user file.
+  * @retval tick value
+  */
+uint32_t HAL_GetTick(void)
+{
+	if (isInterrupt())
+	{
+//		uwTick++;
+	}
+	return uwTick;
+}
+
+//#endif // (BOARD_TYPE == PX4_BOARD)

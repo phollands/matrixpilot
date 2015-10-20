@@ -50,6 +50,9 @@ extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart6;
 
 /* USER CODE BEGIN Private defines */
+#define UART_CON huart6
+#define UART_GPS huart1
+#define UART_MAV huart2
 
 /* USER CODE END Private defines */
 

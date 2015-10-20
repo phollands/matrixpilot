@@ -1,7 +1,6 @@
 /**
   ******************************************************************************
   * @file    stm32f4xx_it.c
-  * @date    25/04/2015 20:33:26
   * @brief   Interrupt Service Routines.
   ******************************************************************************
   *
@@ -75,12 +74,11 @@ void SysTick_Handler(void)
 
 /**
 * @brief This function handles EXTI line0 interrupt.
-* This interrupt is fire by MPU data ready
 */
 void EXTI0_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI0_IRQn 0 */
-	// This interrupt is fire by MPU data ready
+	// This interrupt is fired on MPU data ready
 	if(__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_0) != RESET)
 	{
 		__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_0);
@@ -97,32 +95,7 @@ void EXTI0_IRQHandler(void)
 
   /* USER CODE END EXTI0_IRQn 1 */
 }
-// DMA Receive Complete ISR Callback
-void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
-{
-	//CS goes LOW
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-	//Process MPU register data
-	int16_t tmp=0;
-    tmp=(data[7]<<8) | data[8];
-    tempC = (double)(tmp)/340.0 + 36.53;
-    X_accel = (int16_t)((data[1]<<8) | data[2])/16384.0;
-    Y_accel = (int16_t)((data[3]<<8) | data[4])/16384.0;
-    Z_accel = (int16_t)((data[5]<<8) | data[6])/16384.0;
-}
-/**
-* @brief This function handles SPI2 global interrupt.
-*/
-void SPI2_IRQHandler(void)
-{
-  /* USER CODE BEGIN SPI2_IRQn 0 */
 
-  /* USER CODE END SPI2_IRQn 0 */
-  HAL_SPI_IRQHandler(&hspi2);
-  /* USER CODE BEGIN SPI2_IRQn 1 */
-
-  /* USER CODE END SPI2_IRQn 1 */
-}
 /**
 * @brief This function handles DMA1 stream3 global interrupt.
 */
@@ -136,6 +109,7 @@ void DMA1_Stream3_IRQHandler(void)
 
   /* USER CODE END DMA1_Stream3_IRQn 1 */
 }
+
 /**
 * @brief This function handles DMA1 stream4 global interrupt.
 */
@@ -150,6 +124,31 @@ void DMA1_Stream4_IRQHandler(void)
   /* USER CODE END DMA1_Stream4_IRQn 1 */
 }
 
+/**
+* @brief This function handles SPI2 global interrupt.
+*/
+void SPI2_IRQHandler(void)
+{
+  /* USER CODE BEGIN SPI2_IRQn 0 */
 
+  /* USER CODE END SPI2_IRQn 0 */
+  HAL_SPI_IRQHandler(&hspi2);
+  /* USER CODE BEGIN SPI2_IRQn 1 */
+
+  /* USER CODE END SPI2_IRQn 1 */
+}
+// DMA Receive Complete ISR Callback
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET); //CS goes HIGH
+	//Process MPU register data
+	int16_t tmp=0;
+    X_accel = (int16_t)((data[1]<<8) | data[2])/16384.0;
+    Y_accel = (int16_t)((data[3]<<8) | data[4])/16384.0;
+    Z_accel = (int16_t)((data[5]<<8) | data[6])/16384.0;    
+	tmp=(data[7]<<8) | data[8];
+    tempC = (double)(tmp)/340.0 + 36.53;
+
+}
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

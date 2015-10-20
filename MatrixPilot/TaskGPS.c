@@ -24,7 +24,7 @@
 #include "../libUDB/heartbeat.h"
 #include "config.h"
 
-#ifdef USE_FREERTOS
+#ifdef USE_FREERTOS // (NOTE: not defined for STM32F4 builds
 //#if defined USE_FREERTOS || defined PX4
 
 #include "FreeRTOS.h"
@@ -50,8 +50,8 @@ static void TaskGPS(void* pvParameters)
 	while (1)
 	{
 		xSemaphoreTake(xSemaphoreGPS, portMAX_DELAY);
-		udb_led_toggle(LED_RED);
-void udb_background_callback_triggered(void);
+//		udb_led_toggle(LED_RED);
+//void udb_background_callback_triggered(void);
 //		udb_background_callback_triggered();
 	}
 }

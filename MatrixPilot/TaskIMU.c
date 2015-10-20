@@ -23,7 +23,7 @@
 #include "../libDCM/gpsParseCommon.h"
 #include "../libUDB/heartbeat.h"
 
-#ifdef USE_FREERTOS
+#ifdef USE_FREERTOS // (NOTE: not defined for STM32F4 builds
 //#if defined USE_FREERTOS || defined PX4
 
 #include "FreeRTOS.h"
@@ -46,7 +46,7 @@ static void TaskIMU(void* pvParameters)
 		if (i++ > 200)
 		{
 			i = 0;
-			udb_led_toggle(LED_ORANGE);
+//			udb_led_toggle(LED_ORANGE);
 		}
 	}
 }

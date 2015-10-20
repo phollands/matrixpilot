@@ -67,13 +67,17 @@
 void initMPUSPI_master16(uint16_t, uint16_t);
 
 // 16 bit SPI blocking write
-HAL_StatusTypeDef writeMPUSPIreg16(uint8_t addr, uint8_t data);
+//HAL_StatusTypeDef writeMPUSPIreg16(uint8_t addr, uint8_t data);
 
 // 16 bit SPI blocking read
-uint16_t readMPUSPIreg16(uint16_t addr);
+//uint16_t readMPUSPIreg16(uint16_t addr);
 
 // n-word, non-blocking SPI read, followed by call_back
-void readMPUSPI_burst16n(uint16_t data[], int16_t n, uint16_t addr, void (*call_back)(void));
+//void readMPUSPI_burst16n(uint16_t data[], int16_t n, uint16_t addr, void (*call_back)(void));
+
+uint8_t read_reg(uint8_t reg);
+void write_reg(uint8_t reg, uint8_t value);
+void write_checked_reg(uint8_t reg, uint8_t value);
 
 
 #endif // MPU_SPI_H

@@ -49,6 +49,25 @@ SPI_HandleTypeDef hspi2;
 DMA_HandleTypeDef hdma_spi2_rx;
 DMA_HandleTypeDef hdma_spi2_tx;
 
+/* SPI1 init function */
+void MX_SPI1_Init(void)
+{
+
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLED;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;
+  hspi1.Init.CRCPolynomial = 10;
+  HAL_SPI_Init(&hspi1);
+
+}
 /* SPI2 init function */
 void MX_SPI2_Init(void)
 {
@@ -76,7 +95,31 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 {
 
   GPIO_InitTypeDef GPIO_InitStruct;
-  if(hspi->Instance==SPI2)
+  if(hspi->Instance==SPI1)
+  {
+  /* USER CODE BEGIN SPI1_MspInit 0 */
+
+  /* USER CODE END SPI1_MspInit 0 */
+    /* Peripheral clock enable */
+    __SPI1_CLK_ENABLE();
+
+    /**SPI1 GPIO Configuration
+    PA5     ------> SPI1_SCK
+    PA6     ------> SPI1_MISO
+    PA7     ------> SPI1_MOSI
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /* USER CODE BEGIN SPI1_MspInit 1 */
+
+  /* USER CODE END SPI1_MspInit 1 */
+  }
+  else if(hspi->Instance==SPI2)
   {
   /* USER CODE BEGIN SPI2_MspInit 0 */
 
@@ -146,7 +189,26 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
 {
 
-  if(hspi->Instance==SPI2)
+  if(hspi->Instance==SPI1)
+  {
+  /* USER CODE BEGIN SPI1_MspDeInit 0 */
+
+  /* USER CODE END SPI1_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __SPI1_CLK_DISABLE();
+
+    /**SPI1 GPIO Configuration
+    PA5     ------> SPI1_SCK
+    PA6     ------> SPI1_MISO
+    PA7     ------> SPI1_MOSI
+    */
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7);
+
+  /* USER CODE BEGIN SPI1_MspDeInit 1 */
+
+  /* USER CODE END SPI1_MspDeInit 1 */
+  }
+  else if(hspi->Instance==SPI2)
   {
   /* USER CODE BEGIN SPI2_MspDeInit 0 */
 
@@ -177,167 +239,9 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
   }
 } 
 
-/*************************************************************************************/
-// This will be mpu6000.c
 /* USER CODE BEGIN 1 */
 
-void MPU6000_init16(void)
-{
-//	callback = fptr;
-
-// MPU-6000 maximum SPI clock is specified as 1 MHz for all registers
-//    however the datasheet states that the sensor and interrupt registers
-//    may be read using an SPI clock of 20 Mhz
-
-// As these register accesses are one time only during initial setup lets be
-//    conservative and only run the SPI bus at half the maximum specified speed
-
-	HAL_StatusTypeDef err;
-	// need at least 60 msec delay here
-	HAL_Delay(60);
-	err = writeMPUSPIreg16(MPUREG_PWR_MGMT_1, BIT_H_RESET);
-	if(err != HAL_OK){
-		//TODO: Do something with posible error here
-		while(1);
-	}
-	// 10msec delay seems to be needed for AUAV3 (MW's prototype)
-	HAL_Delay(10);
-	// Wake up device and select GyroZ clock (better performance)
-	err = writeMPUSPIreg16(MPUREG_PWR_MGMT_1, MPU_CLK_SEL_PLLGYROZ);
-	if(err != HAL_OK){
-		//TODO: Do something with posible error here
-		while(1);
-	}
-//	func_SPI_Write_Byte((MPUREG_PWR_MGMT_1|0x80),0x00, data);
-	// Disable I2C bus (recommended on datasheet)
-	err = writeMPUSPIreg16(MPUREG_USER_CTRL, BIT_I2C_IF_DIS);
-	if(err != HAL_OK){
-		//TODO: Do something with posible error here
-		while(1);
-	}
-	// SAMPLE RATE
-	err = writeMPUSPIreg16(MPUREG_SMPLRT_DIV, 4); // Sample rate = 200Hz  Fsample= 1Khz/(N+1) = 200Hz
-	if(err != HAL_OK){
-		//TODO: Do something with posible error here
-		while(1);
-	}
-	// scaling & DLPF
-	err = writeMPUSPIreg16(MPUREG_CONFIG, BITS_DLPF_CFG_42HZ);
-	if(err != HAL_OK){
-		//TODO: Do something with posible error here
-		while(1);
-	}
-
-//	writeMPUSPIreg16(MPUREG_GYRO_CONFIG, BITS_FS_2000DPS);  // Gyro scale 2000º/s
-	err = writeMPUSPIreg16(MPUREG_GYRO_CONFIG, BITS_FS_500DPS); // Gyro scale 500º/s
-	if(err != HAL_OK){
-		//TODO: Do something with posible error here
-		while(1);
-	}
-
-#if (ACCEL_RANGE == 2)
-	err = writeMPUSPIreg16(MPUREG_ACCEL_CONFIG, BITS_FS_2G); // Accel scele +-2g, g = 8192
-	if(err != HAL_OK){
-		//TODO: Do something with posible error here
-		while(1);
-	}
-#elif (ACCEL_RANGE == 4)
-	writeMPUSPIreg16(MPUREG_ACCEL_CONFIG, BITS_FS_4G); // Accel scale g = 4096
-#elif (ACCEL_RANGE == 8)
-	writeMPUSPIreg16(MPUREG_ACCEL_CONFIG, BITS_FS_8G); // Accel scale g = 2048
-#else
-#error "Invalid ACCEL_RANGE"
-#endif
-
-#if 0
-	// Legacy from Mark Whitehorn's testing, we might need it some day.
-	// SAMPLE RATE
-	writeMPUSPIreg16(MPUREG_SMPLRT_DIV, 7); // Sample rate = 1KHz  Fsample= 8Khz/(N+1)
-
-	// no DLPF, gyro sample rate 8KHz
-	writeMPUSPIreg16(MPUREG_CONFIG, BITS_DLPF_CFG_256HZ_NOLPF2);
-
-	writeMPUSPIreg16(MPUREG_GYRO_CONFIG, BITS_FS_500DPS); // Gyro scale 500º/s
-
-//	writeMPUSPIreg16(MPUREG_ACCEL_CONFIG, BITS_FS_2G); // Accel scale 2g, g = 16384
-	writeMPUSPIreg16(MPUREG_ACCEL_CONFIG, BITS_FS_4G); // Accel scale g = 8192
-//	writeMPUSPIreg16(MPUREG_ACCEL_CONFIG, BITS_FS_8G); // Accel scale g = 4096
-#endif
-
-	// INT CFG => Interrupt on Data Ready, totem-pole (push-pull) output INT: Clear on any read
-	err = writeMPUSPIreg16(MPUREG_INT_PIN_CFG, BIT_INT_LEVEL | BIT_INT_RD_CLEAR);
-	if(err != HAL_OK){
-		//TODO: Do something with posible error here
-		while(1);
-	}
-	// INT: Raw data ready
-	err = writeMPUSPIreg16(MPUREG_INT_ENABLE, BIT_DATA_RDY_EN);
-	if(err != HAL_OK){
-		//TODO: Do something with posible error here
-		while(1);
-	}
-
-// Bump the SPI clock up towards 10.5 MHz for ongoing sensor and interrupt register reads
-// 20 MHz is the maximum specified for the MPU-6000
-	hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
-	HAL_SPI_Init(&hspi2);
-
-	//Enable MPU INT
-	HAL_NVIC_EnableIRQ(EXTI0_IRQn);
-}
-
-
-// Blocking 16 bit write to SPI
-HAL_StatusTypeDef writeMPUSPIreg16(uint8_t addr, uint8_t cmd)
-{
-	HAL_StatusTypeDef err;
-	uint16_t i;
-	uint8_t dato[2] = {0,0};
-//	dato[1] = addr;
-//	dato[0] = cmd;
-	dato[0] = addr;
-	dato[1] = cmd;
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-	err = HAL_SPI_Transmit(&hspi2, dato, 2, 10);
-//	err = HAL_SPI_Transmit(&hspi2, dato, 1, 10);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-    for(i=0;i<0x0F;i++);
-    return err;
-}
-// SPI module has 8 word FIFOs
-// burst read 2n bytes starting at addr;
-// Since first byte is address, max of 15 data bytes may be transferred with n=7
-void readMPUSPI_burst16n(uint8_t data[], int16_t n, uint16_t addr, void (*call_back)(void))
-{
-	HAL_StatusTypeDef err;
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-    //TODO: The problem here is SPI_Receive need address on data[0]. It will call
-    //HAL_SPI_TransmitReceive_IT->SPI_TxISR->SPI_TxColseIRQHandler->HAL_SPI_TxCpltCallback
-    //wWe should implement HAL_SPI_TxCpltCallback to do what we need to do.
-    data[0] = addr;
-	err = HAL_SPI_Receive_IT(&hspi2, data, 2*n);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-	if(err != HAL_OK){
-		//TODO: Do something with posible error here
-		while(1);
-	}
-//	uint16_t i;
-//
-//	MPU_SS = 0;                 // assert chip select
-//	mpu_call_back = call_back;  // store the address of the call back routine
-//	SPI_data = &data[0];        // store address of data buffer
-//	i = SPIBUF;                 // empty read buffer
-//	addr |= 0x80;               // write address-1 in high byte + n-1 dummy words to TX FIFO
-//	SPIBUF = addr << 8;         // issue read command
-//	for (i = 0; i < n; i++) {
-//		SPIBUF = 0;             // queue 'n' null words into the SPI transmit buffer
-//	}
-//	_SPIIE = 1;                 // turn on SPI interrupts
-}
-
-
 /* USER CODE END 1 */
-
 
 /**
   * @}

@@ -18,6 +18,7 @@
 
 #include "stm32f4xx_hal.h"
 #include "usart.h"
+#include "uart.h" // ../libUDB/uart.h
 
 #undef errno
 extern int errno;
@@ -180,7 +181,7 @@ void _out(char ch)
 	}
 	else
 	{
-	__io_putchar(ch);
+		__io_putchar(ch);
 	}
 }
 
@@ -189,13 +190,13 @@ int _write(int file, char *ptr, int len)
 #if 1
     switch (file) {
     case STDOUT_FILENO: // stdout
-		if (HAL_UART_Transmit(&huart2, (uint8_t *)ptr, len, 0xFFFF) !=  HAL_OK)
+		if (HAL_UART_Transmit(&UART_CON, (uint8_t *)ptr, len, 0xFFFF) !=  HAL_OK)
 		{
 //			Error_Handler();
 		}
         break;
     case STDERR_FILENO: // stderr
-		if (HAL_UART_Transmit(&huart2, (uint8_t *)ptr, len, 0xFFFF) !=  HAL_OK)
+		if (HAL_UART_Transmit(&UART_CON, (uint8_t *)ptr, len, 0xFFFF) !=  HAL_OK)
 		{
 //			Error_Handler();
 		}

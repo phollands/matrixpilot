@@ -37,11 +37,6 @@
 #include "cmsis_os.h"
 
 /* USER CODE BEGIN 0 */
-#include "mpu6000.h"
-extern double tempC;
-extern double X_accel, Y_accel, Z_accel;
-uint8_t data[17]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -57,7 +52,7 @@ extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart6;
 
 /******************************************************************************/
-/*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
+/*            Cortex-M4 Processor Interruption and Exception Handlers         */
 /******************************************************************************/
 
 /**
@@ -88,10 +83,21 @@ void SysTick_Handler(void)
 void EXTI0_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI0_IRQn 0 */
+#if 0
+//	// This interrupt is fired on MPU data ready
+//	if(__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_0) != RESET)
+//	{
+//		__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_0);
+//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET); // CS goes LOW
+//		mpu_data[0]=MPUREG_ACCEL_XOUT_H|0x80;
+//		HAL_SPI_Receive_DMA(&hspi2, mpu_data, sizeof(mpu_data));
+//	}
+#else
 
   /* USER CODE END EXTI0_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
   /* USER CODE BEGIN EXTI0_IRQn 1 */
+#endif
 
   /* USER CODE END EXTI0_IRQn 1 */
 }
@@ -211,6 +217,20 @@ void USART2_IRQHandler(void)
 }
 
 /**
+* @brief This function handles EXTI line[15:10] interrupts.
+*/
+void EXTI15_10_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI15_10_IRQn 0 */
+
+  /* USER CODE END EXTI15_10_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
+  /* USER CODE BEGIN EXTI15_10_IRQn 1 */
+
+  /* USER CODE END EXTI15_10_IRQn 1 */
+}
+
+/**
 * @brief This function handles TIM5 global interrupt.
 */
 void TIM5_IRQHandler(void)
@@ -230,7 +250,7 @@ void TIM5_IRQHandler(void)
 void USART6_IRQHandler(void)
 {
   /* USER CODE BEGIN USART6_IRQn 0 */
-#if 0
+#if 1
   /* USER CODE END USART6_IRQn 0 */
   HAL_UART_IRQHandler(&huart6);
   /* USER CODE BEGIN USART6_IRQn 1 */
@@ -241,26 +261,5 @@ void USART6_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
-/**
-  * @brief  EXTI line detection callbacks.
-  * @param  GPIO_Pin: Specifies the pins connected EXTI line
-  * @retval None
-  */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	uint8_t data[8]={0,0,0,0,0,0,0,0};
-	uint8_t dataIn[8]={0,0,0,0,0,0,0,0};
-	int16_t temp=0;
-	float   tempC=0;
-
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
-
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-    data[0]=0x41|0x80;
-    HAL_SPI_TransmitReceive(&hspi2, data,dataIn,3,0x1000);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-    temp = (dataIn[1]<<8) | dataIn[2];
-    tempC = (float)temp/340 + 36.53;
-}
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

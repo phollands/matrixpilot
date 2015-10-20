@@ -27,6 +27,7 @@
 #include "config.h"
 #include "states.h"
 #include "console.h"
+#include "MAVLink.h"
 #include "telemetry.h"
 #include "flightplan.h"
 #include "flightplan-waypoints.h"
@@ -123,7 +124,7 @@ int main(void)
 	mcu_init();     // initialise the processor specific registers
 	// NOTE: STM32 port, mcu_init starts RTOS & never returns
 #endif
-	matrixpilot_init();
+	matrixpilot_init();  // initialise for non-STM32 builds
 
 	if (setjmp(buf))
 	{
@@ -134,7 +135,7 @@ int main(void)
 //	MatrixPilot();
 //	dcm_fract_test(472580108);
 
-#ifdef USE_FREERTOS
+#ifdef USE_FREERTOS // (NOTE: not defined for STM32F4 builds
 	DPRINT("Initialising RTOS\r\n");
 	init_tasks();   // initialise the RTOS Tasks (not used for STM32 port)
 	DPRINT("Starting Scheduler\r\n");
