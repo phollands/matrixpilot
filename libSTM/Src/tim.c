@@ -81,7 +81,9 @@ void MX_TIM3_Init(void)
   HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4);
 
 }
-/* TIM5 init function */
+/* TIM5 init function
+* This timer is used to PPM decode. it is configured as Input Capture
+*/
 void MX_TIM5_Init(void)
 {
   TIM_ClockConfigTypeDef sClockSourceConfig;
@@ -135,12 +137,12 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
   /* USER CODE END TIM3_MspInit 0 */
     /* Peripheral clock enable */
     __TIM3_CLK_ENABLE();
-  
-    /**TIM3 GPIO Configuration    
+
+    /**TIM3 GPIO Configuration
     PB0     ------> TIM3_CH3
     PB1     ------> TIM3_CH4
     PB4     ------> TIM3_CH1
-    PB5     ------> TIM3_CH2 
+    PB5     ------> TIM3_CH2
     */
     GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_4|GPIO_PIN_5;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -160,9 +162,9 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
   /* USER CODE END TIM5_MspInit 0 */
     /* Peripheral clock enable */
     __TIM5_CLK_ENABLE();
-  
-    /**TIM5 GPIO Configuration    
-    PA1     ------> TIM5_CH2 
+
+    /**TIM5 GPIO Configuration
+    PA1     ------> TIM5_CH2
     */
     GPIO_InitStruct.Pin = GPIO_PIN_1;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -205,12 +207,12 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
   /* USER CODE END TIM3_MspDeInit 0 */
     /* Peripheral clock disable */
     __TIM3_CLK_DISABLE();
-  
-    /**TIM3 GPIO Configuration    
+
+    /**TIM3 GPIO Configuration
     PB0     ------> TIM3_CH3
     PB1     ------> TIM3_CH4
     PB4     ------> TIM3_CH1
-    PB5     ------> TIM3_CH2 
+    PB5     ------> TIM3_CH2
     */
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_4|GPIO_PIN_5);
 
@@ -225,9 +227,9 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
   /* USER CODE END TIM5_MspDeInit 0 */
     /* Peripheral clock disable */
     __TIM5_CLK_DISABLE();
-  
-    /**TIM5 GPIO Configuration    
-    PA1     ------> TIM5_CH2 
+
+    /**TIM5 GPIO Configuration
+    PA1     ------> TIM5_CH2
     */
     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_1);
 
@@ -253,7 +255,7 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
 
   /* USER CODE END TIM10_MspDeInit 1 */
   }
-} 
+}
 
 /* USER CODE BEGIN 1 */
 
