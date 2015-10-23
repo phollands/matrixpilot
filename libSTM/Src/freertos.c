@@ -144,19 +144,23 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
+  // There is some issue with Priorities and Stack size. I have to modify to make it work.
+  //it seems that we can't use priorities Above Normal. To use AboveNormal we have to change
+  //configMAX_PRIORITIES to 5 on FreeRTOSConfig.h
+  //I'm not sure the relationship between configKERNEL_INTERRUPT_PRIORITY and configMAX_PRIORITIES
   /* USER CODE END RTOS_TIMERS */
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 1024);
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of TaskGPS */
-  osThreadDef(TaskGPS, StartTaskGPS, osPriorityAboveNormal, 0, 1024);
+  osThreadDef(TaskGPS, StartTaskGPS, osPriorityAboveNormal, 0, configMINIMAL_STACK_SIZE);
   TaskGPSHandle = osThreadCreate(osThread(TaskGPS), NULL);
 
   /* definition and creation of TaskIMU */
-  osThreadDef(TaskIMU, StartTaskIMU, osPriorityHigh, 0, 1024);
+  osThreadDef(TaskIMU, StartTaskIMU, osPriorityHigh, 0, configMINIMAL_STACK_SIZE);
   TaskIMUHandle = osThreadCreate(osThread(TaskIMU), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */

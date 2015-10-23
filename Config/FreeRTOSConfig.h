@@ -70,12 +70,12 @@
  * application requirements.
  *
  * THESE PARAMETERS ARE DESCRIBED WITHIN THE 'CONFIGURATION' SECTION OF THE
- * FreeRTOS API DOCUMENTATION AVAILABLE ON THE FreeRTOS.org WEB SITE. 
+ * FreeRTOS API DOCUMENTATION AVAILABLE ON THE FreeRTOS.org WEB SITE.
  *
  * See http://www.freertos.org/a00110.html.
  *----------------------------------------------------------*/
 
-/* USER CODE BEGIN Includes */   	      
+/* USER CODE BEGIN Includes */
 /* Section where include file can be added */
 #if (WIN == 1 || NIX == 1 || PX4 == 1)
 #define INCLUDE_xTaskGetSchedulerState  1
@@ -84,7 +84,7 @@
 #endif
 
 #include "../libUDB/oscillator.h"
-/* USER CODE END Includes */ 
+/* USER CODE END Includes */
 
 /* Ensure stdint is only used by the compiler, and not the assembler. */
 #if defined(__ICCARM__) || defined(__CC_ARM) || defined(__GNUC__)
@@ -101,11 +101,12 @@
 #define configUSE_TICK_HOOK             1
 
 //#define configCPU_CLOCK_HZ              ((unsigned long)FOSC/2) // Fosc/2
-#define configCPU_CLOCK_HZ              ((unsigned long)FOSC/2) // Fosc/2
-//#define configCPU_CLOCK_HZ                       ( SystemCoreClock )
+//#define configCPU_CLOCK_HZ              ((unsigned long)FOSC/2) // Fosc/2
+//This is the correct clock_hz
+#define configCPU_CLOCK_HZ                       ( SystemCoreClock )
 
 #define configTICK_RATE_HZ              ((TickType_t)1000)
-#define configMAX_PRIORITIES            ( 4 )
+#define configMAX_PRIORITIES            ( 6 )
 #define configMINIMAL_STACK_SIZE        (500)   // (105)
 #define configTOTAL_HEAP_SIZE           ((size_t)12000)
 #define configMAX_TASK_NAME_LEN         ( 4 )
@@ -156,15 +157,16 @@ PRIORITY THAN THIS! (higher priorities are lower numeric values. */
 
 /* Interrupt priorities used by the kernel port layer itself.  These are generic
 to all Cortex-M ports, and do not rely on any particular library functions. */
-//#define configKERNEL_INTERRUPT_PRIORITY 		( configLIBRARY_LOWEST_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
+//I have to uncoment this line!
+#define configKERNEL_INTERRUPT_PRIORITY 		( configLIBRARY_LOWEST_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
 /* !!!! configMAX_SYSCALL_INTERRUPT_PRIORITY must not be set to zero !!!!
 See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY 	( configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
 
 /* Normal assert() semantics without relying on the provision of an assert.h
 header file. */
-/* USER CODE BEGIN 1 */   
-//#define configASSERT( x ) if ((x) == 0) {taskDISABLE_INTERRUPTS(); for( ;; );} 
+/* USER CODE BEGIN 1 */
+//#define configASSERT( x ) if ((x) == 0) {taskDISABLE_INTERRUPTS(); for( ;; );}
 /* USER CODE END 1 */
 
 /* Definitions that map the FreeRTOS port interrupt handlers to their CMSIS
@@ -172,12 +174,12 @@ standard names. */
 #define vPortSVCHandler    SVC_Handler
 #define xPortPendSVHandler PendSV_Handler
 
-/* IMPORTANT: This define MUST be commented when used with STM32Cube firmware, 
+/* IMPORTANT: This define MUST be commented when used with STM32Cube firmware,
               to prevent overwriting SysTick_Handler defined within STM32Cube HAL */
 /* #define xPortSysTickHandler SysTick_Handler */
 
-/* USER CODE BEGIN Defines */   	      
+/* USER CODE BEGIN Defines */
 /* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */
-/* USER CODE END Defines */ 
+/* USER CODE END Defines */
 
 #endif // FREERTOS_CONFIG_H
