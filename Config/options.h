@@ -132,8 +132,8 @@
 
 // Inverted flight
 // Set these to 1 to enable stabilization of inverted flight in stabilized and/or waypoint modes.
-#define INVERTED_FLIGHT_STABILIZED_MODE     0
-#define INVERTED_FLIGHT_WAYPOINT_MODE       0
+#define INVERTED_FLIGHT_STABILIZED_MODE     1
+#define INVERTED_FLIGHT_WAYPOINT_MODE       1
 
 // Hovering
 // Set these to 1 to enable stabilization of hovering in stabilized and/or waypoint modes.
@@ -322,7 +322,8 @@
 // FAILSAFE_INPUT_MIN and _MAX define the range within which we consider the radio on.
 // Normal signals should fall within about 2000 - 4000.
 #define FAILSAFE_INPUT_CHANNEL              THROTTLE_INPUT_CHANNEL
-#define FAILSAFE_INPUT_MIN                  1500
+#define FAILSAFE_INPUT_MIN	            2050 // For PDH Spektrum DX9
+//#define FAILSAFE_INPUT_MIN	            1500 // For HILSIM testing
 #define FAILSAFE_INPUT_MAX                  4500
 
 // FAILSAFE_TYPE controls the UDB's behavior when in failsafe mode due to loss of transmitter
@@ -516,7 +517,7 @@
 #define ELEVATOR_BOOST                        0.5
 
 // Parameters below are used in the computation of angle of attack and pitch trim.
-// ( INVERTED_NEUTRAL_PITCH is no longer used and should not be used.) -- Note (RobD) yes it is?
+// ( INVERTED_NEUTRAL_PITCH is no longer used and should not be used.)
 // If these parameters are not defined, angle of attack and pitch trim will be set to zero.
 // REFERENCE_SPEED                      The nominal speed in meters per second at which the parameters are defined.
 // ANGLE_OF_ATTACK_NORMAL               Angle of attack in degrees in the body frame for normal straight and level flight at cruise speed.
@@ -543,13 +544,13 @@ ELEVATOR_TRIM_INVERTED          (   0.0 )
 // Be careful not to use the offsets below with the wrong board.
 // Uncomment the line below to activate the CUSTOM_OFFSETS feature in MatrixPilot.
 
-//#define CUSTOM_OFFSETS
-#define XACCEL_OFFSET (  000 ) 
-#define YACCEL_OFFSET (  000 )
-#define ZACCEL_OFFSET (  000 )
-#define XRATE_OFFSET  (  000 ) // not used by the UDB4
-#define YRATE_OFFSET  (  000 ) // not used by the UDB4
-#define ZRATE_OFFSET  (  000 ) // not used by the UDB4
+#define CUSTOM_OFFSETS
+#define XACCEL_OFFSET (  273 )
+#define YACCEL_OFFSET (  -62 )
+#define ZACCEL_OFFSET ( -869 )
+#define XRATE_OFFSET  ( -185 )
+#define YRATE_OFFSET  (  -62 )
+#define ZRATE_OFFSET  (  -39 )
 
 // Rudder/Yaw Control Gains
 // YAWKP_RUDDER is the proportional feedback gain for rudder control of yaw orientation.
@@ -777,8 +778,8 @@ ELEVATOR_TRIM_INVERTED          (   0.0 )
 //#define ID_VEHICLE_REGISTRATION "TW2-PDH-UK"
 //#define ID_LEAD_PILOT "Pete Hollands"
 //#define ID_DIY_DRONES_URL "http://www.diydrones.com/profile/PeterHollands"
-#define ID_VEHICLE_MODEL_NAME "Alpha Axion 139 3X MP"
-#define ID_VEHICLE_REGISTRATION "AA-PDH-UK-UDB-STACK"
+#define ID_VEHICLE_MODEL_NAME "Alpha Axion 139 3X MP White Tips"
+#define ID_VEHICLE_REGISTRATION "AA-PDH-UK-UDB5"
 #define ID_LEAD_PILOT "Pete Hollands"
 #define ID_DIY_DRONES_URL "http://www.diydrones.com/profile/PeterHollands"
 
