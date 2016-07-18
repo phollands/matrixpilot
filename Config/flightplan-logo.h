@@ -270,7 +270,8 @@
 //
 // Fly a 100m square at an altitude of 100m, beginning above the origin, pointing North
 
-#define SQUARE 1
+/*
+ * #define SQUARE 1
 
 const struct logoInstructionDef instructions[] = {
 
@@ -290,6 +291,7 @@ const struct logoInstructionDef instructions[] = {
 		END
 	END
 };
+*/
 
 ////////////////////////////////////////////////////////////////////////////////
 // RTL Flight Plan
@@ -479,7 +481,7 @@ TO (INT_HANDLER)
 END
 */
 
-/*
+
 // Example of using an interrupt handler to toggle between 2 flight plans.
 // When starting the flightplan, decide whether to circle left or right, based on which direction
 // initially turns towards home.  From then on, the circling direction can be changed by moving the
@@ -530,4 +532,4 @@ TO (INT_HANDLER_LEFT)
 	END
 END
 };
-*/
+
