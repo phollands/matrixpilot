@@ -334,7 +334,7 @@ static void init_pll(void)
 {
 #if (BOARD_TYPE == UDB4_BOARD || BOARD_TYPE == UDB5_BOARD)
 #if (MIPS == 16)
-//No warning given for default MIPS speed
+//#warning 16 MIPS selected
 	CLKDIVbits.PLLPRE = 0;  // PLL prescaler: N1 = 2 (default)
 	CLKDIVbits.PLLPOST = 1; // PLL postscaler: N2 = 4 (default)
 	PLLFBDbits.PLLDIV = 30; // FOSC = 32 MHz (XTAL=8MHz, N1=2, N2=4, M = 32)
