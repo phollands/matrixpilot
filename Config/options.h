@@ -210,7 +210,7 @@
 // If using PWM inputs (parallel Rx connections), set to the number of cables connected, 1-8
 // If using PPM inputs (serial Rx connection), set to the number of Rx channels, up to PPM_NUMBER_OF_CHANNELS
 // If using LRS library (integrated SPI tranceiver), set to the number of Rx channels, up to 16
-#define NUM_INPUTS                          5
+#define NUM_INPUTS                          6
 
 // Channel numbers for each input.
 // Use as is, or edit to match your setup.
@@ -220,6 +220,8 @@
 #define AILERON_INPUT_CHANNEL               CHANNEL_1
 #define RUDDER_INPUT_CHANNEL                CHANNEL_4
 #define MODE_SWITCH_INPUT_CHANNEL           CHANNEL_5
+#define ELEVATOR_INPUT_CHANNEL		    CHANNEL_2
+#define MODE_INVERTED_CHANNEL               CHANNEL_6
 #define BRAKE_THR_SEL_INPUT_CHANNEL         CHANNEL_UNUSED
 #define BRAKE_INPUT_CHANNEL                 CHANNEL_UNUSED
 #define FLAPS_INPUT_CHANNEL                 CHANNEL_UNUSED
@@ -227,7 +229,6 @@
 #define CAMERA_YAW_INPUT_CHANNEL            CHANNEL_UNUSED
 #define CAMERA_MODE_INPUT_CHANNEL           CHANNEL_UNUSED
 #define OSD_MODE_SWITCH_INPUT_CHANNEL       CHANNEL_UNUSED
-#define MODE_INVERTED_CHANNEL               CHANNEL_UNUSED
 #define PASSTHROUGH_A_INPUT_CHANNEL         CHANNEL_UNUSED
 #define PASSTHROUGH_B_INPUT_CHANNEL         CHANNEL_UNUSED
 #define PASSTHROUGH_C_INPUT_CHANNEL         CHANNEL_UNUSED
@@ -527,7 +528,6 @@
 // ELEVATOR_TRIM_INVERTED               Elevator trim in fractional servo units (-1.0 to 1.0 ) for inverted straight and level flight at cruise speed.
 // Note: ELEVATOR_TRIM_INVERTED is usually negative, with typical values in the -0.5 to -1.0 range.
 
-ELEVATOR_TRIM_INVERTED          (   0.0 )
 
 // The following is for an Alpha Axion (White Tipped Wings) flown for real
 #define REFERENCE_SPEED                 (  12.0  )
@@ -723,13 +723,9 @@ ELEVATOR_TRIM_INVERTED          (   0.0 )
 // Set this to either FP_WAYPOINTS or FP_LOGO
 // The Waypoint definitions and options are located in the flightplan-waypoints.h file.
 // The Logo flight plan definitions and options are located in the flightplan-logo.h file.
-<<<<<<< 4075d0bc6d5fb048f43ae0e7aa1ca50dd4ea4cc0
 #ifndef FLIGHT_PLAN_TYPE
 #define FLIGHT_PLAN_TYPE                    FP_WAYPOINTS
 #endif
-=======
-#define FLIGHT_PLAN_TYPE                    FP_LOGO
->>>>>>> Test of Master in Alpha Axion with Autopilot stack. Expecting to have UDB 4 command the flight. LOGO: 2 circles and a square flight plan.
 
 ////////////////////////////////////////////////////////////////////////////////
 // Waypoint handling
