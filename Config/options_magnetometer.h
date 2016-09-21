@@ -18,13 +18,19 @@
 // You should have received a copy of the GNU General Public License
 // along with MatrixPilot.  If not, see <http://www.gnu.org/licenses/>.
 
+// To do: select magnetometer type, set MAGNETICDECLINATION,
+// and select orientation of the magnetometer, and remove the next 3 lines.
+#if (MAG_YAW_DRIFT == 1 && HILSIM != 1)
+//#warning "Check magnetometer options."
+#endif
+
 // Define which magnetometer you are using by uncommenting one
 // of the #define lines below.
 // HMC5843 is the 3DRobotics HMC5843 (now out of production).
 // HMC5883L is the 3DRobotics HMC5883L
 // HMC5883L_SF is the SparkFun HMC5883L
 
-//#define HMC5843
+#define HMC5843
 //#define HMC5883L
 //#define HMC5883L_SF
 
@@ -58,7 +64,7 @@
 
 //#define MAG_FORWARDS
 //#define MAG_BACKWARDS
-//#define MAG_INVERTED
+#define MAG_INVERTED
 //#define MAG_FLIPPED
 //#define MAG_DIRECT
 
