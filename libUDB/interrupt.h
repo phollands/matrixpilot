@@ -65,18 +65,85 @@ uint16_t SP_start(void);
 uint16_t SP_limit(void);
 uint16_t SP_current(void);
 
+#define TEST_INTERRUPT_PRIORITY_TIMINGS    1
+#if (TEST_INTERRUPT_PRIORITY_TIMINGS == 1)
+// Set Interrupt Priority on associated Output Pin for timing analysis with Logic Analyzer
+// Normal PWM Servo Outputs will be turned off elsewhere.
+#define set_ipl_on_output_pin			\
+	{					\
+		switch(SRbits.IPL)		\
+		{				\
+		    case 1:			\
+			   _LATD0 = 1;		\
+			   break;		\
+		    case 2:			\
+			   _LATD1 = 1;		\
+			   break;		\
+		    case 3:			\
+			   _LATD2 = 1;		\
+			   break;		\
+		    case 4:			\
+			   _LATD3 = 1;		\
+			   break;		\
+		    case 5:			\
+			   _LATD4 = 1;		\
+			   break;		\
+		    case 6:			\
+			   _LATD5 = 1;		\
+			   break;		\
+		    case 7:			\
+			   _LATD6 = 1;		\
+			   break;		\
+		}				\
+	}
+
+#define unset_ipl_on_output_pin			\
+	{					\
+		switch(SRbits.IPL)		\
+		{				\
+		    case 1:			\
+			   _LATD0 = 0;		\
+			   break;		\
+		    case 2:			\
+			   _LATD1 = 0;		\
+			   break;		\
+		    case 3:			\
+			   _LATD2 = 0;		\
+			   break;		\
+		    case 4:			\
+			   _LATD3 = 0;		\
+			   break;		\
+		    case 5:			\
+			   _LATD4 = 0;		\
+			   break;		\
+		    case 6:			\
+			   _LATD5 = 0;		\
+			   break;		\
+		    case 7:			\
+			   _LATD6 = 0;		\
+			   break;		\
+		}				\
+	}
+#else
+
+#define set_ipl_on_output_pin	    \
+
+#define unset_ipl_on_output_pin	    \
+
+#endif 
+
 #if (USE_MCU_IDLE == 1)
 #define indicate_loading_inter {}
 #define indicate_loading_main  {}
 #else
-#define indicate_loading_inter \
-	{ \
-		T5CONbits.TON = 1; \
+#define indicate_loading_inter			\
+	{					\
+		T5CONbits.TON = 1;		\
 	}
 
-#define indicate_loading_main \
-	{ \
-		T5CONbits.TON = 0; \
+#define indicate_loading_main			\
+	{					\
+		T5CONbits.TON = 0;		\
 	}
 #endif // USE_MCU_IDLE
 
