@@ -81,6 +81,10 @@ union longww IMUintegralAccelerationz = { 0 };
 uint16_t air_speed_3DIMU = 0;
 int16_t total_energy = 0;
 
+// Snapshot of IMUlocation at start of next update from GPS
+vect3_16t IMU_location_for_error_calculations;
+vect3_16t IMU_velocity_for_error_calculations;
+
 // GPSlocation - IMUlocation: meters
 fractional locationErrorEarth[] = { 0, 0, 0 };
 // GPSvelocity - IMUvelocity
@@ -113,7 +117,7 @@ void dead_reckon(void)
 			IMUintegralAccelerationx.WW += __builtin_mulss(DR_FILTER_GAIN, velocityErrorEarth[0]);
 			IMUintegralAccelerationy.WW += __builtin_mulss(DR_FILTER_GAIN, velocityErrorEarth[1]);
 			IMUintegralAccelerationz.WW += __builtin_mulss(DR_FILTER_GAIN, velocityErrorEarth[2]);
-
+			
 			IMUlocationx.WW += __builtin_mulss(DR_FILTER_GAIN, locationErrorEarth[0]);
 			IMUlocationy.WW += __builtin_mulss(DR_FILTER_GAIN, locationErrorEarth[1]);
 			IMUlocationz.WW += __builtin_mulss(DR_FILTER_GAIN, locationErrorEarth[2]);
@@ -141,13 +145,13 @@ void dead_reckon(void)
 			dcm_flags._.reckon_req = 0;
 			dead_reckon_clock = DR_PERIOD;
 
-			locationErrorEarth[0] = GPSlocation.x - IMUlocationx._.W1;
-			locationErrorEarth[1] = GPSlocation.y - IMUlocationy._.W1;
-			locationErrorEarth[2] = GPSlocation.z - IMUlocationz._.W1;
+			locationErrorEarth[0] = GPSlocation.x - IMU_location_for_error_calculations.x;
+			locationErrorEarth[1] = GPSlocation.y - IMU_location_for_error_calculations.y;
+			locationErrorEarth[2] = GPSlocation.z - IMU_location_for_error_calculations.z;
 
-			velocityErrorEarth[0] = GPSvelocity.x - IMUintegralAccelerationx._.W1;
-			velocityErrorEarth[1] = GPSvelocity.y - IMUintegralAccelerationy._.W1;
-			velocityErrorEarth[2] = GPSvelocity.z - IMUintegralAccelerationz._.W1;
+			velocityErrorEarth[0] = GPSvelocity.x - IMU_velocity_for_error_calculations.x;
+			velocityErrorEarth[1] = GPSvelocity.y - IMU_velocity_for_error_calculations.y;
+			velocityErrorEarth[2] = GPSvelocity.z - IMU_velocity_for_error_calculations.z;
 		}
 	}
 	else

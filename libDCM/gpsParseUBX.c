@@ -27,6 +27,7 @@
 #include "mag_drift.h"
 #include "rmat.h"
 #include "hilsim.h"
+#include "deadReckoning.h"
 
 #if (GPS_TYPE == GPS_UBX_2HZ || GPS_TYPE == GPS_UBX_4HZ || GPS_TYPE == GPS_ALL)
 
@@ -584,6 +585,14 @@ static void msg_PL1(uint8_t gpschar)
 					if (payloadlength.BB  == NUM_POINTERS_IN(msg_SOL_parse))
 					{
 						msg_parse = &msg_SOL;
+						// Reduce effect of serial GPS comms latency and
+						// Save IMU location and IMU velocity for calculations once complete GPS data arrives.
+						IMU_location_for_error_calculations.x = IMUlocationx._.W1 ;
+						IMU_location_for_error_calculations.y = IMUlocationy._.W1 ;
+						IMU_location_for_error_calculations.z = IMUlocationz._.W1 ;
+						IMU_velocity_for_error_calculations.x = IMUintegralAccelerationx._.W1 ;
+						IMU_velocity_for_error_calculations.y = IMUintegralAccelerationy._.W1 ;
+						IMU_velocity_for_error_calculations.z = IMUintegralAccelerationz._.W1 ;	
 					}
 					else
 					{
