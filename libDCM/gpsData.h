@@ -23,6 +23,7 @@
 extern struct relative3D_32 GPSlocation;
 #else
 extern struct relative3D GPSlocation;
+extern struct relative3D_32 GPSlocation_32;
 #endif // USE_EXTENDED_NAV
 
 extern struct relative3D GPSvelocity;

@@ -29,6 +29,7 @@
 
 
 #ifdef USE_EXTENDED_NAV
+#error "USE_EXTENDED_NAV currently not usable while testing 32 bit location for errorlocation"
 static void location_plane(int32_t* location)
 {
 	location[1] = ((lat_gps.WW - lat_origin.WW)/90); // in meters, range is about 20 miles
@@ -44,14 +45,26 @@ static void location_plane(int32_t* location)
 
 }
 #else // !USE_EXTENDED_NAV
-static void location_plane(int16_t* location)
+static void location_plane(int32_t* location)
 {
 	union longbbbb accum_nav;
 
-	accum_nav.WW = ((lat_gps.WW - lat_origin.WW)/90); // in meters, range is about 20 miles
-	location[1] = accum_nav._.W0;
+	// Converting to a 32 bit fractional representation
+	// Top 16 bits is location in meters from origin.
+	// Bottom 16 bits is a 16 bit fraction of 1 meter
+	accum_nav.WW = ((lat_gps.WW - lat_origin.WW)/90); 
+	location[1] = (int32_t) (accum_nav._.W0) << 16;
+	accum_nav.WW = ((lat_gps.WW - lat_origin.WW)%90) * (65536/90); 
+	accum_nav._.W0 = accum_nav._.W1;
+	accum_nav._.W1 = 0;
+	location[1] += accum_nav.WW;
+	
 	accum_nav.WW = long_scale((lon_gps.WW - lon_origin.WW)/90, cos_lat);
-	location[0] = accum_nav._.W0;
+	location[0] = (int32_t) (accum_nav._.W0) << 16;
+	accum_nav.WW = long_scale((lon_gps.WW - lon_origin.WW)%90, cos_lat) * (65536/90);
+	accum_nav._.W0 = accum_nav._.W1;
+	accum_nav._.W1 = 0;
+	location[0] += accum_nav.WW;
 #if (USE_BAROMETER_ALTITUDE == 1 ) 
 #warning "using pressure altitude instead of GPS altitude"
 	// division by 100 implies alt_origin is in centimeters; not documented elsewhere
@@ -70,7 +83,7 @@ void estLocation(void)
 	static int16_t sog_previous = 0;
 	static int16_t climb_rate_previous = 0;
 	static uint16_t velocity_previous = 0;
-	static int16_t location_previous[] = { 0, 0, 0 };
+	static int32_t location_previous[] = { 0, 0, 0 };
 
 	union longbbbb accum;
 	union longww accum_velocity;
@@ -81,7 +94,7 @@ void estLocation(void)
 #ifdef USE_EXTENDED_NAV
 	int32_t location[3];
 #else
-	int16_t location[3];
+	int32_t location[3];
 #endif // USE_EXTENDED_NAV
 	int16_t location_deltaZ;
 	struct relative2D location_deltaXY;
@@ -109,9 +122,9 @@ void estLocation(void)
 		sog_delta = sog_gps.BB - sog_previous;
 		climb_rate_delta = climb_gps.BB - climb_rate_previous;
 #if (HILSIM == 1) // No GPS latency compensation required in HILSIM
-		location_deltaXY.x = location[0];
-		location_deltaXY.y = location[1];
-		location_deltaZ    = location[2];
+		//location_deltaXY.x = location[0];
+		//location_deltaXY.y = location[1];
+		//location_deltaZ    = location[2];
 #else
 		location_deltaXY.x = location[0] - location_previous[0];
 		location_deltaXY.y = location[1] - location_previous[1];
@@ -150,9 +163,12 @@ void estLocation(void)
 
 	rotate_2D(&location_deltaXY, cog_delta); // this is a key step to account for rotation effects!!
 #if (HILSIM == 1) // No GPS latency compensation required in HILSIM
-	GPSlocation.x = location[0];
-	GPSlocation.y = location[1];
-	GPSlocation.z = location[2];
+	GPSlocation_32.x = location[0];
+	GPSlocation_32.y = location[1];
+	GPSlocation_32.z = location[2];
+	GPSlocation.x = (int16_t) (location[0] >> 16);
+	GPSlocation.y = (int16_t) (location[1] >> 16);
+	GPSlocation.z = (int16_t) location[2];
 	
 	location_previous[0] = location[0];
 	location_previous[1] = location[1];

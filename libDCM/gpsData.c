@@ -28,6 +28,7 @@
 struct relative3D_32 GPSlocation = { 0, 0, 0 };
 #else
 struct relative3D GPSlocation = { 0, 0, 0 };
+struct relative3D_32 GPSlocation_32 = { 0, 0, 0 };
 #endif // USE_EXTENDED_NAV
 struct relative3D GPSvelocity = { 0, 0, 0 };
 int16_t cos_lat = 0;

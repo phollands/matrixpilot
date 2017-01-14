@@ -82,7 +82,7 @@ uint16_t air_speed_3DIMU = 0;
 int16_t total_energy = 0;
 
 // Snapshot of IMUlocation at start of next update from GPS
-vect3_16t IMU_location_for_error_calculations;
+vect3_32t IMU_location_for_error_calculations;
 vect3_16t IMU_velocity_for_error_calculations;
 
 // GPSlocation - IMUlocation: meters
@@ -145,9 +145,12 @@ void dead_reckon(void)
 			dcm_flags._.reckon_req = 0;
 			dead_reckon_clock = DR_PERIOD;
 
-			locationErrorEarth[0] = GPSlocation.x - IMU_location_for_error_calculations.x;
-			locationErrorEarth[1] = GPSlocation.y - IMU_location_for_error_calculations.y;
-			locationErrorEarth[2] = GPSlocation.z - IMU_location_for_error_calculations.z;
+			accum.WW = GPSlocation_32.x - IMU_location_for_error_calculations.x;
+			locationErrorEarth[0] =  accum._.W1;
+			accum.WW = GPSlocation_32.y - IMU_location_for_error_calculations.y;
+			locationErrorEarth[1] = accum._.W1;
+			accum.WW = GPSlocation_32.z - IMU_location_for_error_calculations.z;
+			locationErrorEarth[2] = accum._.W0;
 
 			velocityErrorEarth[0] = GPSvelocity.x - IMU_velocity_for_error_calculations.x;
 			velocityErrorEarth[1] = GPSvelocity.y - IMU_velocity_for_error_calculations.y;
