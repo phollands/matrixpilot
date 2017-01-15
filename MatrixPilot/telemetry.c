@@ -489,7 +489,7 @@ void telemetry_restart(void)
 
 #if (SERIAL_OUTPUT_FORMAT == SERIAL_DEBUG)
 
-void telemetry_output_8hz(void)
+void telemetry_output(void)
 {
 	serial_output("lat: %li, long: %li, alt: %li\r\nrmat: %i, %i, %i, %i, %i, %i, %i, %i, %i\r\n",
 	    lat_gps.WW, lon_gps.WW, alt_sl_gps.WW,
@@ -502,7 +502,7 @@ void telemetry_output_8hz(void)
 
 extern int16_t desiredHeight;
 
-void telemetry_output_8hz(void)
+void telemetry_output(void)
 {
 	uint16_t mode;
 	struct relative2D matrix_accum;
@@ -575,7 +575,7 @@ void telemetry_output_8hz(void)
 
 #elif (SERIAL_OUTPUT_FORMAT == SERIAL_UDB_EXTRA)
 
-void telemetry_output_8hz(void)
+void telemetry_output(void)
 {
 	int16_t i;
 	static int toggle = 0;
@@ -777,7 +777,7 @@ void telemetry_output_8hz(void)
 
 #warning SERIAL_OSD_REMZIBI undergoing merge to trunk
 
-void telemetry_output_8hz(void)
+void telemetry_output(void)
 {
 	// TODO: Output interesting information for OSD.
 	// But first we'll have to implement a buffer for passthrough characters to avoid
@@ -810,7 +810,7 @@ void telemetry_output_8hz(void)
 }
  */
 
-void telemetry_output_8hz(void)
+void telemetry_output(void)
 {
 	if (udb_pulse_counter % 10 == 0) // Every 2 runs (5 heartbeat counts per 8Hz)
 	{
@@ -838,7 +838,7 @@ void telemetry_output_8hz(void)
 
 #elif (SERIAL_OUTPUT_FORMAT == SERIAL_CAM_TRACK)
 
-void telemetry_output_8hz(void)
+void telemetry_output(void)
 {
 	uint8_t checksum = 0;
 	checksum += ((union intbb)(IMUlocationx._.W1))._.B0 + ((union intbb)(IMUlocationx._.W1))._.B1;
@@ -862,7 +862,7 @@ void telemetry_output_8hz(void)
 #else //((SERIAL_OUTPUT_FORMAT != SERIAL_NONE) && (SERIAL_OUTPUT_FORMAT != SERIAL_MAVLINK))
 
 #if (USE_OSD != OSD_MINIM) && (USE_OSD != OSD_REMZIBI)
-void telemetry_output_8hz(void)
+void telemetry_output(void)
 {
 }
 #endif // USE_OSD
@@ -893,7 +893,7 @@ void udb_serial_callback_received_byte(uint8_t rxchar)
 void telemetry_restart(void)
 {
 }
-void telemetry_output_8hz(void)
+void telemetry_output(void)
 {
 }
 void telemetry_init(void)

@@ -141,7 +141,7 @@ void dcm_heartbeat_callback(void)
 		if (udb_pulse_counter % (HEARTBEAT_HZ/40) == 0)
 		{
 // RobD			flight_state_8hz();
-			telemetry_output_8hz();
+			telemetry_output();
 		}
 #endif // (SERIAL_OUTPUT_FORMAT != SERIAL_NONE)
 	}
