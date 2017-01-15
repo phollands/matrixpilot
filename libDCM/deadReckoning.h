@@ -37,8 +37,8 @@ extern int16_t forward_ground_speed;
 
 #define IMUheight IMUlocationz._.W1
 
-extern vect3_32t IMU_location_for_error_calculations;
-extern vect3_16t IMU_velocity_for_error_calculations;
+extern vect3_32t IMU_location_at_start_of_gps_update;
+extern vect3_16t IMU_velocity_at_start_of_gps_update;
 
 
 void dead_reckon(void);

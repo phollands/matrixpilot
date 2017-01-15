@@ -587,12 +587,12 @@ static void msg_PL1(uint8_t gpschar)
 						msg_parse = &msg_SOL;
 						// Reduce effect of serial GPS comms latency and
 						// Save IMU location and IMU velocity for calculations once complete GPS data arrives.
-						IMU_location_for_error_calculations.x = IMUlocationx.WW ;
-						IMU_location_for_error_calculations.y = IMUlocationy.WW ;
-						IMU_location_for_error_calculations.z = IMUlocationz._.W1 ;
-						IMU_velocity_for_error_calculations.x = IMUintegralAccelerationx._.W1 ;
-						IMU_velocity_for_error_calculations.y = IMUintegralAccelerationy._.W1 ;
-						IMU_velocity_for_error_calculations.z = IMUintegralAccelerationz._.W1 ;	
+						IMU_location_at_start_of_gps_update.x = IMUlocationx.WW ;
+						IMU_location_at_start_of_gps_update.y = IMUlocationy.WW ;
+						IMU_location_at_start_of_gps_update.z = IMUlocationz._.W1 ;
+						IMU_velocity_at_start_of_gps_update.x = IMUintegralAccelerationx._.W1 ;
+						IMU_velocity_at_start_of_gps_update.y = IMUintegralAccelerationy._.W1 ;
+						IMU_velocity_at_start_of_gps_update.z = IMUintegralAccelerationz._.W1 ;	
 					}
 					else
 					{
