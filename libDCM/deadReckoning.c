@@ -29,34 +29,7 @@
 #include "../libUDB/heartbeat.h"
 
 
-// heartbeats
-#define DR_PERIOD (int16_t)((HEARTBEAT_HZ/GPS_RATE)+4)
 
-// seconds
-#define DR_TIMESTEP (1.0/HEARTBEAT_HZ)
-
-// 1.0 in 0.16 format
-#define MAX16 (4.0*RMAX)
-
-// seconds
-#define DR_TAU 2.5
-
-// seconds * (cm/sec^2 / count) ??? is G always represented as cm/sec^2 ?
-// GRAVITYM is 980 cm/sec^2, GRAVITY is 2000 counts
-// dx/dt^2 * ACCEL2DELTAV = cm/sec
-#define ACCEL2DELTAV ((DR_TIMESTEP*GRAVITYM*MAX16)/GRAVITY)
-
-// seconds; the .01 must convert from cm/sec^2 to m/sec^2
-// cm/sec * VELOCITY2LOCATION = meters
-#define VELOCITY2LOCATION (DR_TIMESTEP*.01*MAX16*16.0)
-// The factor of 16 is so that the gain is more precise.
-// There is a subsequent right shift by 4 to cancel the multiply by 16.
-
-// dimensionless
-#define DR_FILTER_GAIN (int16_t)(DR_TIMESTEP*MAX16/DR_TAU)
-
-// 1/seconds
-#define ONE_OVER_TAU (uint16_t)(MAX16/DR_TAU)
 
 int16_t dead_reckon_clock = DR_PERIOD;
 
@@ -69,11 +42,19 @@ int16_t forward_ground_speed = 0 ;
 
 // location, as estimated by the IMU
 // high word is meters, low word is fractional meters
+union longww IMUlocation1x = { 0 };
+union longww IMUlocation1y = { 0 };
+union longww IMUlocation1z = { 0 };
+
 union longww IMUlocationx = { 0 };
 union longww IMUlocationy = { 0 };
 union longww IMUlocationz = { 0 };
 
 // integral of acceleration
+union longww IMUintegralAcceleration1x = { 0 };
+union longww IMUintegralAcceleration1y = { 0 };
+union longww IMUintegralAcceleration1z = { 0 };
+
 union longww IMUintegralAccelerationx = { 0 };
 union longww IMUintegralAccelerationy = { 0 };
 union longww IMUintegralAccelerationz = { 0 };
@@ -98,11 +79,19 @@ void dead_reckon(void)
 		IMUintegralAccelerationx.WW += __builtin_mulss(((int16_t)(ACCEL2DELTAV)), accelEarth[0]);
 		IMUintegralAccelerationy.WW += __builtin_mulss(((int16_t)(ACCEL2DELTAV)), accelEarth[1]);
 		IMUintegralAccelerationz.WW += __builtin_mulss(((int16_t)(ACCEL2DELTAV)), accelEarth[2]);
+		
+		IMUintegralAcceleration1x.WW = IMUintegralAccelerationx.WW;
+		IMUintegralAcceleration1y.WW = IMUintegralAccelerationy.WW;
+		IMUintegralAcceleration1z.WW = IMUintegralAccelerationz.WW;
 
 		// integrate IMU velocity to update the IMU location	
 		IMUlocationx.WW += (__builtin_mulss(((int16_t)(VELOCITY2LOCATION)), IMUintegralAccelerationx._.W1)>>4);
 		IMUlocationy.WW += (__builtin_mulss(((int16_t)(VELOCITY2LOCATION)), IMUintegralAccelerationy._.W1)>>4);
 		IMUlocationz.WW += (__builtin_mulss(((int16_t)(VELOCITY2LOCATION)), IMUintegralAccelerationz._.W1)>>4);
+		
+		IMUlocation1x.WW = IMUlocationx.WW;
+		IMUlocation1y.WW = IMUlocationx.WW;
+		IMUlocation1z.WW = IMUlocationx.WW;
 
 		if (dead_reckon_clock > 0)
 		// apply drift adjustments only while valid GPS data is in force.

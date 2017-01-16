@@ -118,7 +118,7 @@ static uint8_t fp_checksum;
 static void (*sio_parse)(uint8_t inchar) = &sio_newMsg;
 
 
-#define SERIAL_BUFFER_SIZE 500
+#define SERIAL_BUFFER_SIZE 1000
 static char serial_buffer[SERIAL_BUFFER_SIZE+1];
 static int16_t sb_index = 0;
 static int16_t end_index = 0;
@@ -572,7 +572,64 @@ void telemetry_output(void)
 		    earth_roll, earth_pitch, mode);
 	}
 }
+#elif  (SERIAL_OUTPUT_FORMAT == SERIAL_DEAD_RECKONING)
 
+void telemetry_output(void)
+{
+	static int first_time_through = true;
+	if ( first_time_through )
+	{
+		first_time_through = false;
+		serial_output(
+			"accelEarth[0], accelEarth[1], accelEarth[2],"
+			"ACCEL2DELTAV,"
+			"IMUintegralAcceleration1x._.W1,IMUintegralAcceleration1x._.W0,"
+			"IMUintegralAcceleration1y._.W1,IMUintegralAcceleration1y._.W0,"
+			"IMUintegralAcceleration1z._.W1,IMUintegralAcceleration1z._.W0,"
+			"VELOCITY2LOCATION,"
+			"dead_reckon_clock,"
+			"IMUlocation1x._.W1, IMUlocation1x._.W0,"
+			"IMUlocation1y._.W1, IMUlocation1y._.W0,"
+			"IMUlocation1z._.W1, IMUlocation1z._.W0,"
+			"velocityErrorEarth[0],velocityErrorEarth[1],velocityErrorEarth[2],"
+			"IMUintegralAccelerationx._.W1,IMUintegralAccelerationx._.W0,"
+			"IMUintegralAccelerationy._.W1,IMUintegralAccelerationy._.W0,"
+			"IMUintegralAccelerationz._.W1,IMUintegralAccelerationz._.W0,"
+			"IMUlocationx._.W1, IMUlocationx._.W0,"
+			"IMUlocationy._.W1, IMUlocationy._.W0,"
+			"IMUlocationz._.W1, IMUlocationz._.W0,"
+			"locationErrorEarth[0],locationErrorEarth[1],locationErrorEarth[2],"
+			"GPSlocation.x,GPSlocation.y,GPSlocation.z,"
+			"GPSvelocity.x,GPSvelocity.y,GPSvelocity.z"
+			"\n"
+		);
+	}
+	else
+	{
+		serial_output("%i,%i,%i, %i, %i,%u,%i,%u,%i,%u, %i, %i, %i,%u,%i,%u,%i,%u, %i,%i,%i, %i,%u,%i,%u,%i,%u ,%i,%u,%i,%u,%i,%u ,%i,%i,%i ,%i,%i,%i ,%i,%i,%i\n", \
+			accelEarth[0], accelEarth[1], accelEarth[2],
+			(int16_t) ACCEL2DELTAV,
+			IMUintegralAcceleration1x._.W1,IMUintegralAcceleration1x._.W0,
+			IMUintegralAcceleration1y._.W1,IMUintegralAcceleration1y._.W0,
+			IMUintegralAcceleration1z._.W1,IMUintegralAcceleration1z._.W0,
+			(int16_t) VELOCITY2LOCATION,
+			dead_reckon_clock,
+			IMUlocation1x._.W1, IMUlocation1x._.W0,
+			IMUlocation1y._.W1, IMUlocation1y._.W0,
+			IMUlocation1z._.W1, IMUlocation1z._.W0,
+			velocityErrorEarth[0],velocityErrorEarth[1],velocityErrorEarth[2],
+			IMUintegralAccelerationx._.W1,IMUintegralAccelerationx._.W0,
+			IMUintegralAccelerationy._.W1,IMUintegralAccelerationy._.W0,
+			IMUintegralAccelerationz._.W1,IMUintegralAccelerationz._.W0,
+			IMUlocationx._.W1, IMUlocationx._.W0,
+			IMUlocationy._.W1, IMUlocationy._.W0,
+			IMUlocationz._.W1, IMUlocationz._.W0,
+			locationErrorEarth[0],locationErrorEarth[1],locationErrorEarth[2],
+			GPSlocation.x,GPSlocation.y,GPSlocation.z,
+			GPSvelocity.x,GPSvelocity.y,GPSvelocity.z
+			);
+	}
+}
 #elif (SERIAL_OUTPUT_FORMAT == SERIAL_UDB_EXTRA)
 
 void telemetry_output(void)
