@@ -39,7 +39,11 @@
 #define MAX16 (4.0*RMAX)
 
 // seconds
+#if (GPS_RATE >= 2)
+#define DR_TAU 1
+#else
 #define DR_TAU 2.5
+#endif
 
 // seconds * (cm/sec^2 / count) ??? is G always represented as cm/sec^2 ?
 // GRAVITYM is 980 cm/sec^2, GRAVITY is 2000 counts
@@ -126,9 +130,9 @@ void dead_reckon(void)
 		{
 			dead_reckon_clock --;
 		
-			IMUlocationx.WW += __builtin_mulss(DR_FILTER_GAIN, locationErrorEarth[0]);
-			IMUlocationy.WW += __builtin_mulss(DR_FILTER_GAIN, locationErrorEarth[1]);
-			IMUlocationz.WW += __builtin_mulss(DR_FILTER_GAIN, locationErrorEarth[2]);
+			//IMUlocationx.WW += __builtin_mulss(DR_FILTER_GAIN, locationErrorEarth[0]);
+			//IMUlocationy.WW += __builtin_mulss(DR_FILTER_GAIN, locationErrorEarth[1]);
+			//IMUlocationz.WW += __builtin_mulss(DR_FILTER_GAIN, locationErrorEarth[2]);
 		}
 		else  // GPS has gotten disconnected
 		{
