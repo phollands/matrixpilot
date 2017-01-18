@@ -99,13 +99,13 @@ void dead_reckon(void)
 		{
 			dead_reckon_clock --;
 
-			IMUintegralAccelerationx.WW += __builtin_mulss(DR_FILTER_GAIN, velocityErrorEarth[0]);
-			IMUintegralAccelerationy.WW += __builtin_mulss(DR_FILTER_GAIN, velocityErrorEarth[1]);
-			IMUintegralAccelerationz.WW += __builtin_mulss(DR_FILTER_GAIN, velocityErrorEarth[2]);
+			IMUintegralAccelerationx.WW += __builtin_mulss(DR_FILTER_GAIN1, velocityErrorEarth[0]);
+			IMUintegralAccelerationy.WW += __builtin_mulss(DR_FILTER_GAIN1, velocityErrorEarth[1]);
+			IMUintegralAccelerationz.WW += __builtin_mulss(DR_FILTER_GAIN1, velocityErrorEarth[2]);
 
-			IMUlocationx.WW += __builtin_mulss(DR_FILTER_GAIN, locationErrorEarth[0]);
-			IMUlocationy.WW += __builtin_mulss(DR_FILTER_GAIN, locationErrorEarth[1]);
-			IMUlocationz.WW += __builtin_mulss(DR_FILTER_GAIN, locationErrorEarth[2]);
+			IMUlocationx.WW += __builtin_mulss(DR_FILTER_GAIN2, locationErrorEarth[0]);
+			IMUlocationy.WW += __builtin_mulss(DR_FILTER_GAIN2, locationErrorEarth[1]);
+			IMUlocationz.WW += __builtin_mulss(DR_FILTER_GAIN2, locationErrorEarth[2]);
 
 			IMUvelocityx.WW = IMUintegralAccelerationx.WW +
 			                  __builtin_mulus(ONE_OVER_TAU, 100*locationErrorEarth[0]);
