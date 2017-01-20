@@ -1,4 +1,4 @@
-// This file is part of MatrixPilot.
+/// This file is part of MatrixPilot.
 //
 //    http://code.google.com/p/gentlenav/
 //
@@ -592,6 +592,7 @@ void telemetry_output(void)
 			"IMUlocation1y._.W1, IMUlocation1y._.W0,"
 			"IMUlocation1z._.W1, IMUlocation1z._.W0,"
 			"velocityErrorEarth[0],velocityErrorEarth[1],velocityErrorEarth[2],"
+			"DR_FILTER_GAIN1,"
 			"IMUintegralAccelerationx._.W1,IMUintegralAccelerationx._.W0,"
 			"IMUintegralAccelerationy._.W1,IMUintegralAccelerationy._.W0,"
 			"IMUintegralAccelerationz._.W1,IMUintegralAccelerationz._.W0,"
@@ -599,6 +600,7 @@ void telemetry_output(void)
 			"IMUlocationy._.W1, IMUlocationy._.W0,"
 			"IMUlocationz._.W1, IMUlocationz._.W0,"
 			"locationErrorEarth[0],locationErrorEarth[1],locationErrorEarth[2],"
+			"DR_FILTER_GAIN2,"
 			"GPSlocation.x,GPSlocation.y,GPSlocation.z,"
 			"GPSvelocity.x,GPSvelocity.y,GPSvelocity.z"
 			"\n"
@@ -606,7 +608,7 @@ void telemetry_output(void)
 	}
 	else
 	{
-		serial_output("%i,%i,%i, %i, %i,%u,%i,%u,%i,%u, %i, %i, %i,%u,%i,%u,%i,%u, %i,%i,%i, %i,%u,%i,%u,%i,%u ,%i,%u,%i,%u,%i,%u ,%i,%i,%i ,%i,%i,%i ,%i,%i,%i\n", \
+		serial_output("%i,%i,%i, %i, %i,%u,%i,%u,%i,%u, %i, %i, %i,%u,%i,%u,%i,%u, %i,%i,%i,  %i, %i,%u,%i,%u,%i,%u ,%i,%u,%i,%u,%i,%u ,%i,%i,%i, %i, %i,%i,%i ,%i,%i,%i\n", \
 			accelEarth[0], accelEarth[1], accelEarth[2],
 			(int16_t) ACCEL2DELTAV,
 			IMUintegralAcceleration1x._.W1,IMUintegralAcceleration1x._.W0,
@@ -618,6 +620,7 @@ void telemetry_output(void)
 			IMUlocation1y._.W1, IMUlocation1y._.W0,
 			IMUlocation1z._.W1, IMUlocation1z._.W0,
 			velocityErrorEarth[0],velocityErrorEarth[1],velocityErrorEarth[2],
+			DR_FILTER_GAIN1,
 			IMUintegralAccelerationx._.W1,IMUintegralAccelerationx._.W0,
 			IMUintegralAccelerationy._.W1,IMUintegralAccelerationy._.W0,
 			IMUintegralAccelerationz._.W1,IMUintegralAccelerationz._.W0,
@@ -625,6 +628,7 @@ void telemetry_output(void)
 			IMUlocationy._.W1, IMUlocationy._.W0,
 			IMUlocationz._.W1, IMUlocationz._.W0,
 			locationErrorEarth[0],locationErrorEarth[1],locationErrorEarth[2],
+			DR_FILTER_GAIN2,
 			GPSlocation.x,GPSlocation.y,GPSlocation.z,
 			GPSvelocity.x,GPSvelocity.y,GPSvelocity.z
 			);

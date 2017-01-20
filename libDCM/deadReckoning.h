@@ -46,7 +46,7 @@
 // There is a subsequent right shift by 4 to cancel the multiply by 16.
 
 // dimensionless
-#define DR_FILTER_GAIN1 (int16_t)(10*DR_TIMESTEP*MAX16/DR_TAU)
+#define DR_FILTER_GAIN1 (int16_t)(DR_TIMESTEP*MAX16/DR_TAU)
 #define DR_FILTER_GAIN2 (int16_t)(DR_TIMESTEP*MAX16/DR_TAU)
 
 // 1/seconds
