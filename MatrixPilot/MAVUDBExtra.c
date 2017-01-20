@@ -185,7 +185,7 @@ void MAVUDBExtraOutput(void)
 			// F2 below means "Format Revision 2: and is used by a Telemetry parser to invoke the right pattern matching
 			// F2 is a compromise between easy reading of raw data in an ascii file and minimising extraneous data in the stream.
 			
-			// PDH Experiments with fast Telemetry:  mavlink_sue_toggle = !mavlink_sue_toggle;
+			mavlink_sue_toggle = !mavlink_sue_toggle;
 			if (state_flags._.f13_print_req == 1)
 			{
 				if (mavlink_sue_toggle && !f13_print_prepare)
@@ -196,7 +196,7 @@ void MAVUDBExtraOutput(void)
  			}
 			if (!f13_print_prepare)
 			{
-				// PDH fast telemetry experiment if (mavlink_sue_toggle)
+				if (mavlink_sue_toggle)
 				{
 //					serial_output("F2:T%li:S%d%d%d:N%li:E%li:A%li:W%i:"
 //					              "a%i:b%i:c%i:d%i:e%i:f%i:g%i:h%i:i%i:"
@@ -242,7 +242,7 @@ void MAVUDBExtraOutput(void)
 					// The following code line assumes an update rate of 4HZ, (MAVUDBExtra() called at 8 HZ))
 					// It is not changed for now, to preserve close compatibility with SERIAL_UDB_EXTRA code.
 
-					if (tow.WW > 0) tow.WW += 25; 
+					if (tow.WW > 0) tow.WW += 250; 
 
 					// Save  pwIn and PwOut buffers for printing next time around
 					// Save  pwIn and PwOut buffers for sending next time around in f2_b format message
@@ -268,7 +268,7 @@ void MAVUDBExtraOutput(void)
 						}
 					}	
 				}
-				// PDH experiment with fast telemetry    else
+				else
 				{
 					vect3_16t goal;
 					navigate_get_goal(&goal);

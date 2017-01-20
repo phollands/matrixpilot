@@ -102,6 +102,23 @@ void dead_reckon(void)
 
 	if (dcm_flags._.dead_reckon_enable == 1)  // wait for startup of GPS
 	{
+		if (gps_nav_valid() && (dcm_flags._.reckon_req == 1))
+		{
+			// compute error indications and restart the dead reckoning clock to apply them
+			dcm_flags._.reckon_req = 0;
+			dead_reckon_clock = DR_PERIOD;
+
+			accum.WW = GPSlocation_32.x - IMU_location_at_start_of_gps_update.x;
+			locationErrorEarth[0] =  accum._.W1;
+			accum.WW = GPSlocation_32.y - IMU_location_at_start_of_gps_update.y;
+			locationErrorEarth[1] = accum._.W1;
+			accum.WW = GPSlocation_32.z - IMU_location_at_start_of_gps_update.z;
+			locationErrorEarth[2] = accum._.W0;
+
+			velocityErrorEarth[0] = GPSvelocity.x - IMU_velocity_at_start_of_gps_update.x;
+			velocityErrorEarth[1] = GPSvelocity.y - IMU_velocity_at_start_of_gps_update.y;
+			velocityErrorEarth[2] = GPSvelocity.z - IMU_velocity_at_start_of_gps_update.z;
+		}
 		// integrate the accelerometers to update IMU velocity
 		IMUintegralAccelerationx.WW += __builtin_mulss(((int16_t)(ACCEL2DELTAV)), accelEarth[0]);
 		IMUintegralAccelerationy.WW += __builtin_mulss(((int16_t)(ACCEL2DELTAV)), accelEarth[1]);
@@ -141,24 +158,6 @@ void dead_reckon(void)
 			IMUvelocityx.WW = IMUintegralAccelerationx.WW;
 			IMUvelocityy.WW = IMUintegralAccelerationy.WW;
 			IMUvelocityz.WW = IMUintegralAccelerationz.WW;
-		}
-
-		if (gps_nav_valid() && (dcm_flags._.reckon_req == 1))
-		{
-			// compute error indications and restart the dead reckoning clock to apply them
-			dcm_flags._.reckon_req = 0;
-			dead_reckon_clock = DR_PERIOD;
-
-			accum.WW = GPSlocation_32.x - IMU_location_at_start_of_gps_update.x;
-			locationErrorEarth[0] =  accum._.W1;
-			accum.WW = GPSlocation_32.y - IMU_location_at_start_of_gps_update.y;
-			locationErrorEarth[1] = accum._.W1;
-			accum.WW = GPSlocation_32.z - IMU_location_at_start_of_gps_update.z;
-			locationErrorEarth[2] = accum._.W0;
-
-			velocityErrorEarth[0] = GPSvelocity.x - IMU_velocity_at_start_of_gps_update.x;
-			velocityErrorEarth[1] = GPSvelocity.y - IMU_velocity_at_start_of_gps_update.y;
-			velocityErrorEarth[2] = GPSvelocity.z - IMU_velocity_at_start_of_gps_update.z;
 		}
 	}
 	else
