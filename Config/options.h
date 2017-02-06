@@ -71,7 +71,9 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Set this value to your GPS type.  (Set to GPS_STD, GPS_UBX_2HZ, GPS_UBX_4HZ, GPS_MTEK, GPS_NMEA, or GPS_NONE)
-#define GPS_TYPE                            GPS_STD
+// GPS_UBX_PPS_2HZ is for a Ublox GPS that emits a Pulses Per Second interrupt signal for more 
+// accurate time stamping of positions.
+#define GPS_TYPE                            GPS_UBX_PPS_2HZ
 //#define DEFAULT_GPS_BAUD                    57600   // added for GPS_NMEA support
 
 

@@ -64,7 +64,7 @@ void gps_init(void)
 {
 #if (GPS_TYPE == GPS_STD)
 	init_gps_std();
-#elif (GPS_TYPE == GPS_UBX_2HZ || GPS_TYPE == GPS_UBX_4HZ)
+#elif (GPS_TYPE == GPS_UBX_2HZ || GPS_TYPE == GPS_UBX_PPS_2HZ || GPS_TYPE == GPS_UBX_4HZ)
 	init_gps_ubx();
 #elif (GPS_TYPE == GPS_MTEK)
 	init_gps_mtek();

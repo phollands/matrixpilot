@@ -167,6 +167,7 @@
 #endif
 
 #if (GPS_TYPE != GPS_STD && GPS_TYPE != GPS_UBX_2HZ && \
+     GPS_TYPE != GPS_UBX_PPS_2HZ && \
      GPS_TYPE != GPS_UBX_4HZ && GPS_TYPE != GPS_MTEK && \
      GPS_TYPE != GPS_NMEA && GPS_TYPE != GPS_NONE && \
      GPS_TYPE != GPS_ALL)

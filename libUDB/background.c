@@ -23,6 +23,7 @@
 #include "oscillator.h"
 #include "interrupt.h"
 #include "heartbeat.h"
+#include "../libDCM/libDCM.h"
 
 //#define CPU_LOAD_PERCENT  1678  // = ((65536 * 100) / ((32000000 / 2) / (16 * 256)))
 //#define CPU_LOAD_PERCENT  839   // = ((65536 * 100) / ((64000000 / 2) / (16 * 256)))
@@ -224,3 +225,25 @@ void udb_background_trigger(background_callback callback)
 	callback_fptr_2 = callback;
 	_T7IF = 1;              // trigger the interrupt
 }
+
+#ifdef GPS_PPS_ACTIVE
+void gps_pps_init(void)
+// GPS Pulse Per Second is hard wired pulse from the GPS to the UavDevboard 
+// Used for synchronizing exact time of GPS position solution with IMU Position
+// Enables algorithms to mitigate effects of GPS latency.
+{
+	GPS_PPS_EP = 0;   // Setup GPS_PPS pin to interrupt on rising edge
+	GPS_PPS_IP = INT_PRI_INT4;
+	GPS_PPS_IF = 0;   // Reset GPS_PPS interrupt flag
+	GPS_PPS_IE = 1;   // Enable GPS_PPS Interrupt Service Routine 
+}
+
+void __attribute__((interrupt, no_auto_psv)) _INT4Interrupt(void)
+{
+	GPS_PPS_IF = 0; // Clear the interrupt flag
+	indicate_loading_inter;
+	interrupt_save_set_corcon;
+	udb_led_toggle(LED_BLUE);
+	interrupt_restore_corcon;
+}
+#endif
