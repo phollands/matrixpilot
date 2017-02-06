@@ -24,11 +24,12 @@
 #include "gpsParseCommon.h"
 #include "../libUDB/serialIO.h"
 #include "../libUDB/magnetometer.h"
+#include "../libUDB/interrupt.h"
 #include "mag_drift.h"
 #include "rmat.h"
 #include "hilsim.h"
 
-#if (GPS_TYPE == GPS_UBX_2HZ || GPS_TYPE == GPS_UBX_4HZ || GPS_TYPE == GPS_ALL)
+#if (GPS_TYPE == GPS_UBX_2HZ || GPS_TYPE == GPS_UBX_PPS_2HZ || GPS_TYPE == GPS_UBX_4HZ || GPS_TYPE == GPS_ALL)
 
 // Parse the GPS messages, using the binary interface.
 // The parser uses a state machine implemented via a pointer to a function.
@@ -956,4 +957,4 @@ void init_gps_ubx(void)
 {
 }
 
-#endif // (GPS_TYPE == GPS_UBX_2HZ || GPS_TYPE == GPS_UBX_4HZ || GPS_TYPE == GPS_ALL)
+#endif // (GPS_TYPE == GPS_UBX_2HZ || GPS_TYPE == GPS_UBX_PPS_2HZ || GPS_TYPE == GPS_UBX_4HZ || GPS_TYPE == GPS_ALL)

@@ -33,6 +33,7 @@
 #include "events.h"
 #include "osd.h"
 #include "options_ports.h"
+#include "../libDCM/libDCM_defines.h"
 
 #if (USE_I2C1_DRIVER == 1)
 #include "I2C.h"
@@ -56,6 +57,7 @@
 // TODO: do something about these declarations being here - RobD
 void udb_init_ADC(void);
 void udb_init_clock(void);
+void gps_pps_init(void);
 
 union udb_fbts_byte udb_flags;
 
@@ -108,6 +110,9 @@ void udb_init(void)
 
 #if (BOARD_TYPE == UDB5_BOARD || BOARD_TYPE == AUAV3_BOARD)
 	MPU6000_init16(&heartbeat);
+#endif
+#ifdef GPS_PPS_ACTIVE
+	gps_pps_init();
 #endif
 
 	udb_init_irq(); // turn on all interrupt priorities

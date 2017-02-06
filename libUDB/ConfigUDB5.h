@@ -91,3 +91,9 @@
 #define IC_PIN6             _RD13
 #define IC_PIN7             _RD14
 #define IC_PIN8             _RD15
+
+// GPS_PPS (GPS Pulse Per Second) Interrupt Pin
+#define GPS_PPS_EP          _INT4EP
+#define GPS_PPS_IE          _INT4IE  
+#define GPS_PPS_IF          _INT4IF
+#define GPS_PPS_IP          _INT4IP

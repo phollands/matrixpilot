@@ -46,6 +46,8 @@
 #define INT_PRI_DMA1    5   // AT45D_DMA.c
 #define INT_PRI_DMA2    5   // AT45D_DMA.c
 
+#define INT_PRI_INT4	5  // GPS_PPS (Pulses Per Second) Used to accurately time GPS position / velocity data to IMU data
+
 #define INT_PRI_U1TX    4   // serialIO.c : mid range priority, no urgent reason
 #define INT_PRI_U1RX    4   // serialIO.c : mid range priority, no urgent reason
 #define INT_PRI_U2TX    4   // serialIO.c : mid range priority, no urgent reason
