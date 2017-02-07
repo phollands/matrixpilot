@@ -249,6 +249,43 @@ const uint8_t config_NAV5[] = {
 	0x17, 0xFF  // Checksum
 };
 
+#ifdef GPS_PPS_ACTIVE
+const uint8_t config_TP5[] = {
+	0xB5, 0x62, // Header
+	0x06, 0x31, // ID 
+	
+	0x20, 0x00, // Payload length
+	
+	0x00,       // Time Pulse Index
+	0x00,       // Message Version Number
+	0x00, 0x00, // Reserved
+		
+	0x32, 0x00, // Antenna cable delay in nano sec
+		
+	0x00, 0x00, // RF group delay
+	
+	0x20, 0xA1, // 500000us, Frequency or period time, depending on setting of bit 'isFreq'
+	0x07, 0x00, //
+	
+	0x00, 0x00, // 50000us,Frequency or period time when locked to GPStime, only used if 'lockedOtherSet' is set
+	0x00, 0x00, // 
+	
+	0x50, 0xC3, // Pulse length or duty cycle, depending on'isLength'
+	0x00, 0x00, // 
+	
+	0x00, 0x00, // Pulse length or duty cycle when locked to GPStime, only used if 'lockedOtherSet' is set
+	0x00, 0x00, // 
+	
+	0x00, 0x00, // User configurable time pulse delay
+	0x00, 0x00, // 
+	
+	0x51, 0x00, // Configuration flags 
+	0x00, 0x00, // 
+	
+	0xB5, 0x05  // Checksum
+};
+#endif
+
 const uint16_t set_rate_length = 14;
 const uint16_t enable_NAV_SOL_length = 16;
 const uint16_t enable_NAV_POSLLH_length = 16;
@@ -257,6 +294,7 @@ const uint16_t enable_NAV_DOP_length = 16;
 const uint16_t enable_UBX_only_length = 28;
 const uint16_t enable_SBAS_length = 16;
 const uint16_t config_NAV5_length = 44;
+const uint16_t config_TP5_length = 40;
 
 void (*msg_parse)(uint8_t gpschar) = &msg_B3;
 
@@ -426,6 +464,10 @@ void gps_startup_sequence(int16_t gpscount)
 		gpsoutbin(enable_SBAS_length, enable_SBAS);
 	else if (gpscount == 70)
 		gpsoutbin(config_NAV5_length, config_NAV5);
+#if (GPS_TYPE == GPS_UBX_PPS_2HZ )
+	else if (gpscount == 60)
+		gpsoutbin(config_TP5_length, config_TP5);
+#endif
 }
 
 boolean gps_nav_valid(void)
