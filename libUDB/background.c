@@ -24,6 +24,7 @@
 #include "interrupt.h"
 #include "heartbeat.h"
 #include "../libDCM/libDCM.h"
+#include "../libDCM/deadReckoning.h"
 
 //#define CPU_LOAD_PERCENT  1678  // = ((65536 * 100) / ((32000000 / 2) / (16 * 256)))
 //#define CPU_LOAD_PERCENT  839   // = ((65536 * 100) / ((64000000 / 2) / (16 * 256)))
@@ -244,6 +245,13 @@ void __attribute__((interrupt, no_auto_psv)) _INT4Interrupt(void)
 	indicate_loading_inter;
 	interrupt_save_set_corcon;
 	udb_led_toggle(LED_BLUE);
+	// Save IMU location and IMU velocity for IMU error calculations once complete GPS data arrives.
+	IMU_location_for_error_calculations.x = IMUlocationx._.W1 ;
+	IMU_location_for_error_calculations.y = IMUlocationy._.W1 ;
+	IMU_location_for_error_calculations.z = IMUlocationz._.W1 ;
+	IMU_velocity_for_error_calculations.x = IMUintegralAccelerationx._.W1 ;
+	IMU_velocity_for_error_calculations.y = IMUintegralAccelerationy._.W1 ;
+	IMU_velocity_for_error_calculations.z = IMUintegralAccelerationz._.W1 ;	
 	interrupt_restore_corcon;
 }
 #endif
