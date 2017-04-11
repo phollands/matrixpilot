@@ -154,14 +154,18 @@ const struct waypointDef waypoints[] = {
 
 
 const struct waypointDef waypoints[] = {
-		{ {   0,    0, 75 } , F_NORMAL, CAM_VIEW_LAUNCH } , 
-		{ {   0, -100, 75 } , F_NORMAL, CAM_VIEW_LAUNCH } ,
-		{ {-100, -100, 75 } , F_NORMAL, CAM_VIEW_LAUNCH } ,
-		{ {-100,    0, 75 } , F_NORMAL, CAM_VIEW_LAUNCH } ,
-		{ {   0,    0, 50 } , F_NORMAL, CAM_VIEW_LAUNCH } ,
-		{ {   0, -100, 50 } , F_NORMAL, CAM_VIEW_LAUNCH } ,
-		{ {-100, -100, 50 } , F_NORMAL, CAM_VIEW_LAUNCH } ,
-		{ {-100,    0, 50 } , F_NORMAL, CAM_VIEW_LAUNCH } ,		
+		{ {   0,    -50, 75 } , F_NORMAL, CAM_VIEW_LAUNCH } , 
+		{ {   0,   -200, 75 } , F_NORMAL, CAM_VIEW_LAUNCH } ,
+		{ {-200,   -200, 75 } , F_NORMAL, CAM_VIEW_LAUNCH } ,
+		{ {-200,    -50, 75 } , F_NORMAL, CAM_VIEW_LAUNCH } ,
+		{ {   0,    -50, 50 } , F_NORMAL, CAM_VIEW_LAUNCH } ,
+		{ {   0,   -200, 50 } , F_NORMAL, CAM_VIEW_LAUNCH } ,
+		{ {-200,   -200, 50 } , F_NORMAL, CAM_VIEW_LAUNCH } ,
+		{ {-200,    -50, 50 } , F_NORMAL, CAM_VIEW_LAUNCH } ,
+		{ {   0,    -50, 20 } , F_NORMAL, CAM_VIEW_LAUNCH } ,
+		{ {   0,   -200, 20 } , F_NORMAL, CAM_VIEW_LAUNCH } ,
+		{ {-200,   -200, 20 } , F_NORMAL, CAM_VIEW_LAUNCH } ,
+		{ {-200,    -50, 20 } , F_NORMAL, CAM_VIEW_LAUNCH } ,
 };
 
 #endif
