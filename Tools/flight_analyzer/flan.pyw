@@ -2347,7 +2347,7 @@ def write_csv(options,log_book):
     f_csv.write("IN5,IN6,IN7,IN8,OUT1,OUT2,OUT3,OUT4,")
     f_csv.write("OUT5,OUT6,OUT7,OUT8,LEX,LEY,LEZ,IMU_X,IMU_Y,IMU_Z,Desired_Height,Bar_Tmp,Bar_Prs,Bar_Alt_ASL,Bar_Alt_AO,MAG_W,MAG_N,MAG_Z,")
     f_csv.write("Waypoint X,WaypointY,WaypointZ,IMUvelocityX,IMUvelocityY,IMUvelocityZ,")
-    f_csv.write("Flags_Dec,Flags_Hex,Sonar_Dst,ALT_SONAR,Aero_X,Aero_Y,Aero_Z,AoI,Wing Load,AoA_Pitch,")
+    f_csv.write("Flags_Dec,Flags_Hex,Sonar_Dst,ALT_SONAR,Aero_X,Aero_Y,Aero_Z,AoI,Wing_Load,AoA_Pitch,")
     f_csv.write("Volts,Amps,mAh")
     print >> f_csv, " "
     
