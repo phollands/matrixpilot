@@ -2343,11 +2343,11 @@ def write_csv(options,log_book):
     f_csv.write("GPS_Time,GPS_Time_XML,Status,Lat,Lon,Waypoint,GPS_Alt_ASL,GPS_Alt_AO,")
     f_csv.write("Rmat0,Rmat1,Rmat2,Rmat3,Rmat4,Rmat5,Rmat6,Rmat7,Rmat8,")
     f_csv.write("Pitch,Roll,Heading,COG,SOG,CPU,SVS,VDOP,HDOP,")
-    f_csv.write("Est_AirSpd,Est_X_Wind,Est_Y_Wind,Est_Z_Wind,IN1,IN2,IN3,IN4,")
-    f_csv.write("IN5,IN6,IN7,IN8,OUT1,OUT2,OUT3,OUT4,")
-    f_csv.write("OUT5,OUT6,OUT7,OUT8,LEX,LEY,LEZ,IMU_X,IMU_Y,IMU_Z,Desired_Height,Bar_Tmp,Bar_Prs,Bar_Alt_ASL,Bar_Alt_AO,MAG_W,MAG_N,MAG_Z,")
+    f_csv.write("Est_AirSpd,Est_X_Wind,Est_Y_Wind,Est_Z_Wind,In1,In2,In3,In4,")
+    f_csv.write("In5,In6,In7,In8,Out1,Out2,Out3,Out4,")
+    f_csv.write("Out5,Out6,Out7,Out8,LEX,LEY,LEZ,IMU_X,IMU_Y,IMU_Z,Desired_Height,Bar_Tmp,Bar_Prs,Bar_Alt_ASL,Bar_Alt_AO,Mag_W,Mag_N,Mag_Z,")
     f_csv.write("Waypoint X,WaypointY,WaypointZ,IMUvelocityX,IMUvelocityY,IMUvelocityZ,")
-    f_csv.write("Flags_Dec,Flags_Hex,Sonar_Dst,ALT_SONAR,Aero_X,Aero_Y,Aero_Z,AoI,Wing_Load,AoA_Pitch,")
+    f_csv.write("Flags_Dec,Flags_Hex,Sonar_Dst,Alt_Sonar,Aero_X,Aero_Y,Aero_Z,AoI,Wing_Load,AoA_Pitch,")
     f_csv.write("Volts,Amps,mAh")
     print >> f_csv, " "
     
