@@ -2340,15 +2340,17 @@ def write_csv(options,log_book):
     ### write out a csv file enabling analysis in Excel or OpenOffice
    
     f_csv = open(options.CSV_filename, 'w')
-    print >> f_csv, "GPS Time(secs),GPS Time(XML),Status,Lat,Lon,Waypoint,GPS Alt ASL,GPS Alt AO,",
-    print >> f_csv, "Rmat0,Rmat1,Rmat2,Rmat3,Rmat4,Rmat5,Rmat6,Rmat7,Rmat8,",
-    print >> f_csv, "Pitch,Roll,Heading, COG, SOG, CPU, SVS, VDOP, HDOP,",
-    print >> f_csv, "Est AirSpd,Est X Wind,Est Y Wind,Est Z Wind,IN1,IN2,IN3,IN4,",
-    print >> f_csv, "IN5,IN6,IN7,IN8,OUT1,OUT2,OUT3,OUT4,",
-    print >> f_csv, "OUT5,OUT6,OUT7,OUT8,LEX,LEY,LEZ,IMU X,IMU Y,IMU Z,Desired Height,Bar Tmp,Bar Prs,Bar Alt ASL,Bar Alt AO,MAG W,MAG N,MAG Z,",
-    print >> f_csv, "Waypoint X,WaypointY,WaypointZ,IMUvelocityX,IMUvelocityY,IMUvelocityZ,",
-    print >> f_csv, "Flags Dec,Flags Hex,Sonar Dst,ALT_SONAR, Aero X, Aero Y, Aero Z, AoI,Wing Load, AoA Pitch,",
-    print >> f_csv, "Volts,Amps,mAh"
+    f_csv.write("GPS_Time,GPS_Time_XML,Status,Lat,Lon,Waypoint,GPS_Alt_ASL,GPS_Alt_AO,")
+    f_csv.write("Rmat0,Rmat1,Rmat2,Rmat3,Rmat4,Rmat5,Rmat6,Rmat7,Rmat8,")
+    f_csv.write("Pitch,Roll,Heading,COG,SOG,CPU,SVS,VDOP,HDOP,")
+    f_csv.write("Est_AirSpd,Est_X_Wind,Est_Y_Wind,Est_Z_Wind,IN1,IN2,IN3,IN4,")
+    f_csv.write("IN5,IN6,IN7,IN8,OUT1,OUT2,OUT3,OUT4,")
+    f_csv.write("OUT5,OUT6,OUT7,OUT8,LEX,LEY,LEZ,IMU_X,IMU_Y,IMU_Z,Desired_Height,Bar_Tmp,Bar_Prs,Bar_Alt_ASL,Bar_Alt_AO,MAG_W,MAG_N,MAG_Z,")
+    f_csv.write("Waypoint X,WaypointY,WaypointZ,IMUvelocityX,IMUvelocityY,IMUvelocityZ,")
+    f_csv.write("Flags_Dec,Flags_Hex,Sonar_Dst,ALT_SONAR,Aero_X,Aero_Y,Aero_Z,AoI,Wing Load,AoA_Pitch,")
+    f_csv.write("Volts,Amps,mAh")
+    print >> f_csv, " "
+    
     
     counter = 0
     total = 0
