@@ -108,10 +108,15 @@ void estLocation(void)
 		cog_delta = cog_circular - cog_previous;
 		sog_delta = sog_gps.BB - sog_previous;
 		climb_rate_delta = climb_gps.BB - climb_rate_previous;
-
+#if (HILSIM == 1) // No GPS latency compensation required in HILSIM
+		location_deltaXY.x = location[0];
+		location_deltaXY.y = location[1];
+		location_deltaZ    = location[2];
+#else
 		location_deltaXY.x = location[0] - location_previous[0];
 		location_deltaXY.y = location[1] - location_previous[1];
 		location_deltaZ    = location[2] - location_previous[2];
+#endif
 	}
 	else
 	{
@@ -127,17 +132,22 @@ void estLocation(void)
 	location_deltaXY.x = location_deltaXY.y = location_deltaZ = 0;
 #endif //#if (HILSIM != 1)
 	dcm_flags._.gps_history_valid = 1;
+#if (HILSIM == 1) // No GPS latency compensation required in HILSIM
+	actual_dir = cog_circular;
+	ground_velocity_magnitudeXY = sog_gps.BB;
+	GPSvelocity.z = climb_gps.BB;
+#else
 	actual_dir = cog_circular + cog_delta;
 	cog_previous = cog_circular;
 
 	// Note that all these velocities are in centimeters / second
-
+	
 	ground_velocity_magnitudeXY = sog_gps.BB + sog_delta;
 	sog_previous = sog_gps.BB;
 
 	GPSvelocity.z = climb_gps.BB + climb_rate_delta;
 	climb_rate_previous = climb_gps.BB;
-
+#endif
 	accum_velocity.WW = (__builtin_mulss(cosine(actual_dir), ground_velocity_magnitudeXY) << 2) + 0x00008000;
 	GPSvelocity.x = accum_velocity._.W1;
 
@@ -145,15 +155,23 @@ void estLocation(void)
 	GPSvelocity.y = accum_velocity._.W1;
 
 	rotate_2D(&location_deltaXY, cog_delta); // this is a key step to account for rotation effects!!
-
-	GPSlocation.x = location[0] + location_deltaXY.x;
-	GPSlocation.y = location[1] + location_deltaXY.y;
-	GPSlocation.z = location[2] + location_deltaZ;
-
+#if (HILSIM == 1) // No GPS latency compensation required in HILSIM
+	GPSlocation.x = location[0];
+	GPSlocation.y = location[1];
+	GPSlocation.z = location[2];
+	
 	location_previous[0] = location[0];
 	location_previous[1] = location[1];
 	location_previous[2] = location[2];
-
+#else
+	GPSlocation.x = location[0] + location_deltaXY.x;
+	GPSlocation.y = location[1] + location_deltaXY.y;
+	GPSlocation.z = location[2] + location_deltaZ;
+	
+	location_previous[0] = location[0];
+	location_previous[1] = location[1];
+	location_previous[2] = location[2];
+#endif
 	velocity_thru_air.y = GPSvelocity.y - estimatedWind[1];
 	velocity_thru_air.x = GPSvelocity.x - estimatedWind[0];
 	velocity_thru_airz  = GPSvelocity.z - estimatedWind[2];
