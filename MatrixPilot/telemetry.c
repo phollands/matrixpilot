@@ -118,7 +118,7 @@ static uint8_t fp_checksum;
 static void (*sio_parse)(uint8_t inchar) = &sio_newMsg;
 
 
-#define SERIAL_BUFFER_SIZE 256
+#define SERIAL_BUFFER_SIZE 500
 static char serial_buffer[SERIAL_BUFFER_SIZE+1];
 static int16_t sb_index = 0;
 static int16_t end_index = 0;
@@ -666,7 +666,7 @@ void telemetry_output_8hz(void)
  			}
 			if (!f13_print_prepare)
 			{
-				if (toggle)
+				//if (toggle)
 				{
 					serial_output("F2:T%li:S%d%d%d:N%li:E%li:A%li:W%i:"
 					              "a%i:b%i:c%i:d%i:e%i:f%i:g%i:h%i:i%i:"
@@ -689,7 +689,7 @@ void telemetry_output_8hz(void)
 
 					// Approximate time passing between each telemetry line, even though
 					// we may not have new GPS time data each time through.
-					if (tow.WW > 0) tow.WW += 250; 
+					if (tow.WW > 0) tow.WW += 25; 
 
 					// Save  pwIn and PwOut buffers for printing next time around
 					for (i = 0; i <= NUM_INPUTS; i++)
@@ -697,7 +697,7 @@ void telemetry_output_8hz(void)
 					for (i = 0; i <= NUM_OUTPUTS; i++)
 						pwOut_save[i] = udb_pwOut[i];
 				}
-				else
+				//else
 				{
 					int16_t i;
 					vect3_16t goal;
