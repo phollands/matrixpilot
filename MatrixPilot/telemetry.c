@@ -732,6 +732,7 @@ void telemetry_output_8hz(void)
 					extern uint16_t maxstack;
 					serial_output("stk%d:", (int16_t)(4096-maxstack));
 #endif // RECORD_FREE_STACK_SPACE
+					serial_output("Om%d,%d,%d:",omegagyro[0], omegagyro[1], omegagyro[2] );
 					serial_output("\r\n");
 					serial_output("F23:G%i:V%i:\r\n",gps_parse_errors,vdop);
 				}
