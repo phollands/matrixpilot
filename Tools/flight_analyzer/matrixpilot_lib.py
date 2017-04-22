@@ -266,6 +266,10 @@ class base_telemetry :
         self.desired_height = 0
         self.memory_stack_free = 0
         self.gps_parse_errors = 0
+        self.omegagyro_x = 0
+        self.omegagyro_y = 0
+        self.omegagyro_z = 0
+
 
 class mavlink_telemetry(base_telemetry):
     """Parse a single binary mavlink message record"""
@@ -1376,8 +1380,15 @@ class ascii_telemetry(base_telemetry):
                     return "Error"
             else :
                 pass
-            
-            
+            match = re.match(".*:Om([-0-9]*?),([-0-9]*?),([-0-9]*?):",line) # omega gyro values
+            if match :
+                try:
+                    self.omegagyro_x = int(match.group(1))
+                    self.omegagyro_y = int(match.group(2))
+                    self.omegagyro_z = int(match.group(3))
+                except:
+                    print "Corrupt OM: Omega gyros values in line", line_no
+                    pass
             
              # line was parsed without major errors
             return "F2"

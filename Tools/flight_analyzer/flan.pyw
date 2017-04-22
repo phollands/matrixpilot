@@ -2355,7 +2355,7 @@ def write_csv(options,log_book):
     print >> f_csv, "OUT5,OUT6,OUT7,OUT8,LEX,LEY,LEZ,IMU X,IMU Y,IMU Z,Desired Height,Bar Tmp,Bar Prs,Bar Alt ASL,Bar Alt AO,MAG W,MAG N,MAG Z,",
     print >> f_csv, "Waypoint X,WaypointY,WaypointZ,IMUvelocityX,IMUvelocityY,IMUvelocityZ,",
     print >> f_csv, "Flags Dec,Flags Hex,Sonar Dst,ALT_SONAR, Aero X, Aero Y, Aero Z, AoI,Wing Load, AoA Pitch,",
-    print >> f_csv, "Volts,Amps,mAh"
+    print >> f_csv, "Volts,Amps,mAh,Gyro_x,Gyro_y,Gyro_z"
     
     counter = 0
     total = 0
@@ -2463,7 +2463,8 @@ def write_csv(options,log_book):
               entry.aero_force_x, ",", entry.aero_force_y, ",", entry.aero_force_z,",","{0:.2f}".format(incidence), \
               ",","{0:.4f}".format(relative_wing_loading),",","{0:.2f}".format(aoa_using_pitch), \
               ",","{0:.3f}".format(entry.battery_voltage/10),",","{0:.3f}".format(entry.battery_ampage/10), \
-              ",","{0:.3f}".format(entry.battery_amphours)
+              ",","{0:.3f}".format(entry.battery_amphours), \
+              ",",entry.omegagyro_x,",",entry.omegagyro_y,",",entry.omegagyro_z
 
     f_csv.close()
     if (options.graph == 1): graph_wing_loading(wing_loading_list, aoa_using_pitch_list,
