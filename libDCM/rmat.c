@@ -271,6 +271,7 @@ static int16_t omegaSOG(int16_t omega, int16_t speed)
 	}
 }
 
+#define CENTRIFUGAL_WITHOUT_GPS  1
 #if (CENTRIFUGAL_WITHOUT_GPS == 1)
 static void adj_accel(int16_t angleOfAttack)
 {
