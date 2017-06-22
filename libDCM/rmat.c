@@ -348,7 +348,7 @@ static void adj_accel(int16_t angleOfAttack)
 	accum.WW = (__builtin_mulss(omega_times_velocity , rotation_axis[1] ) ) << 2;
 	gravity_vector_plane[0] = gplane[0] - accum._.W1;
 	accum.WW = (__builtin_mulss(omega_times_velocity , rotation_axis[0] ) ) << 2;
-	gravity_vector_plane[0] = gplane[0] + accum._.W1;
+	gravity_vector_plane[2] = gplane[2] + accum._.W1;
 }
 #else
 static void adj_accel(int16_t angleOfAttack)
