@@ -267,6 +267,9 @@ class base_telemetry :
         self.memory_stack_free = 0
         self.gps_parse_errors = 0
 
+        self.x_plane_pitch = 0
+        self.x_plane_roll = 0
+
 class mavlink_telemetry(base_telemetry):
     """Parse a single binary mavlink message record"""
     def parse(self,telemetry_file,record_no, max_tm_actual) :
@@ -1376,6 +1379,21 @@ class ascii_telemetry(base_telemetry):
                     return "Error"
             else :
                 pass
+
+            match = re.match(".*:Pt([-0-9]*?):",line) # Pitch recieved directly from X-Plane simulation
+            if match :
+                try:
+                    self.x_plane_pitch  = int(match.group(1))
+                except:
+                    pass
+            else :
+                pass
+            match = re.match(".*:Rl([-0-9]*?):",line) # Roll recieved directly from X-Plane simulation
+            if match :
+                try:
+                    self.x_plane_roll  = int(match.group(1))
+                except:
+                    pass
             
             
             
