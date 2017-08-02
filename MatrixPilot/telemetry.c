@@ -740,6 +740,9 @@ void telemetry_output_8hz(void)
 					extern uint16_t maxstack;
 					serial_output("stk%d:", (int16_t)(4096-maxstack));
 #endif // RECORD_FREE_STACK_SPACE
+#if ( HILSIM == 1 )
+					serial_output("Rl%d:Pt%d: ", get_x_plane_roll(), get_x_plane_pitch());
+#endif
 					serial_output("\r\n");
 					serial_output("F23:G%i:V%i:\r\n",gps_parse_errors,vdop);
 				}

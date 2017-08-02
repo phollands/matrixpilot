@@ -80,13 +80,15 @@ int rxCount = 0;
 unsigned char NAV_BODYRATES[] = {
             0xB5, 0x62,     // Header
             0x01, 0xAB,     // ID
-            0x0C, 0x00,     // Payload Length
+            0x10, 0x00,     // Payload Length
             0x00, 0x00,     // P
             0x00, 0x00,     // Q
             0x00, 0x00,     // R
             0x00, 0x00,     // gravity minus acceleration, UDBx
             0x00, 0x00,     // gravity minus acceleration, UDBy
             0x00, 0x00,     // gravity minus acceleration, UDBz
+            0x00, 0x00,     // X-Plane Pitch
+            0x00, 0x00,     // X-Plane Roll
             0x00, 0x00      // Checksum
             };
 
@@ -471,6 +473,8 @@ float GetBodyRates(float elapsedMe, float elapsedSim, int counter, void* refcon)
 
 	union intbb Temp2;
 	float phi, theta, psi;
+    int phi_int, theta_int;
+	float alpha, beta;
 	float P_flight, Q_flight, R_flight;
 	float ax, ay, az;
 	float gravity_acceleration_x, gravity_acceleration_y, gravity_acceleration_z;
@@ -512,6 +516,8 @@ float GetBodyRates(float elapsedMe, float elapsedSim, int counter, void* refcon)
 	// Psi is yaw, relative to north. North is 0/360.
 
 	// Convert these angles to radians first.
+    phi_int = XPLMGetDataf(drPhi);
+    theta_int = XPLMGetDataf(drTheta);
 	phi =   (float)((XPLMGetDataf(drPhi)   / 180) * PI);
 	theta = (float)((XPLMGetDataf(drTheta) / 180) * PI);
 	psi =   (float)((XPLMGetDataf(drPsi)   / 180) * PI);
@@ -550,7 +556,12 @@ float GetBodyRates(float elapsedMe, float elapsedSim, int counter, void* refcon)
 	Store2LE(&NAV_BODYRATES[14], Temp2);
 	Temp2.BB = (int)(gravity_acceleration_z * 204.8);
 	Store2LE(&NAV_BODYRATES[16], Temp2);
-
+    
+    Temp2.BB = phi_int;
+    Store2LE(&NAV_BODYRATES[18], Temp2);
+    Temp2.BB = theta_int;
+    Store2LE(&NAV_BODYRATES[20], Temp2);
+    
 	CalculateChecksum(NAV_BODYRATES);
 	SendToComPort(sizeof(NAV_BODYRATES), NAV_BODYRATES);
 

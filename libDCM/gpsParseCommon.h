@@ -28,6 +28,8 @@ extern volatile union longbbbb tow;
 extern volatile uint8_t hdop;               // horizontal dilution of precision
 extern volatile uint8_t vdop;               // vertical  dilution of precision
 extern volatile uint8_t svs;                // number of satellites
+
+
 //extern union longbbbb as_sim_;
 extern union longbbbb xpg, ypg, zpg;        // gps x, y, z position
 extern union intbb xvg, yvg, zvg;           // gps x, y, z velocity
@@ -96,5 +98,7 @@ boolean gps_nav_valid(void);
 void dcm_callback_gps_location_updated(void);   // Callback
 
 int16_t udb_gps_callback_get_byte_to_send(void);
-
 boolean gps_check_startup_metrics(void);
+int get_x_plane_roll(void);
+int get_x_plane_pitch(void);
+

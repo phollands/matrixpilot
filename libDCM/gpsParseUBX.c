@@ -284,6 +284,8 @@ static union intbb g_a_x_sim_, g_a_y_sim_, g_a_z_sim_;
 static union intbb g_a_x_sim,  g_a_y_sim,  g_a_z_sim;
 static union intbb p_sim_,     q_sim_,     r_sim_;
 static union intbb p_sim,      q_sim,      r_sim;
+static union intbb roll_sim_,  pitch_sim_;
+static union intbb roll_sim,   pitch_sim;
 static uint8_t x_ckey_, x_vkey_;
 static void commit_bodyrate_data(void);
 static void commit_keystroke_data(void);
@@ -292,6 +294,16 @@ static void commit_keystroke_data(void);
 #if (HILSIM == 1 && MAG_YAW_DRIFT == 1)
 extern uint8_t magreg[6];
 #endif
+
+int get_x_plane_roll(void)
+{
+	return(roll_sim.BB);
+}
+
+int get_x_plane_pitch(void)
+{
+	return(pitch_sim.BB);
+}
 
 uint8_t* const msg_SOL_parse[] = {
 	&tow_.__.B0, &tow_.__.B1, &tow_.__.B2, &tow_.__.B3, // iTOW
@@ -373,6 +385,9 @@ uint8_t* const msg_BODYRATES_parse[] = {
 	&g_a_x_sim_._.B0, &g_a_x_sim_._.B1, // x accel reading (grav - accel, body frame)
 	&g_a_y_sim_._.B0, &g_a_y_sim_._.B1, // y accel reading (grav - accel, body frame)
 	&g_a_z_sim_._.B0, &g_a_z_sim_._.B1, // z accel reading (grav - accel, body frame)
+	
+	&roll_sim_._.B0, &roll_sim_._.B1,   // Roll angle in degrees from X-Plane
+	&pitch_sim_._.B0, &pitch_sim_._.B1, // Pitch angle in degrees from X-Plane
 };
 uint8_t* const msg_KEYSTROKE_parse[] = {
 	&x_ckey_, &x_vkey_, // control code, virtual keystroke code
@@ -906,6 +921,8 @@ static void commit_bodyrate_data(void)
 	p_sim = p_sim_;
 	q_sim = q_sim_;
 	r_sim = r_sim_;
+	roll_sim = roll_sim_;
+	pitch_sim = pitch_sim_;
 }
 
 void HILSIM_saturate(int16_t size, int16_t vector[3])
