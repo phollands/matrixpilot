@@ -582,6 +582,11 @@ void telemetry_output_8hz(void)
 	switch (telemetry_counter)
 	{
 		case 13:
+#if (CENTRIFUGAL_WITHOUT_GPS  == 1 )
+			serial_output("CENTRIFUGAL_WITHOUT_GPS is ON\r\n");
+#else 
+			serial_output("Normal CENTRIFUGAL calculations using GPS\r\n");
+#endif
 			serial_output("F22:Sensors=%i,%i,%i,%i,%i,%i\r\n",
 				UDB_XACCEL.value, UDB_YACCEL.value,
 				UDB_ZACCEL.value + (Z_GRAVITY_SIGN ((int16_t)(2*GRAVITY))),
