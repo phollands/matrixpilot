@@ -75,6 +75,10 @@
 //#define DEFAULT_GPS_BAUD                    57600   // added for GPS_NMEA support
 
 
+#ifdef UDB5
+#define CENTRIFUGAL_WITHOUT_GPS	1
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////
 // Enable/Disable core features of this firmware
 //
@@ -152,7 +156,7 @@
 // the options_magnetometer.h file, including declination and magnetometer type.
 #ifndef MAG_YAW_DRIFT
 #ifdef AUAV3
-#define MAG_YAW_DRIFT                       1
+#define MAG_YAW_DRIFT                       0
 #else
 #define MAG_YAW_DRIFT			    0
 #endif
@@ -163,7 +167,7 @@
 // Barometers such as the BMP180 must be shaded from sunlight or they will return false readings.
 #ifndef USE_BAROMETER_ALTITUDE
 #ifdef AUAV3
-#define USE_BAROMETER_ALTITUDE              1
+#define USE_BAROMETER_ALTITUDE              0
 #else
 #define USE_BAROMETER_ALTITUDE              0
 #endif
