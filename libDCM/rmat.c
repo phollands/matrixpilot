@@ -52,15 +52,21 @@ static fractional ggain[] =  { GGAIN, GGAIN, GGAIN };
 static uint16_t spin_rate = 0;
 static fractional spin_axis[] = { 0, 0, RMAX };
 
+#if (CENTRIFUGAL_WITHOUT_GPS == 1)
+#define KI_ONOFF 0.0
+#else
+#define KI_ONOFF 1.0
+#endif // #if (CENTRIFUGAL_WITHOUT_GPS == 1)
+
 #if (BOARD_TYPE == AUAV3_BOARD || BOARD_TYPE == UDB5_BOARD || BOARD_TYPE == PX4_BOARD)
 // modified gains for MPU6000
 #define KPROLLPITCH (ACCEL_RANGE * 1280/3)
-#define KIROLLPITCH (ACCEL_RANGE * 3400 / HEARTBEAT_HZ)
+#define KIROLLPITCH (KI_ONOFF*ACCEL_RANGE * 3400 / HEARTBEAT_HZ)
 
 #elif (BOARD_TYPE == UDB4_BOARD)
 // Paul's gains for 6G accelerometers
 #define KPROLLPITCH (256*5)
-#define KIROLLPITCH (10240/HEARTBEAT_HZ) // 256
+#define KIROLLPITCH (KI_ONOFF*10240/HEARTBEAT_HZ) // 256
 
 #else
 #error Unsupported BOARD_TYPE
@@ -68,7 +74,7 @@ static fractional spin_axis[] = { 0, 0, RMAX };
 
 #define KPYAW 256*4
 //#define KIYAW 32
-#define KIYAW (1280/HEARTBEAT_HZ)
+#define KIYAW (KI_ONOFF*1280/HEARTBEAT_HZ)
 
 #define GYROSAT 15000
 // threshold at which gyros may be saturated
@@ -143,9 +149,6 @@ fractional dirOverGndHrmat[] = { 0, RMAX, 0 };
 static fractional errorRP[] = { 0, 0, 0 };
 static fractional errorYawground[] = { 0, 0, 0 };
 static fractional errorYawplane[]  = { 0, 0, 0 };
-
-// measure of error in orthogonality, used for debugging purposes:
-static fractional error = 0;
 
 void yaw_drift_reset(void)
 {
