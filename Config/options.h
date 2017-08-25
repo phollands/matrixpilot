@@ -52,7 +52,7 @@
 // ORIENTATION_ROLLCW180: board rolled 90 degrees clockwise,
 //        from point of view of the pilot, then rotate the board 180 around the Z axis of the plane,
 //        so that the GPS connector points toward the tail of the plane
-#define BOARD_ORIENTATION                   ORIENTATION_FORWARDS
+#define BOARD_ORIENTATION                   ORIENTATION_BACKWARDS
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -71,7 +71,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Set this value to your GPS type.  (Set to GPS_STD, GPS_UBX_2HZ, GPS_UBX_4HZ, GPS_MTEK, GPS_NMEA, or GPS_NONE)
-#define GPS_TYPE                            GPS_STD
+#define GPS_TYPE                            GPS_UBX_2HZ
 //#define DEFAULT_GPS_BAUD                    57600   // added for GPS_NMEA support
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -98,7 +98,7 @@
 // Aileron and Rudder Navigation
 // Set either of these to 1 to enable helical turn control for navigation.
 #define AILERON_NAVIGATION                  1
-#define RUDDER_NAVIGATION                   1
+#define RUDDER_NAVIGATION                   0
 
 // Cross track margin, in meters
 // This is used when the cross track option is attached to a waypoint
@@ -160,14 +160,22 @@
 // If you select this option, you also need to set magnetometer options in
 // the options_magnetometer.h file, including declination and magnetometer type.
 #ifndef MAG_YAW_DRIFT
-#define MAG_YAW_DRIFT                       0
+#ifdef AUAV3
+#define MAG_YAW_DRIFT                       1
+#else
+#define MAG_YAW_DRIFT			    0
+#endif
 #endif
 
 // Define USE_BAROMETER_ALTITUDE to be 1 to use barometer for altitude correction.
 // Otherwise, if set to 0 only the GPS will be used.
 // Barometers such as the BMP180 must be shaded from sunlight or they will return false readings.
 #ifndef USE_BAROMETER_ALTITUDE
+#ifdef AUAV3
+#define USE_BAROMETER_ALTITUDE              1
+#else
 #define USE_BAROMETER_ALTITUDE              0
+#endif
 #endif
 
 // Racing Mode
@@ -224,11 +232,14 @@
 // Use as is, or edit to match your setup.
 //   - If you're set up to use Rudder Navigation (like MatrixNav), then you may want to swap
 //     the aileron and rudder channels so that rudder is CHANNEL_1, and aileron is 5.
-#define THROTTLE_INPUT_CHANNEL              CHANNEL_3
-#define AILERON_INPUT_CHANNEL               CHANNEL_1
-#define ELEVATOR_INPUT_CHANNEL              CHANNEL_2
-#define RUDDER_INPUT_CHANNEL                CHANNEL_5
-#define MODE_SWITCH_INPUT_CHANNEL           CHANNEL_4
+
+// PDH: Setup for Spektrum AT6210 Receiver
+#define THROTTLE_INPUT_CHANNEL              CHANNEL_1
+#define AILERON_INPUT_CHANNEL               CHANNEL_2
+#define ELEVATOR_INPUT_CHANNEL              CHANNEL_3
+#define RUDDER_INPUT_CHANNEL                CHANNEL_4
+#define MODE_SWITCH_INPUT_CHANNEL           CHANNEL_5
+#define MODE_INVERTED_CHANNEL               CHANNEL_UNUSED
 #define BRAKE_THR_SEL_INPUT_CHANNEL         CHANNEL_UNUSED
 #define BRAKE_INPUT_CHANNEL                 CHANNEL_UNUSED
 #define FLAPS_INPUT_CHANNEL                 CHANNEL_UNUSED
@@ -237,7 +248,6 @@
 #define CAMERA_MODE_INPUT_CHANNEL           CHANNEL_UNUSED
 #define OSD_MODE_SWITCH_INPUT_CHANNEL       CHANNEL_UNUSED
 #define RSSI_INPUT_CHANNEL                  CHANNEL_UNUSED
-#define MODE_INVERTED_CHANNEL               CHANNEL_UNUSED
 #define PASSTHROUGH_A_INPUT_CHANNEL         CHANNEL_UNUSED
 #define PASSTHROUGH_B_INPUT_CHANNEL         CHANNEL_UNUSED
 #define PASSTHROUGH_C_INPUT_CHANNEL         CHANNEL_UNUSED
@@ -290,9 +300,9 @@
 // Servo Reversing Configuration
 // For any of these that are set to 1, that servo will be sent reversed controls.
 // Note that your servo reversing settings here should match what you set on your transmitter.
-#define AILERON_CHANNEL_REVERSED            0
-#define ELEVATOR_CHANNEL_REVERSED           0
-#define RUDDER_CHANNEL_REVERSED             0
+#define AILERON_CHANNEL_REVERSED            1
+#define ELEVATOR_CHANNEL_REVERSED           1
+#define RUDDER_CHANNEL_REVERSED             1
 #define AILERON_SECONDARY_CHANNEL_REVERSED  0
 #define THROTTLE_CHANNEL_REVERSED           0
 #define CAMERA_PITCH_CHANNEL_REVERSED       0
@@ -335,7 +345,9 @@
 // FAILSAFE_INPUT_MIN and _MAX define the range within which we consider the radio on.
 // Normal signals should fall within about 2000 - 4000.
 #define FAILSAFE_INPUT_CHANNEL              THROTTLE_INPUT_CHANNEL
-#define FAILSAFE_INPUT_MIN                  1500
+
+// PDH: Setup for Spektrum AR6210 Receiver + DC9 Transmitter model  "Alpha green"
+#define FAILSAFE_INPUT_MIN                  1990   // Failsafe programmed at 1970; Normal 2209
 #define FAILSAFE_INPUT_MAX                  4500
 
 // FAILSAFE_TYPE controls the UDB's behavior when in failsafe mode due to loss of transmitter
@@ -378,7 +390,7 @@
 // Note that SERIAL_MAVLINK defaults to using a baud rate of 57600 baud (other formats default to 19200)
 
 #ifndef SERIAL_OUTPUT_FORMAT
-#define SERIAL_OUTPUT_FORMAT                SERIAL_NONE
+#define SERIAL_OUTPUT_FORMAT                SERIAL_UDB_EXTRA
 #endif
 
 
@@ -506,7 +518,7 @@
 // the feed forward gain for that axis.
 // For each axis, a deflection term is added equal to the feed forward gain for that axis
 // times projection of the desired earth vertical rotation rate onto that axis
-#define FEED_FORWARD                        1.0
+#define FEED_FORWARD                        0.8
 
 // TURN_RATE_NAV and TURN_RATE_FBW set the gains of the helical turn control for
 // waypoint navigation mode and fly by wire mode respectively.
@@ -523,7 +535,7 @@
 // YAWKD_AILERON is the derivative feedback gain for ailerons in response to yaw rotation.
 // use it only if there is no rudder.
 #define ROLLKP                              0.20
-#define ROLLKD                              0.05
+#define ROLLKD                              0.00
 #define YAWKP_AILERON                       0.00
 #define YAWKD_AILERON                       0.00
 
@@ -546,27 +558,41 @@
 // ELEVATOR_TRIM_INVERTED               Elevator trim in fractional servo units (-1.0 to 1.0 ) for inverted straight and level flight at cruise speed.
 // Note: ELEVATOR_TRIM_INVERTED is usually negative, with typical values in the -0.5 to -1.0 range.
 
-#define REFERENCE_SPEED                 (  12.0 )
-#define ANGLE_OF_ATTACK_NORMAL          (   0.0 )
-#define ANGLE_OF_ATTACK_INVERTED        (   0.0 )
-#define ELEVATOR_TRIM_NORMAL            (   0.0 )
-#define ELEVATOR_TRIM_INVERTED          (   0.0 )
+#define REFERENCE_SPEED                 (  12.00 )
+#define ANGLE_OF_ATTACK_NORMAL          (   0.35 )
+#define ANGLE_OF_ATTACK_INVERTED        (  -4.55 )
+#define ELEVATOR_TRIM_NORMAL            (  -0.09 )
+#define ELEVATOR_TRIM_INVERTED          (  -0.38 )
 
-// CUSTOM OFFSETS are recommended when using Angle of Attack and Trim Parameters
+// CUSTOM OFFSETS are recommended when using Angle of Attack and Trim Ratios
 // They ensure that the measured orientation of the plane, particularly in pitch,
 // are the same for each flight (they are not re-calibrated on bootup but are
-// pre-measured and fixed for all flights by the offsets below).
-// Note each offset is specific to one specific autopilot board.
-// Be careful not to use the offsets below with the wrong board.
-// Uncomment the line below to activate the CUSTOM_OFFSETS feature in MatrixPilot.
+// pre-measured and fixed for all flights by the offsets below)
+// Note each offset is specific to one specific board.
+// Be careful not to use the offsets with the wrong board.
+#define CUSTOM_OFFSETS
+#ifdef	UDB4
+#define XACCEL_OFFSET (  832  ) 
+#define YACCEL_OFFSET (   22  )
+#define ZACCEL_OFFSET ( -1759 )
 
-//#define CUSTOM_OFFSETS
-#define XACCEL_OFFSET ( 0 ) 
-#define YACCEL_OFFSET ( 0 )
-#define ZACCEL_OFFSET ( 0 )
-#define XRATE_OFFSET  ( 0 ) // not used by the UDB4
-#define YRATE_OFFSET  ( 0 ) // not used by the UDB4
-#define ZRATE_OFFSET  ( 0 ) // not used by the UDB4
+#endif
+#ifdef	UDB5
+#define XACCEL_OFFSET (  350 ) 
+#define YACCEL_OFFSET (  -33 )
+#define ZACCEL_OFFSET ( -208 )
+#define XRATE_OFFSET  ( -304 )
+#define YRATE_OFFSET  (  -11 )
+#define ZRATE_OFFSET  (   47 )
+#endif
+#ifdef	AUAV3
+#define XACCEL_OFFSET (  -18 ) 
+#define YACCEL_OFFSET (  134 )
+#define ZACCEL_OFFSET ( -733 )
+#define XRATE_OFFSET  ( -212 )
+#define YRATE_OFFSET  (  126 )
+#define ZRATE_OFFSET  (  -50 )
+#endif
 
 // Rudder/Yaw Control Gains
 // YAWKP_RUDDER is the proportional feedback gain for rudder control of yaw orientation.
@@ -683,20 +709,20 @@
 // These settings are only used when Altitude Hold is enabled above.
 
 // Min and Max target heights in meters.  These only apply to stabilized mode.
-#define HEIGHT_TARGET_MIN                   25.0
+#define HEIGHT_TARGET_MIN                   -20.0
 #define HEIGHT_TARGET_MAX                   100.0
 
 // The range of altitude within which to linearly vary the throttle
 // and pitch to maintain altitude.  A bigger value makes altitude hold
 // smoother, and is suggested for very fast planes.
-#define HEIGHT_MARGIN                       10
+#define HEIGHT_MARGIN                       30
 
 // Use ALT_HOLD_THROTTLE_MAX when below HEIGHT_MARGIN of the target height.
 // Interpolate between ALT_HOLD_THROTTLE_MAX and ALT_HOLD_THROTTLE_MIN
 // when within HEIGHT_MARGIN of the target height.
 // Use ALT_HOLD_THROTTLE_MIN when above HEIGHT_MARGIN of the target height.
 // Throttle values are from 0.0 - 1.0.
-#define ALT_HOLD_THROTTLE_MIN               0.35
+#define ALT_HOLD_THROTTLE_MIN               0.1
 #define ALT_HOLD_THROTTLE_MAX               1.0
 
 // Use ALT_HOLD_PITCH_MAX when below HEIGHT_MARGIN of the target height.
@@ -704,9 +730,9 @@
 // within HEIGHT_MARGIN of the target height.
 // Use ALT_HOLD_PITCH_HIGH when above HEIGHT_MARGIN of the target height.
 // Pitch values are in degrees.  Negative values pitch the plane down.
-#define ALT_HOLD_PITCH_MIN                 -15.0
-#define ALT_HOLD_PITCH_MAX                  15.0
-#define ALT_HOLD_PITCH_HIGH                -15.0
+#define ALT_HOLD_PITCH_MIN                 -20.0
+#define ALT_HOLD_PITCH_MAX                  20.0
+#define ALT_HOLD_PITCH_HIGH                -20.0
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -789,10 +815,11 @@
 //#define ID_VEHICLE_REGISTRATION "TW2-PDH-UK"
 //#define ID_LEAD_PILOT "Pete Hollands"
 //#define ID_DIY_DRONES_URL "http://www.diydrones.com/profile/PeterHollands"
-#define ID_VEHICLE_MODEL_NAME               "Not Defined"
-#define ID_VEHICLE_REGISTRATION             "Not Defined"
-#define ID_LEAD_PILOT                       "Not Defined"
-#define ID_DIY_DRONES_URL                   "http://www.diydrones.com"
+#define ID_VEHICLE_MODEL_NAME "Alpha Axion 139 3X MP"
+#define ID_VEHICLE_REGISTRATION "AA-PDH-UK-UDB-STACK"
+#define ID_LEAD_PILOT "Pete Hollands"
+#define ID_DIY_DRONES_URL "http://www.diydrones.com/profile/PeterHollands"
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

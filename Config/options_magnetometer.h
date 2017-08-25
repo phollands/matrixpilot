@@ -21,19 +21,19 @@
 // Define which magnetometer you are using by uncommenting one
 // of the #define lines below.
 // HMC5843 is the 3DRobotics HMC5843 (now out of production).
-// HMC5883L is the 3DRobotics HMC5883L
+// HMC5883L is the 3DRobotics HMC5883L. Use this for the AUAV3 internal Mag.
 // HMC5883L_SF is the SparkFun HMC5883L
 
 //#define HMC5843
-//#define HMC5883L
+#define HMC5883L
 //#define HMC5883L_SF
 
 // Define magneticDeclination to be the magnectic declination, in degrees, measured
 // clockwise from the north, east is plus, west is minus.
 //  Mississauga, ON is Lat 45.58 N and Long 79.65 W, Mag. Decl. therefore is 10deg21' W or -10.35 degrees
 //  Bennet Field Springvale, ON is Lat 42deg58' N and Long 80deg9' W, Mag. Decl. therefore is 9deg48' W or -9.48 degrees
-  //Salinas, CA Magnetic Variation: 16E (1980), http://www.airport-data.com/airport/SNS/
-#define MAGNETICDECLINATION                 0
+//Salinas, CA Magnetic Variation: 16E (1980), http://www.airport-data.com/airport/SNS/
+#define MAGNETICDECLINATION                 -(54.0/60.0) // 54 Minutes West of Declination
 
 // Set to 0 for fixed declination angle or 1 for variable declination angle
 #define DECLINATIONANGLE_VARIABLE           1
@@ -57,7 +57,7 @@
 // For SparkFun HMC5883L, for MAG_DIRECT the mag mounts over the UDB, component side up.
 
 //#define MAG_FORWARDS
-//#define MAG_BACKWARDS
+#define MAG_BACKWARDS
 //#define MAG_INVERTED
 //#define MAG_FLIPPED
 //#define MAG_DIRECT
@@ -70,9 +70,9 @@
 // and set them below.
 #define MAG_STATIC_OFFSETS
 
-#define MAG_STATIC_OFFSET_X       0
-#define MAG_STATIC_OFFSET_Y       0
-#define MAG_STATIC_OFFSET_Z       0
+#define MAG_STATIC_OFFSET_X       -66
+#define MAG_STATIC_OFFSET_Y      -145
+#define MAG_STATIC_OFFSET_Z       -20
 
 // ************************************************************************
 // *** Users should not need to change anything below here ****************
