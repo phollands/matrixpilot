@@ -225,6 +225,7 @@ void flight_mode_switch_check_set(void)
 				state_flags._.man_req = 1;
 				state_flags._.auto_req = 0;
 				state_flags._.home_req = 0;
+                state_flags._.update_autopilot_state_asap = 1;
 				break;
 		}
 #else // Three Mode Switch
@@ -253,6 +254,7 @@ void flight_mode_switch_check_set(void)
 			state_flags._.man_req = 1;
 			state_flags._.auto_req = 0;
 			state_flags._.home_req = 0;
+            state_flags._.update_autopilot_state_asap = 1;
 			#endif
 		}
 #endif // MODE_SWITCH_TWO_POSITION
