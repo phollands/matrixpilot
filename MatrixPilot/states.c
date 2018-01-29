@@ -241,6 +241,7 @@ static void ent_stabilizedS(void)
 	state_flags._.pitch_feedback = 1;
 	state_flags._.altitude_hold_throttle = (settings._.AltitudeholdStabilized == AH_FULL);
 	state_flags._.altitude_hold_pitch = (settings._.AltitudeholdStabilized == AH_FULL || settings._.AltitudeholdStabilized == AH_PITCH_ONLY);
+    dcm_flags._.dead_reckon_enable = 1;
 	waggle = 0;
 	led_on(LED_RED);
 	stateS = &stabilizedS;
@@ -347,7 +348,7 @@ static void calibrateS(void)
 		calib_timer--;
 		DPRINT("calib_timer %u  \r", calib_timer);
 		if (calib_timer <= 0)
-			ent_acquiringS();
+			ent_stabilizedS();
 	}
 	else
 	{
