@@ -58,7 +58,14 @@ void servoPrepare_init(void) // initialize the PWM
 	for (i = 0; i <= NUM_INPUTS; i++)
 	{
 #if (FIXED_TRIMPOINT == 1)
-		udb_pwTrim[i] = udb_pwIn[i] = ((i == THROTTLE_INPUT_CHANNEL) ? THROTTLE_TRIMPOINT : CHANNEL_TRIMPOINT);
+        if (i == THROTTLE_OUTPUT_CHANNEL)
+				udb_pwTrim[i] = udb_pwIn[i] = THROTTLE_TRIMPOINT;
+        if (i == AILERON_INPUT_CHANNEL)
+                udb_pwTrim[i] = udb_pwIn[i] = AILERON_TRIMPOINT;
+        if (i == ELEVATOR_INPUT_CHANNEL)
+                udb_pwTrim[i] = udb_pwIn[i] = ELEVATOR_TRIMPOINT;
+        else
+				udb_pwTrim[i] = udb_pwIn[i] = CHANNEL_TRIMPOINT;
 #else
 		udb_pwIn[i] = udb_pwTrim[i] = ((i == THROTTLE_INPUT_CHANNEL) ? 0 : 3000);
 #endif
@@ -68,7 +75,14 @@ void servoPrepare_init(void) // initialize the PWM
 	{
 #if (THROTTLE_INPUT_CHANNEL != 0 )
 #if (FIXED_TRIMPOINT == 1)
-		udb_pwOut[i] = ((i == THROTTLE_OUTPUT_CHANNEL) ? THROTTLE_TRIMPOINT : CHANNEL_TRIMPOINT);
+        if (i == THROTTLE_OUTPUT_CHANNEL)
+				udb_pwOut[i] = THROTTLE_TRIMPOINT;
+        if (i == AILERON_INPUT_CHANNEL)
+                udb_pwOut[i] = AILERON_TRIMPOINT;
+        if (i == ELEVATOR_INPUT_CHANNEL)
+                udb_pwOut[i] = ELEVATOR_TRIMPOINT;
+        else
+				udb_pwOut[i] = CHANNEL_TRIMPOINT;
 #else
 		// initialise the throttle channel to zero, all others to servo midpoint
 		udb_pwOut[i] = ((i == THROTTLE_OUTPUT_CHANNEL) ? 0 : 3000);

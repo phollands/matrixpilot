@@ -92,6 +92,10 @@ void radioIn_init(void) // was called udb_init_capture(void)
 	#if (FIXED_TRIMPOINT == 1)
 			if (i == THROTTLE_OUTPUT_CHANNEL)
 				udb_pwTrim[i] = udb_pwIn[i] = THROTTLE_TRIMPOINT;
+            if (i == AILERON_INPUT_CHANNEL)
+                udb_pwTrim[i] = udb_pwIn[i] = AILERON_TRIMPOINT;
+            if (i == ELEVATOR_INPUT_CHANNEL)
+                udb_pwTrim[i] = udb_pwIn[i] = ELEVATOR_TRIMPOINT;
 			else
 				udb_pwTrim[i] = udb_pwIn[i] = CHANNEL_TRIMPOINT;
 	#else
