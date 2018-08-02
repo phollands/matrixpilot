@@ -706,9 +706,13 @@ void telemetry_output_8hz(void)
 #endif // MAG_YAW_DRIFT
 				    svs, hdop);
 
-					// Approximate time passing between each telemetry line, even though
-					// we may not have new GPS time data each time through.
-					if (tow.WW > 0) tow.WW += 250; 
+					// GPS is the primary source of telemetry time.  But if no GPS time received, the following lines will
+                    // increment the time until the GPS time comes back online.
+#if (GPS_TYPE == GPS_NONE)
+                    tow.WW += 250; // Allows Flight Analyzer to create CSV files from telemetry when no GPS used.
+#else
+                    if (tow.WW > 0) tow.WW += 250; // With GPS, do not increment telemetry time after boot up, until GPS reading arrives.
+#endif					
 
 					// Save  pwIn and PwOut buffers for printing next time around
 					for (i = 0; i <= NUM_INPUTS; i++)
