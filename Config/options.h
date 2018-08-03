@@ -566,13 +566,14 @@
 // Be careful not to use the offsets below with the wrong board.
 // Uncomment the line below to activate the CUSTOM_OFFSETS feature in MatrixPilot.
 
-//#define CUSTOM_OFFSETS
-#define XACCEL_OFFSET ( 0 ) 
-#define YACCEL_OFFSET ( 0 )
-#define ZACCEL_OFFSET ( 0 )
-#define XRATE_OFFSET  ( 0 ) // not used by the UDB4
-#define YRATE_OFFSET  ( 0 ) // not used by the UDB4
-#define ZRATE_OFFSET  ( 0 ) // not used by the UDB4
+#define CUSTOM_OFFSETS
+// The Following are for the UDB5mini in Solius measured Friday 3rd August 2018
+#define XACCEL_OFFSET ( 154 ) 
+#define YACCEL_OFFSET (  86 )
+#define ZACCEL_OFFSET (-777 )
+#define XRATE_OFFSET  (-121)  
+#define YRATE_OFFSET  (  18 ) 
+#define ZRATE_OFFSET  ( -28 ) 
 
 // Rudder/Yaw Control Gains
 // YAWKP_RUDDER is the proportional feedback gain for rudder control of yaw orientation.
