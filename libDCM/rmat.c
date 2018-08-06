@@ -116,6 +116,7 @@ fractional omegaAccum[] = { 0, 0, 0 };
 
 // gplane[] is a vector representing (gravity - acceleration) in the plane's coordinate system. 
 // gravity_vector_plane[], is gravity as measured in the plane's coordinate system
+// accel_vector_plane[], is acceleration without gravity in the plane's coordinate system.]
 #ifdef INITIALIZE_VERTICAL // VTOL vertical initialization
 static fractional gplane[] = { 0, -GRAVITY, 0 };
 static fractional gravit_vector_plane[] = { 0, -GRAVITY, 0 };
@@ -125,6 +126,7 @@ static fractional gplane[] = { 0, 0, GRAVITY };
 static fractional gravity_vector_plane[] = { 0, 0, GRAVITY };
 int16_t aero_force[] = { 0 , 0 , -GRAVITY };
 #endif
+static fractional accel_vector_plane[] = { 0, 0, 0 };
 
 
 // horizontal velocity over ground, as measured by GPS (Vz = 0)
@@ -356,7 +358,7 @@ static void adj_accel(int16_t angleOfAttack)
 	// compute centrifugal and forward acceleration compensation
 	gravity_vector_plane[0] = gravity_vector_plane[0] + omegaSOG(omegaAccum[1], air_speed_z);
 	gravity_vector_plane[1] = gravity_vector_plane[1] - omegaSOG(omegaAccum[0], air_speed_z) + ((uint16_t)(ACCELSCALE)) * forward_acceleration;
-
+    VectorSubtract(3, &accel_vector_plane[0], &gplane[0], &gravity_vector_plane[0]);
 }
 
 // The update algorithm!!
