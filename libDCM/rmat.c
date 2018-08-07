@@ -369,7 +369,6 @@ static void adj_accel(int16_t angleOfAttack)
 	// compute centrifugal and forward acceleration compensation
 	gravity_vector_plane[0] = gravity_vector_plane[0] + omegaSOG(omegaAccum[1], air_speed_z);
 	gravity_vector_plane[1] = gravity_vector_plane[1] - omegaSOG(omegaAccum[0], air_speed_z) + ((uint16_t)(ACCELSCALE)) * forward_acceleration;
-    VectorSubtract(3, &accel_vector_plane[0], &gplane[0], &gravity_vector_plane[0]);
 }
 
 // The update algorithm!!
