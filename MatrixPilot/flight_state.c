@@ -151,6 +151,6 @@ void flightState(void)
    {
        flight_mode = PLANE_IN_FLIGHT ;
        led_on(LED_GREEN);
-       dead_reckon_init();
+       //dead_reckon_init();
    }
 }
