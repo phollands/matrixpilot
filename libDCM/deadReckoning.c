@@ -86,6 +86,28 @@ fractional locationErrorEarth[] = { 0, 0, 0 };
 // GPSvelocity - IMUvelocity
 fractional velocityErrorEarth[] = { 0, 0, 0 };
 
+void dead_reckon_init(void)
+{
+    IMUvelocityx.WW =  0 ;
+    IMUvelocityy.WW =  0 ;
+    IMUvelocityz.WW =  0 ;
+    forward_ground_speed = 0 ;
+    IMUlocationx.WW = 0 ;
+    IMUlocationy.WW = 0 ;
+    IMUlocationz.WW = 0 ;
+    IMUintegralAccelerationx.WW = 0 ;
+    IMUintegralAccelerationy.WW = 0 ;
+    IMUintegralAccelerationz.WW = 0 ;
+    air_speed_3DIMU = 0;
+    total_energy = 0;
+    locationErrorEarth[0] = 0 ;
+    locationErrorEarth[1] = 0 ;
+    locationErrorEarth[2] = 0 ;
+    velocityErrorEarth[0] = 0 ;
+    velocityErrorEarth[1] = 0 ;
+    velocityErrorEarth[2] = 0 ;
+}
+
 void dead_reckon(void)
 {
 	int16_t air_speed_x, air_speed_y, air_speed_z;

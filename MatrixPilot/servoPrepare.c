@@ -33,6 +33,7 @@
 #include "flightplan_waypoints.h"
 #include "airspeedCntrl.h"
 #include "cameraCntrl.h"
+#include "flightState.h"
 #include "../libUDB/heartbeat.h"
 #include "../libUDB/servoOut.h"
 #include "../libUDB/osd.h"
@@ -107,6 +108,7 @@ static void flight_controller(void)
 #if (ALTITUDE_GAINS_VARIABLE == 1)
         airspeedCntrl();
 #endif // ALTITUDE_GAINS_VARIABLE
+        flightState();
 		updateBehavior();
 		wind_gain = wind_gain_adjustment();
 		helicalTurnCntrl();
