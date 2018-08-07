@@ -22,6 +22,7 @@
 #include "defines.h"
 #include "../libDCM/gpsData.h"
 #include "../libDCM/gpsParseCommon.h"
+#include "../libDCM/rmat.h"
 
 
 #define MIN_THROTTLE        2240
@@ -141,4 +142,15 @@ void flight_state_8hz(void)
 	}
 
 	++state_counter;
+}
+
+
+void flightState(void)
+{
+   if (return_accel_vector_plane_y() > GRAVITY / 2)
+   {
+       flight_mode = PLANE_IN_FLIGHT ;
+       led_on(LED_GREEN);
+       dead_reckon_init();
+   }
 }
