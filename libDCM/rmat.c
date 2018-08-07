@@ -126,7 +126,8 @@ static fractional gplane[] = { 0, 0, GRAVITY };
 static fractional gravity_vector_plane[] = { 0, 0, GRAVITY };
 int16_t aero_force[] = { 0 , 0 , -GRAVITY };
 #endif
-static fractional accel_vector_plane[] = { 0, 0, 0 };
+fractional accel_vector_plane[] = { 0, 0, 0 };
+fractional return_accel_vector_plane_y(void);
 
 
 // horizontal velocity over ground, as measured by GPS (Vz = 0)
@@ -145,6 +146,12 @@ fractional dirOverGndHrmat[] = { 0, RMAX, 0 };
 static fractional errorRP[] = { 0, 0, 0 };
 static fractional errorYawground[] = { 0, 0, 0 };
 static fractional errorYawplane[]  = { 0, 0, 0 };
+fractional rmat_transpose[]    = { RMAX, 0, 0, 0, RMAX, 0, 0, 0, RMAX };
+
+fractional return_accel_vector_plane_y(void)
+{
+    return accel_vector_plane[1];
+}
 
 void yaw_drift_reset(void)
 {
@@ -238,6 +245,10 @@ static inline void read_accel(void)
 //	accelEarthFiltered[0].WW += ((((int32_t)accelEarth[0])<<16) - accelEarthFiltered[0].WW)>>5;
 //	accelEarthFiltered[1].WW += ((((int32_t)accelEarth[1])<<16) - accelEarthFiltered[1].WW)>>5;
 //	accelEarthFiltered[2].WW += ((((int32_t)accelEarth[2])<<16) - accelEarthFiltered[2].WW)>>5;
+    
+    // Rotate accelEarth[] back into the plane reference, for use with ChuckIt plane ]
+    MatrixTranspose(3, 3, rmat_transpose, rmat);
+    MatrixMultiply(3, 3, 1, accel_vector_plane, rmat_transpose, accelEarth);
 }
 
 void udb_callback_read_sensors(void)

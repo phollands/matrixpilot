@@ -61,5 +61,6 @@ void yaw_drift_reset(void);
 // holding the UDB very still.
 void udb_callback_read_sensors(void);       // Callback
 
+extern fractional return_accel_vector_plane_y(void);
 
 #endif // RMAT_H
