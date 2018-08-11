@@ -485,12 +485,22 @@ void telemetry_restart(void)
 
 void telemetry_output_8hz(void)
 {
-	//serial_output("lat: %li, long: %li, alt: %li\r\nrmat: %i, %i, %i, %i, %i, %i, %i, %i, %i\r\n",
-	//    lat_gps.WW, lon_gps.WW, alt_sl_gps.WW,
-	 //   rmat[0], rmat[1], rmat[2],
-	 //   rmat[3], rmat[4], rmat[5],
-	 //   rmat[6], rmat[7], rmat[8]);
-    serial_output("%i,%i\r\n",return_accel_vector_plane_y(),return_accel_vector_plane_y());
+	
+    #define RMAX15 24576 
+    fractional rmat[3];
+    fractional rbuff[]= {16300,0,0};
+    fractional norm;
+    fractional renorm;
+    
+    // rescale row1
+	norm = VectorPower(3, &rbuff[0]); // Scalegain of 0.5
+    serial_output("norm %i",norm);
+	renorm = RMAX15 - norm;
+    serial_output("renorm %i",renorm);
+	VectorScale(3, &rbuff[0], &rbuff[0], renorm);
+    serial_output("rbuff[0] %i",rbuff[0]);
+	VectorAdd(3, &rmat[0], &rbuff[0], &rbuff[0]);
+    serial_output("rmat[0] %i\r\n",rmat[0]);
 }
 
 #elif (SERIAL_OUTPUT_FORMAT == SERIAL_ARDUSTATION)
