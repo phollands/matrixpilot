@@ -54,6 +54,64 @@ void dcm_init(void)
 	dcm_init_rmat();
 }
 
+extern inline void read_accel(void) ;
+
+void dcm_align_tilt(void)
+{
+	uint16_t minMag ;
+	uint16_t minMagIndex = 0 ;
+	int16_t temporary[3] ;
+	read_accel() ;
+	vector3_normalize( &rmat[6] , gplane ) ;
+
+	temporary[0] = gplane[0] ;
+	temporary[1] = gplane[1] ;
+	temporary[2] = gplane[2] ;
+
+	minMag = abs( rmat[6] ) ;
+	if ( abs( rmat[7] ) < minMag )
+	{
+		minMag = abs( rmat[7] ) ;
+		minMagIndex = 1 ;
+	}
+	if ( abs( rmat[8] ) < minMag )
+	{
+		minMag = abs( rmat[8] ) ;
+		minMagIndex = 2 ;
+	}
+
+	if ( minMagIndex == 0 )
+	{
+		temporary[0] = temporary[1] ;
+		temporary[1] = - temporary[2] ;
+		temporary[2] = temporary[0] ;
+		temporary[0] = 0 ;
+	}
+	else if ( minMagIndex == 1 )
+	{
+		temporary[1] = temporary[2] ;
+		temporary[2] = - temporary[0] ;
+		temporary[0] = temporary[1] ;
+		temporary[1] = 0 ;
+	}
+	else
+	{
+		temporary[2] = temporary[0] ;
+		temporary[0] = - temporary[1] ;
+		temporary[1] = temporary[2] ;
+		temporary[2] = 0 ;
+	}
+
+	vector3_normalize( temporary , temporary ) ;
+	rmat[3] = temporary[0] ;
+	rmat[4] = temporary[1] ;
+	rmat[5] = temporary[2] ;
+
+	VectorCross( &rmat[0] , &rmat[3] , &rmat[6] ) ;
+	
+}
+
+
 #if (DCM_CALIB_COUNT > DCM_GPS_COUNT)
 #error here
 #endif
@@ -65,6 +123,7 @@ void dcm_run_calib_step(uint16_t count)
 		DPRINT("calib_finished\r\n");
 		dcm_flags._.calib_finished = 1;
 		dcm_calibrate();    // Finish calibration
+        dcm_align_tilt();
 	}
 }
 

@@ -47,6 +47,7 @@ extern fractional rmat[];                   //  gyro rotation vector:
 extern fractional omegaAccum[];             //  accumulator for computing adjusted omega:
 extern fractional omegagyro[];
 extern fractional accelEarth[];             //  acceleration, as measured in GPS earth coordinate system
+extern fractional gplane[];
 extern int16_t aero_force[];
 extern fractional dirOverGndHGPS[];         //  horizontal velocity over ground, as measured by GPS (Vz = 0 )
 extern fractional dirOverGndHrmat[];        //  horizontal direction over ground, as indicated by Rmatrix
@@ -55,6 +56,7 @@ extern union intbb dcm_declination_angle;   //  Declination +-32767 = +-360deg
 void dcm_init_rmat(void);
 void dcm_run_imu_step(int16_t angleOfAttack);
 void yaw_drift_reset(void);
+void read_accel(void);
 
 // Calibrate the sensors
 // Call this function once, soon after booting up, after a few seconds of
