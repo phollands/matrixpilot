@@ -34,6 +34,8 @@ enum PLANE_FLIGHT_MODE
 	PLANE_ON_GROUND,
     PLANE_LAUNCHED,
 	PLANE_IN_FLIGHT,
+    PLANE_CIRCLING,
+    PLANE_DESCENDING, 
 	PLANE_LANDED
 };
 
@@ -149,8 +151,14 @@ void flight_state_8hz(void)
 void flightState(void)
 {
 #define FLIGHT_CLIMB_TIMER 40
+#define FLIGHT_TURN_TIMER 160
+#define FLIGHT_DESCEND_TIMER 400
 #define FLIGHT_CLIMB_TRIM_DELTA 100
+#define FLIGHT_TURN_TRIM_DELTA 200
+    
     static int16_t climb_timer = 0;
+    static int16_t turn_timer = 0;
+    static int16_t descend_timer = 0;
     if (return_accel_vector_plane_y() > GRAVITY / 2)
     {
         flight_mode = PLANE_LAUNCHED ;
@@ -166,5 +174,12 @@ void flightState(void)
             flight_mode = PLANE_IN_FLIGHT;
         }
     }
-    
+    if ( flight_mode == PLANE_IN_FLIGHT)
+    {
+        if (turn_timer++ > FLIGHT_TURN_TIMER)
+        {
+            udb_pwTrim[AILERON_INPUT_CHANNEL] -= FLIGHT_TURN_TRIM_DELTA;
+            flight_mode = PLANE_CIRCLING;
+        }
+    }
 }
