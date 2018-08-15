@@ -32,6 +32,7 @@
 enum PLANE_FLIGHT_MODE
 {
 	PLANE_ON_GROUND,
+    PLANE_LAUNCHED,
 	PLANE_IN_FLIGHT,
 	PLANE_LANDED
 };
@@ -147,10 +148,23 @@ void flight_state_8hz(void)
 
 void flightState(void)
 {
-   if (return_accel_vector_plane_y() > GRAVITY / 2)
-   {
-       flight_mode = PLANE_IN_FLIGHT ;
-       led_on(LED_GREEN);
-       //dead_reckon_init();
-   }
+#define FLIGHT_CLIMB_TIMER 40
+#define FLIGHT_CLIMB_TRIM_DELTA 100
+    static int16_t climb_timer = 0;
+    if (return_accel_vector_plane_y() > GRAVITY / 2)
+    {
+        flight_mode = PLANE_LAUNCHED ;
+        led_on(LED_GREEN);
+        udb_pwTrim[ELEVATOR_INPUT_CHANNEL] -= FLIGHT_CLIMB_TRIM_DELTA;
+        //dead_reckon_init();
+    }
+    if ( flight_mode == PLANE_LAUNCHED )
+    {
+        if (climb_timer++ > FLIGHT_CLIMB_TIMER)
+        {
+            udb_pwTrim[ELEVATOR_INPUT_CHANNEL] = ELEVATOR_TRIMPOINT;
+            flight_mode = PLANE_IN_FLIGHT;
+        }
+    }
+    
 }
