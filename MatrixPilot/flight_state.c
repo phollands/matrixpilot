@@ -34,7 +34,8 @@ enum PLANE_FLIGHT_MODE
 	PLANE_ON_GROUND,
     PLANE_LAUNCHED,
 	PLANE_IN_FLIGHT,
-    PLANE_CIRCLING,
+    PLANE_TURN_1,
+    PLANE_CRUISE_1,
     PLANE_DESCENDING, 
 	PLANE_LANDED
 };
@@ -151,15 +152,17 @@ void flight_state_8hz(void)
 void flightState(void)
 {
 #define FLIGHT_CLIMB_TIMER           40  // 1 second
-#define FLIGHT_TURN_TIMER           160  // 4 seconds
+#define FLIGHT_TURN_TIMER            20  // 1 second
+#define FLIGHT_CRUISE_TIMER          60
 #define FLIGHT_DESCEND_TIMER        800  // 20 seconds
     
 #define FLIGHT_CLIMB_TRIM_DELTA     100
-#define FLIGHT_TURN_TRIM_DELTA      200
-#define FLIGHT_DESCEND_TRIM_DELTA    40
+#define FLIGHT_TURN_TRIM_DELTA      700
+#define FLIGHT_DESCEND_TRIM_DELTA   100
     
     static int16_t climb_timer = 0;
     static int16_t turn_timer = 0;
+    static int16_t cruise_timer_1 = 0;
     static int16_t descend_timer = 0;
     if (return_accel_vector_plane_y() > GRAVITY / 2)
     {
@@ -181,16 +184,26 @@ void flightState(void)
         if (turn_timer++ > FLIGHT_TURN_TIMER)
         {
             udb_pwTrim[AILERON_INPUT_CHANNEL] -= FLIGHT_TURN_TRIM_DELTA;
-            flight_mode = PLANE_CIRCLING;
+            udb_pwTrim[ELEVATOR_INPUT_CHANNEL] -= FLIGHT_CLIMB_TRIM_DELTA;
+            flight_mode = PLANE_TURN_1;
         }
     }
-    if ( flight_mode == PLANE_CIRCLING)
+    if ( flight_mode == PLANE_TURN_1)
     {
-         if ( descend_timer++ > FLIGHT_DESCEND_TIMER)
+         if ( cruise_timer_1++ > FLIGHT_CRUISE_TIMER)
+         {
+             udb_pwTrim[AILERON_INPUT_CHANNEL] = AILERON_TRIMPOINT ;
+             udb_pwTrim[ELEVATOR_INPUT_CHANNEL] = ELEVATOR_TRIMPOINT;
+             flight_mode = PLANE_CRUISE_1 ;
+         }
+    if (flight_mode == PLANE_CRUISE_1)
+        {
+        if ( cruise_timer_1++ > FLIGHT_DESCEND_TIMER)
          {
              udb_pwTrim[ELEVATOR_INPUT_CHANNEL] += FLIGHT_DESCEND_TRIM_DELTA ;
              flight_mode = PLANE_DESCENDING ;
          }
+    }
     }
 }
 
