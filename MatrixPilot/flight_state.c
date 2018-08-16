@@ -150,11 +150,13 @@ void flight_state_8hz(void)
 
 void flightState(void)
 {
-#define FLIGHT_CLIMB_TIMER 40
-#define FLIGHT_TURN_TIMER 160
-#define FLIGHT_DESCEND_TIMER 400
-#define FLIGHT_CLIMB_TRIM_DELTA 100
-#define FLIGHT_TURN_TRIM_DELTA 200
+#define FLIGHT_CLIMB_TIMER           40  // 1 second
+#define FLIGHT_TURN_TIMER           160  // 4 seconds
+#define FLIGHT_DESCEND_TIMER        800  // 20 seconds
+    
+#define FLIGHT_CLIMB_TRIM_DELTA     100
+#define FLIGHT_TURN_TRIM_DELTA      200
+#define FLIGHT_DESCEND_TRIM_DELTA    40
     
     static int16_t climb_timer = 0;
     static int16_t turn_timer = 0;
@@ -182,4 +184,13 @@ void flightState(void)
             flight_mode = PLANE_CIRCLING;
         }
     }
+    if ( flight_mode == PLANE_CIRCLING)
+    {
+         if ( descend_timer++ > FLIGHT_DESCEND_TIMER)
+         {
+             udb_pwTrim[ELEVATOR_INPUT_CHANNEL] += FLIGHT_DESCEND_TRIM_DELTA ;
+             flight_mode = PLANE_DESCENDING ;
+         }
+    }
 }
+
