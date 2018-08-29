@@ -26,6 +26,20 @@
 #include "../libUDB/libUDB.h"
 #include "libDCM_defines.h"
 
+enum {
+    IMU_AXIS_X,
+    IMU_AXIS_Y,
+    IMU_AXIS_Z
+};
+
+enum {
+    GRAVITY_X_POSITIVE,
+    GRAVITY_X_NEGATIVE,
+    GRAVITY_Y_POSITIVE,
+    GRAVITY_Y_NEGATIVE,
+    GRAVITY_Z_POSITIVE,
+    GRAVITY_Z_NEGATIVE     
+};
 ////////////////////////////////////////////////////////////////////////////////
 // libDCM.h defines the API for accessing the location and orientation
 // information from the DCM algorithm and GPS.
@@ -56,6 +70,8 @@ struct relative3D dcm_absolute_to_relative(struct waypoint3D absolute);
 struct relative3D_32 dcm_absolute_to_relative_32(struct waypoint3D absolute);
 
 vect3_32t dcm_rel2abs(vect3_32t rel);
+
+extern    uint16_t gravity_axis_at_startup;
 
 
 ////////////////////////////////////////////////////////////////////////////////

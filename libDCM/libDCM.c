@@ -34,6 +34,7 @@
 
 union dcm_fbts_word dcm_flags;
 int16_t angleOfAttack;
+uint16_t gravity_axis_at_startup;
 
 void send_HILSIM_outputs(void);
 
@@ -58,36 +59,69 @@ extern inline void read_accel(void) ;
 
 void dcm_align_tilt(void)
 {
-	uint16_t minMag ;
-	uint16_t minMagIndex = 0 ;
+	uint16_t minMag;
+    uint16_t maxMag;
+    uint16_t most_level_axis;
 	int16_t temporary[3] ;
 	read_accel() ;
 	vector3_normalize( &rmat[6] , gplane ) ;
+    
+    // Find the axis with the strongest gravity and the sign of the gravity on the axis
+    // Can be used to signal a flight plane when powering up.
+    maxMag = abs(rmat[6]);
+    if (rmat[6] > 0)
+        gravity_axis_at_startup = GRAVITY_X_POSITIVE;
+    else
+        gravity_axis_at_startup = GRAVITY_X_NEGATIVE;
 
+    if (abs(rmat[7]) > maxMag)
+    {
+        maxMag = abs(rmat[7]);
+        if (rmat[7] > 0)
+            gravity_axis_at_startup = GRAVITY_Y_POSITIVE;
+        else
+            gravity_axis_at_startup = GRAVITY_Y_NEGATIVE;
+    }
+    
+	if (abs(rmat[8]) > maxMag)
+    {
+        maxMag = abs(rmat[8]);
+        if (rmat[8] > 0)
+            gravity_axis_at_startup = GRAVITY_Z_POSITIVE;
+        else
+            gravity_axis_at_startup = GRAVITY_Z_NEGATIVE;
+    }
+
+    // Work out which IMU axis is the most level with the earth axis
+    // Used for the initialisation of the rmat matrix
 	temporary[0] = gplane[0] ;
 	temporary[1] = gplane[1] ;
 	temporary[2] = gplane[2] ;
-
+    
 	minMag = abs( rmat[6] ) ;
 	if ( abs( rmat[7] ) < minMag )
 	{
 		minMag = abs( rmat[7] ) ;
-		minMagIndex = 1 ;
+		most_level_axis = IMU_AXIS_Y ;
 	}
 	if ( abs( rmat[8] ) < minMag )
 	{
 		minMag = abs( rmat[8] ) ;
-		minMagIndex = 2 ;
+		most_level_axis = IMU_AXIS_Z;
 	}
+    else 
+    {
+        most_level_axis = IMU_AXIS_X;
+    }
 
-	if ( minMagIndex == 0 )
+	if ( most_level_axis == IMU_AXIS_X )
 	{
 		temporary[0] = temporary[1] ;
 		temporary[1] = - temporary[2] ;
 		temporary[2] = temporary[0] ;
 		temporary[0] = 0 ;
 	}
-	else if ( minMagIndex == 1 )
+	else if ( most_level_axis == IMU_AXIS_Y)
 	{
 		temporary[1] = temporary[2] ;
 		temporary[2] = - temporary[0] ;
@@ -108,7 +142,7 @@ void dcm_align_tilt(void)
 	rmat[5] = temporary[2] ;
 
 	VectorCross( &rmat[0] , &rmat[3] , &rmat[6] ) ;
-	
+    
 }
 
 
