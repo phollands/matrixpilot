@@ -66,8 +66,8 @@ void dcm_align_tilt(void)
 	read_accel() ;
 	vector3_normalize( &rmat[6] , gplane ) ;
     
-    // Find the axis with the strongest gravity and the sign of the gravity on the axis
-    // Can be used to signal a flight plane when powering up.
+    // Find the axis with the strongest gravity at startup ( and whether it is positive or negative)
+    // Can be used to signal to use one of 6 flight plans by holding the plane in a give orientation on power up.
     maxMag = abs(rmat[6]);
     if (rmat[6] > 0)
         gravity_axis_at_startup = GRAVITY_X_POSITIVE;
