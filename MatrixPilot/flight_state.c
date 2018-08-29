@@ -23,6 +23,7 @@
 #include "../libDCM/gpsData.h"
 #include "../libDCM/gpsParseCommon.h"
 #include "../libDCM/rmat.h"
+#include "../libDCM/libDCM.h"
 
 
 #define MIN_THROTTLE        2240
@@ -164,10 +165,13 @@ void flightState(void)
     static int16_t turn_timer = 0;
     static int16_t cruise_timer_1 = 0;
     static int16_t descend_timer = 0;
+    
+if (gravity_axis_at_startup == GRAVITY_X_POSITIVE)
+{
+    led_on(LED_GREEN);
     if (return_accel_vector_plane_y() > GRAVITY / 2)
     {
         flight_mode = PLANE_LAUNCHED ;
-        led_on(LED_GREEN);
         udb_pwTrim[ELEVATOR_INPUT_CHANNEL] -= FLIGHT_CLIMB_TRIM_DELTA;
         //dead_reckon_init();
     }
@@ -196,14 +200,15 @@ void flightState(void)
              udb_pwTrim[ELEVATOR_INPUT_CHANNEL] = ELEVATOR_TRIMPOINT;
              flight_mode = PLANE_CRUISE_1 ;
          }
+    }
     if (flight_mode == PLANE_CRUISE_1)
-        {
-        if ( cruise_timer_1++ > FLIGHT_DESCEND_TIMER)
+    {
+        if ( descend_timer++ > FLIGHT_DESCEND_TIMER)
          {
              udb_pwTrim[ELEVATOR_INPUT_CHANNEL] += FLIGHT_DESCEND_TRIM_DELTA ;
              flight_mode = PLANE_DESCENDING ;
          }
     }
-    }
 }
-
+    
+}
