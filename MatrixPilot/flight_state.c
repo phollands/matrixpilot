@@ -166,7 +166,8 @@ void flightState(void)
     static int16_t cruise_timer_1 = 0;
     static int16_t descend_timer = 0;
     
-if (gravity_axis_at_startup == GRAVITY_X_POSITIVE)
+if ((gravity_axis_at_startup == GRAVITY_X_POSITIVE) ||
+        (gravity_axis_at_startup == GRAVITY_X_NEGATIVE))
 {
     led_on(LED_GREEN);
     if (return_accel_vector_plane_y() > GRAVITY / 2)
@@ -187,7 +188,14 @@ if (gravity_axis_at_startup == GRAVITY_X_POSITIVE)
     {
         if (turn_timer++ > FLIGHT_TURN_TIMER)
         {
-            udb_pwTrim[AILERON_INPUT_CHANNEL] -= FLIGHT_TURN_TRIM_DELTA;
+            if (gravity_axis_at_startup == GRAVITY_X_POSITIVE)
+            {
+                udb_pwTrim[AILERON_INPUT_CHANNEL] -= FLIGHT_TURN_TRIM_DELTA;
+            }
+            else
+            {
+                udb_pwTrim[AILERON_INPUT_CHANNEL] += FLIGHT_TURN_TRIM_DELTA;
+            }
             udb_pwTrim[ELEVATOR_INPUT_CHANNEL] -= FLIGHT_CLIMB_TRIM_DELTA;
             flight_mode = PLANE_TURN_1;
         }
