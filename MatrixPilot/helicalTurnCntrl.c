@@ -221,14 +221,17 @@ void helicalTurnCntrl(void)
 	state_flags._.pitch_feedback = 1; // turn on stabilization
 	airSpeed = 981; // for testing purposes, an airspeed is needed
 #else
-	airSpeed = air_speed_3DIMU;
+	//airSpeed = air_speed_3DIMU;
+    airSpeed = 700;  // cm / sec approximation for Chuckit based on Multiplex Mini Solius
 	if (airSpeed < TURN_CALC_MINIMUM_AIRSPEED) airSpeed = TURN_CALC_MINIMUM_AIRSPEED;
 #endif
 
 	// determine the desired turn rate as the sum of navigation and fly by wire.
 	// this allows the pilot to override navigation if needed.
 	steeringInput = 0 ; // just in case no airframe type is specified or radio is off
-	if (udb_flags._.radio_on == 1)
+#if (NORADIO != 1) // Chuckit branch manually manipulates pwIn during flight with radio off.
+	if  (udb_flags._.radio_on == 1)
+#endif
 	{
 #if ( (AIRFRAME_TYPE == AIRFRAME_STANDARD) || (AIRFRAME_TYPE == AIRFRAME_GLIDER) )
 		if (AILERON_INPUT_CHANNEL != CHANNEL_UNUSED)  // compiler is smart about this

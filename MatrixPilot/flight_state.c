@@ -158,7 +158,7 @@ void flightState(void)
 #define FLIGHT_DESCEND_TIMER        800  // 20 seconds
     
 #define FLIGHT_CLIMB_TRIM_DELTA     100
-#define FLIGHT_TURN_TRIM_DELTA      500  // was 700
+#define FLIGHT_TURN_TRIM_DELTA      700  
 #define FLIGHT_DESCEND_TRIM_DELTA   100
     
 static int16_t climb_timer = 0;
@@ -193,13 +193,13 @@ static int16_t descend_timer = 0;
         {
             if (gravity_axis_at_startup == GRAVITY_X_POSITIVE)
             {
-                udb_pwTrim[AILERON_INPUT_CHANNEL] -= FLIGHT_TURN_TRIM_DELTA;
+                udb_pwIn[AILERON_INPUT_CHANNEL] -= FLIGHT_TURN_TRIM_DELTA;
             }
             else
             {
-                udb_pwTrim[AILERON_INPUT_CHANNEL] += FLIGHT_TURN_TRIM_DELTA;
+                udb_pwIn[AILERON_INPUT_CHANNEL] += FLIGHT_TURN_TRIM_DELTA;
             }
-            udb_pwTrim[ELEVATOR_INPUT_CHANNEL] -= FLIGHT_CLIMB_TRIM_DELTA;
+            //udb_pwTrim[ELEVATOR_INPUT_CHANNEL] -= FLIGHT_CLIMB_TRIM_DELTA;
             flight_mode = PLANE_TURN_1;
         }
     }
@@ -207,8 +207,8 @@ static int16_t descend_timer = 0;
     {
          if ( cruise_timer_1++ > FLIGHT_CRUISE_TIMER)
          {
-             udb_pwTrim[AILERON_INPUT_CHANNEL] = AILERON_TRIMPOINT ;
-             udb_pwTrim[ELEVATOR_INPUT_CHANNEL] = ELEVATOR_TRIMPOINT;
+             udb_pwIn[AILERON_INPUT_CHANNEL] = AILERON_TRIMPOINT ;
+             //udb_pwTrim[ELEVATOR_INPUT_CHANNEL] = ELEVATOR_TRIMPOINT;
              flight_mode = PLANE_CRUISE_1 ;
          }
     }
@@ -217,7 +217,7 @@ static int16_t descend_timer = 0;
         if ( descend_timer++ > FLIGHT_DESCEND_TIMER)
          {
              udb_pwTrim[ELEVATOR_INPUT_CHANNEL] += FLIGHT_DESCEND_TRIM_DELTA ;
-             udb_pwTrim[AILERON_INPUT_CHANNEL] += FLIGHT_TURN_TRIM_DELTA;
+             udb_pwIn[AILERON_INPUT_CHANNEL] += FLIGHT_TURN_TRIM_DELTA;
              flight_mode = PLANE_DESCENDING ;
          }
     }
