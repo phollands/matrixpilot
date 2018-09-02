@@ -153,9 +153,9 @@ void flight_state_8hz(void)
 
 void flightState(void)
 {
-#define FLIGHT_CLIMB_TIMER           40  // 1 second
-#define FLIGHT_TURN_TIMER           160   
-#define FLIGHT_CRUISE_TIME_1         20
+#define FLIGHT_CLIMB_TIMER           40  // 1 second  
+#define FLIGHT_CRUISE_TIME_1         40
+#define FLIGHT_TURN_TIMER           160 
 #define FLIGHT_DESCEND_TIMER        800  // 20 seconds
     
 #define FLIGHT_CLIMB_TRIM_DELTA     100
