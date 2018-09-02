@@ -21,6 +21,7 @@
 
 #include "libDCM.h"
 #include "mathlibNAV.h"
+#include "mathlib.h"
 #include "deadReckoning.h"
 #include "gpsParseCommon.h"
 #include "../libUDB/heartbeat.h"
@@ -127,7 +128,7 @@ static fractional gravity_vector_plane[] = { 0, 0, GRAVITY };
 int16_t aero_force[] = { 0 , 0 , -GRAVITY };
 #endif
 fractional accel_vector_plane[] = { 0, 0, 0 };
-fractional return_accel_vector_plane_y(void);
+uint16_t return_accel_vector_plane_xy(void);
 
 
 // horizontal velocity over ground, as measured by GPS (Vz = 0)
@@ -148,10 +149,15 @@ static fractional errorYawground[] = { 0, 0, 0 };
 static fractional errorYawplane[]  = { 0, 0, 0 };
 fractional rmat_transpose[]    = { RMAX, 0, 0, 0, RMAX, 0, 0, 0, RMAX };
 
-fractional return_accel_vector_plane_y(void)
+uint16_t return_accel_vector_plane_xy(void)
 {
-    return accel_vector_plane[1];
+    vect2_16t accel_vector_in_xy;
+    accel_vector_in_xy.x = accel_vector_plane[0];
+    accel_vector_in_xy.y = accel_vector_plane[1];
+    return(vect2_16_mag(&accel_vector_in_xy));    
+    //return accel_vector_plane[1]; // Not working well. New rmat init creating an issue ?
 }
+
 
 void yaw_drift_reset(void)
 {
