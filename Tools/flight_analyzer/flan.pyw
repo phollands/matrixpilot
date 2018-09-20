@@ -2157,7 +2157,7 @@ def create_log_book(options) :
                log.log_format == "ARDUSTATION!!!": # We have a normal telemetry line
             if debug : print "lat",log.latitude,"lon",log.longitude,"alt",log.altitude, \
                 "wp", log.waypointIndex, "rmat1", log.rmat1
-            if (log.latitude == 0 and log.longitude == 0 and log.altitude == 0 ):
+            if (False): # (log.latitude == 0 and log.longitude == 0 and log.altitude == 0 ):
                 if debug: print "lat or long or alt is 0; ignoring line", record_no
                 continue # Get next line of telemetry  - No GPS yet, can happen at boot time on plane 
             else :
