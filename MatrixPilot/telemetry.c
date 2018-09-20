@@ -671,6 +671,10 @@ void telemetry_output_8hz(void)
 			serial_output("F8:H_MAX=%6.1f:H_MIN=%6.1f:MIN_THR=%3.2f:MAX_THR=%3.2f:PITCH_MIN_THR=%4.1f:PITCH_MAX_THR=%4.1f:PITCH_ZERO_THR=%4.1f:\r\n",
 			    altit.HeightTargetMax, altit.HeightTargetMin, altit.AltHoldThrottleMin, altit.AltHoldThrottleMax,
 			    altit.AltHoldPitchMin, altit.AltHoldPitchMax, altit.AltHoldPitchHigh);
+#if (GPS_TYPE == GPS_NONE)
+            setup_origin(); // Require an origin for flight analyzer (flan.pyw). Use FIXED_ORIGIN_LOCATION in options.h
+            state_flags._.f13_print_req = 1;
+#endif
 			break;
 		default:
 		{

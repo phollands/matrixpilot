@@ -30,6 +30,7 @@ extern uint16_t turngainnav; // waypoints turn gain
 
 void init_navigation(void);
 void save_navigation(void);
+void setup_origin(void);
 #ifdef USE_EXTENDED_NAV
 void navigate_set_goal(struct relative3D_32 fromPoint, struct relative3D_32 toPoint);
 #else
