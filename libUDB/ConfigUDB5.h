@@ -24,14 +24,16 @@
 // ACCEL_RANGE must be either 4 or 8
 // ACCEL_RANGE 2 will cause all sorts of trouble, do not use it
 
-#define ACCEL_RANGE         8       // 8 g range
+#define ACCEL_RANGE         16       // 16 g range
 
 // note : it is possible to use other accelerometer ranges on the MPU6000
-#define SCALEGYRO           3.0016  // 500 degree/second range
+//#define SCALEGYRO           3.0016  // 500 degree/second range
+#define SCALEGYRO           12.0064  // 2000 degree/second range
 //#define SCALEACCEL          1.29    // 4 g range
 //#define SCALEACCEL          1.27    // 4 g range measured by WJP on a few UDB5s
 //#define SCALEACCEL          1.25    // 4g range As measured by PDH on UDB5 mini August 2018 on Z axis
-#define SCALEACCEL          2.30      // 8g range, PDH
+//#define SCALEACCEL          2.30    // 8g range, PDH
+#define SCALEACCEL          4.60      // 16g range, PDH
 
 #define NUM_ANALOG_INPUTS   4
 

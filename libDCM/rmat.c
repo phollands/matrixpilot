@@ -56,7 +56,7 @@ static fractional spin_axis[] = { 0, 0, RMAX };
 #if (BOARD_TYPE == AUAV3_BOARD || BOARD_TYPE == UDB5_BOARD || BOARD_TYPE == PX4_BOARD)
 // modified gains for MPU6000
 #define KPROLLPITCH (ACCEL_RANGE * 1280/3)
-#define KIROLLPITCH (ACCEL_RANGE * 3400 / HEARTBEAT_HZ)
+#define KIROLLPITCH ((ACCEL_RANGE / 2 ) * 3400 / (HEARTBEAT_HZ / 2)) // divide by 2 prevents compiler warning on integer overflow for 16g setting
 
 #elif (BOARD_TYPE == UDB4_BOARD)
 // Paul's gains for 6G accelerometers
