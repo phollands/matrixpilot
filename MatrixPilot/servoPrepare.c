@@ -154,10 +154,10 @@ void dcm_heartbeat_callback(void)
 #endif // (USE_MAVLINK == 1)
 #if (SERIAL_OUTPUT_FORMAT != SERIAL_NONE)
 		// Send telemetry updates at 8hz
-		if (udb_pulse_counter % (HEARTBEAT_HZ/8) == 0)
+		if (udb_pulse_counter % (HEARTBEAT_HZ/40) == 0)
 		{
 // RobD			flight_state_8hz();
-			telemetry_output_8hz();
+			telemetry_output_40hz();
 		}
 #endif // (SERIAL_OUTPUT_FORMAT != SERIAL_NONE)
 	}

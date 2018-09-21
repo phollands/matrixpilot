@@ -485,31 +485,33 @@ void telemetry_restart(void)
 
 #if (SERIAL_OUTPUT_FORMAT == SERIAL_DEBUG)
 
-void telemetry_output_8hz(void)
+void telemetry_output_40hz(void)
 {
 	
-    #define RMAX15 24576 
-    fractional rmat[3];
-    fractional rbuff[]= {16300,0,0};
-    fractional norm;
-    fractional renorm;
-    
-    // rescale row1
-	norm = VectorPower(3, &rbuff[0]); // Scalegain of 0.5
-    serial_output("norm %i",norm);
-	renorm = RMAX15 - norm;
-    serial_output("renorm %i",renorm);
-	VectorScale(3, &rbuff[0], &rbuff[0], renorm);
-    serial_output("rbuff[0] %i",rbuff[0]);
-	VectorAdd(3, &rmat[0], &rbuff[0], &rbuff[0]);
-    serial_output("rmat[0] %i\r\n",rmat[0]);
+//    #define RMAX15 24576 
+//    fractional rmat[3];
+//    fractional rbuff[]= {16300,0,0};
+//    fractional norm;
+//    fractional renorm;
+//    
+//    // rescale row1
+//	norm = VectorPower(3, &rbuff[0]); // Scalegain of 0.5
+//    serial_output("norm %i",norm);
+//	renorm = RMAX15 - norm;
+//    serial_output("renorm %i",renorm);
+//	VectorScale(3, &rbuff[0], &rbuff[0], renorm);
+//    serial_output("rbuff[0] %i",rbuff[0]);
+//	VectorAdd(3, &rmat[0], &rbuff[0], &rbuff[0]);
+//    serial_output("rmat[0] %i\r\n",rmat[0]);
+    //serial_output("%d,%d,%d,%d,%d,%d\r\n",aero_force[0], aero_force[1], aero_force[2],omegagyro[0],omegagyro[1],omegagyro[2]);
+    serial_output("%d,%d,%d,%d,%d,%d\r\n",aero_force[0], aero_force[1], aero_force[2],omegaAccum[0],omegaAccum[1],omegaAccum[2]);
 }
 
 #elif (SERIAL_OUTPUT_FORMAT == SERIAL_ARDUSTATION)
 
 extern int16_t desiredHeight;
 
-void telemetry_output_8hz(void)
+void telemetry_output_40hz(void)
 {
 	uint16_t mode;
 	struct relative2D matrix_accum;
@@ -582,7 +584,7 @@ void telemetry_output_8hz(void)
 
 #elif (SERIAL_OUTPUT_FORMAT == SERIAL_UDB_EXTRA)
 
-void telemetry_output_8hz(void)
+void telemetry_output_40hz(void)
 {
 	int16_t i;
 	static int toggle = 0;
@@ -819,7 +821,7 @@ void telemetry_output_8hz(void)
 
 #warning SERIAL_OSD_REMZIBI undergoing merge to trunk
 
-void telemetry_output_8hz(void)
+void telemetry_output_40hz(void)
 {
 	// TODO: Output interesting information for OSD.
 	// But first we'll have to implement a buffer for passthrough characters to avoid
@@ -852,7 +854,7 @@ void telemetry_output_8hz(void)
 }
  */
 
-void telemetry_output_8hz(void)
+void telemetry_output_40hz(void)
 {
 	if (udb_pulse_counter % (HEARTBEAT_HZ / 4) == 0) 
 	{
@@ -893,7 +895,7 @@ static int16_t mag_z_axis_min = 0;
 static boolean first_time_through = true;
 
 
-void telemetry_output_8hz(void)
+void telemetry_output_40hz(void)
 {
 	if (udb_pulse_counter % (HEARTBEAT_HZ / 4) == 0) 
 	{
@@ -932,7 +934,7 @@ void telemetry_output_8hz(void)
 
 #elif (SERIAL_OUTPUT_FORMAT == SERIAL_CAM_TRACK)
 
-void telemetry_output_8hz(void)
+void telemetry_output_40hz(void)
 {
 	uint8_t checksum = 0;
 	checksum += ((union intbb)(IMUlocationx._.W1))._.B0 + ((union intbb)(IMUlocationx._.W1))._.B1;
@@ -956,7 +958,7 @@ void telemetry_output_8hz(void)
 #else //((SERIAL_OUTPUT_FORMAT != SERIAL_NONE) && (SERIAL_OUTPUT_FORMAT != SERIAL_MAVLINK))
 
 #if (USE_OSD != OSD_MINIM) && (USE_OSD != OSD_REMZIBI)
-void telemetry_output_8hz(void)
+void telemetry_output_40hz(void)
 {
 }
 #endif // USE_OSD
@@ -987,7 +989,7 @@ void udb_serial_callback_received_byte(uint8_t rxchar)
 void telemetry_restart(void)
 {
 }
-void telemetry_output_8hz(void)
+void telemetry_output_40hz(void)
 {
 }
 void telemetry_init(void)
