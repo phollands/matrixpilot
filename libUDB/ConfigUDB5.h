@@ -33,7 +33,7 @@
 //#define SCALEACCEL          1.27    // 4 g range measured by WJP on a few UDB5s
 //#define SCALEACCEL          1.25    // 4g range As measured by PDH on UDB5 mini August 2018 on Z axis
 //#define SCALEACCEL          2.30    // 8g range, PDH
-#define SCALEACCEL          4.60      // 16g range, PDH
+#define SCALEACCEL          5.03      // 16g range, PDH
 
 #define NUM_ANALOG_INPUTS   4
 
