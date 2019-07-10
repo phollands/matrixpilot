@@ -72,7 +72,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Set this value to your GPS type.  (Set to GPS_STD, GPS_UBX_2HZ, GPS_UBX_4HZ, GPS_MTEK, GPS_NMEA, or GPS_NONE)
-#define GPS_TYPE GPS_UBX_2HZ
+#define GPS_TYPE GPS_UBX_4HZ
 //#define DEFAULT_GPS_BAUD                    57600   // added for GPS_NMEA support
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -161,7 +161,7 @@
 // If you select this option, you also need to set magnetometer options in
 // the options_magnetometer.h file, including declination and magnetometer type.
 #ifndef MAG_YAW_DRIFT
-#define MAG_YAW_DRIFT                       1
+#define MAG_YAW_DRIFT                       0
 #endif
 
 // Define USE_BAROMETER_ALTITUDE to be 1 to use barometer for altitude correction.
@@ -338,7 +338,7 @@
 // FAILSAFE_INPUT_MIN and _MAX define the range within which we consider the radio on.
 // Normal signals should fall within about 2000 - 4000.
 #define FAILSAFE_INPUT_CHANNEL              THROTTLE_INPUT_CHANNEL
-#define FAILSAFE_INPUT_MIN	            2050 // For PDH Spektrum DX9
+#define FAILSAFE_INPUT_MIN                  2050 // For PDH Spektrum DX9
 //#define FAILSAFE_INPUT_MIN	            1500 // For HILSIM testing
 #define FAILSAFE_INPUT_MAX                  4500
 
