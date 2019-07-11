@@ -140,8 +140,8 @@
 
 // Inverted flight
 // Set these to 1 to enable stabilization of inverted flight in stabilized and/or waypoint modes.
-#define INVERTED_FLIGHT_STABILIZED_MODE     1
-#define INVERTED_FLIGHT_WAYPOINT_MODE       1
+#define INVERTED_FLIGHT_STABILIZED_MODE     0
+#define INVERTED_FLIGHT_WAYPOINT_MODE       0
 
 // Hovering
 // Set these to 1 to enable stabilization of hovering in stabilized and/or waypoint modes.
@@ -756,7 +756,7 @@
 // Waypoint handling
 
 // Move on to the next waypoint when getting within this distance of the current goal (in meters)
-#define WAYPOINT_PROXIMITY_RADIUS	25
+#define WAYPOINT_PROXIMITY_RADIUS	5
 
 // Origin Location
 // When using relative waypoints, the default is to interpret those waypoints as relative to the
