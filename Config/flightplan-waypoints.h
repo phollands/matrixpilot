@@ -152,10 +152,21 @@ const struct waypointDef waypoints[] = {
 
 #else
 
+// Special Test Route to try to highlight navigation bug made using waypoint editor.
 const struct waypointDef waypoints[] = {
-		{ {   0,   0, 75 } , F_NORMAL, CAM_VIEW_LAUNCH } ,  // return to, and loiter 75 meters above the startup position
+	{ { -1, -61, 50 }   , F_NORMAL + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 1
+	{ { 20, -111, 50 }   , F_NORMAL + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 2
+	{ { 61, -119, 50 }   , F_NORMAL + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 3
+	{ { 63, -165, 50 }  , F_NORMAL + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 4
+	{ { 93, -211, 50 }  , F_NORMAL + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 5
+	{ { -9, -179, 50 }  , F_NORMAL + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 6
+	{ { -34, -265, 50 } , F_NORMAL + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 7
+	{ { -38, -172, 50 } , F_NORMAL + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 8
+	{ { -84, -204, 50 } , F_NORMAL + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 9
+	{ { -45, -130, 50 } , F_NORMAL + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 10
+	{ { -95, -70, 50 }  , F_NORMAL + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 11
+	{ { -49, -26, 50 }   , F_NORMAL + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 12
 };
-
 #endif
 
 

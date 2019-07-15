@@ -110,7 +110,7 @@
 // holds the cross track error to smaller values.
 // 64 meters is probably the largest value you might use on a fast model jet (more than 50 meters/sec)
 // Use 32 meters for 20 to 50 meters/sec, and 16 meters for less than that.
-#define CROSS_TRACK_MARGIN                  32
+#define CROSS_TRACK_MARGIN                  16
 
 // Wind Gain Adjustment
 // This is an option for modulating the navigation gains in flight
@@ -749,14 +749,14 @@
 // The Logo flight plan definitions and options are located in the flightplan-logo.h file.
 
 #ifndef FLIGHT_PLAN_TYPE
-#define FLIGHT_PLAN_TYPE                    FP_LOGO
+#define FLIGHT_PLAN_TYPE                    FP_WAYPOINTS
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // Waypoint handling
 
 // Move on to the next waypoint when getting within this distance of the current goal (in meters)
-#define WAYPOINT_PROXIMITY_RADIUS	5
+#define WAYPOINT_PROXIMITY_RADIUS	1
 
 // Origin Location
 // When using relative waypoints, the default is to interpret those waypoints as relative to the
