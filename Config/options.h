@@ -508,7 +508,7 @@
 // the feed forward gain for that axis.
 // For each axis, a deflection term is added equal to the feed forward gain for that axis
 // times projection of the desired earth vertical rotation rate onto that axis
-#define FEED_FORWARD                        0.6
+#define FEED_FORWARD                        1.0
 
 // TURN_RATE_NAV and TURN_RATE_FBW set the gains of the helical turn control for
 // waypoint navigation mode and fly by wire mode respectively.
@@ -525,7 +525,7 @@
 // YAWKD_AILERON is the derivative feedback gain for ailerons in response to yaw rotation.
 // use it only if there is no rudder.
 #define ROLLKP                              0.20
-#define ROLLKD                              0.00
+#define ROLLKD                              0.10
 #define YAWKP_AILERON                       0.00
 #define YAWKD_AILERON                       0.00
 
@@ -741,7 +741,7 @@
 // The Waypoint definitions and options are located in the flightplan-waypoints.h file.
 // The Logo flight plan definitions and options are located in the flightplan-logo.h file.
 #ifndef FLIGHT_PLAN_TYPE
-#define FLIGHT_PLAN_TYPE                    FP_LOGO
+#define FLIGHT_PLAN_TYPE                    FP_WAYPOINTS
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
