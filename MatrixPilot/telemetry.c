@@ -576,6 +576,13 @@ void telemetry_output_8hz(void)
 
 void telemetry_output_8hz(void)
 {
+    serial_output("%d,%d\r\n",waypointIndex,desiredHeight);
+}
+
+/*
+
+void telemetry_output_8hz(void)
+{
 	int16_t i;
 	static int toggle = 0;
 	static boolean f13_print_prepare = false;
@@ -801,7 +808,7 @@ void telemetry_output_8hz(void)
 	log_swapbuf();
 #endif
 }
-
+ */
 #elif (SERIAL_OUTPUT_FORMAT == SERIAL_OSD_REMZIBI)
 
 #warning SERIAL_OSD_REMZIBI undergoing merge to trunk
