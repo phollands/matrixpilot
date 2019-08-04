@@ -142,12 +142,20 @@
 
 #if (HILSIM == 1)
 
-// Innsbruck inverted/reversed T3 course
+// Innsbruck airport course assuming origin at East end of Runway.
 const struct waypointDef waypoints[] = {
-		{ {  113236490, 472496320, 350 } , F_ABSOLUTE, CAM_VIEW_LAUNCH } ,
-		{ {  113236490, 472638400, 350 } , F_ABSOLUTE, CAM_VIEW_LAUNCH } ,
-		{ {  113579820, 472496320, 350 } , F_ABSOLUTE, CAM_VIEW_LAUNCH } ,
-		{ {  113579820, 472638400, 350 } , F_ABSOLUTE, CAM_VIEW_LAUNCH } ,
+	{ { -25, 3, 50 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 1
+	{ { -137, -12, 100 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 2
+	{ { -244, -28, 50 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 3
+	{ { -284, -36, 100 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 4
+	{ { -312, -55, 100 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 5
+	{ { -316, -80, 50 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 6
+	{ { -310, -125, 100 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 7
+	{ { -302, -191, 50 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 8
+	{ { -291, -279, 100 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 9
+	{ { -285, -324, 50 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 10
+	{ { -289, -349, 100 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 11
+	{ { -303, -363, 50 } , F_NORMAL , CAM_VIEW_LAUNCH } , //Waypoint 12
 };
 
 #else

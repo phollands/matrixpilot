@@ -275,22 +275,15 @@
 #define SQUARE 1
 
 const struct logoInstructionDef instructions[] = {
-
-	SET_ALT(100)
-
-	// Go Home and point North
-	HOME
-
-	REPEAT_FOREVER
-		DO_ARG(SQUARE, 100)
-	END
-
-	TO (SQUARE)
-		REPEAT(4)
-			FD_PARAM
-			RT(90)
-		END
-	END
+REPEAT_FOREVER
+        SET_ALT(100)
+        RT(90)
+        FD(100)
+        SET_ALT(50)
+        RT(90)
+        FD(100)
+        
+END
 };
 
 ////////////////////////////////////////////////////////////////////////////////
