@@ -161,7 +161,7 @@
 // If you select this option, you also need to set magnetometer options in
 // the options_magnetometer.h file, including declination and magnetometer type.
 #ifndef MAG_YAW_DRIFT
-#define MAG_YAW_DRIFT                       0
+#define MAG_YAW_DRIFT                       1
 #endif
 
 // Define USE_BAROMETER_ALTITUDE to be 1 to use barometer for altitude correction.
@@ -749,7 +749,7 @@
 // The Logo flight plan definitions and options are located in the flightplan-logo.h file.
 
 #ifndef FLIGHT_PLAN_TYPE
-#define FLIGHT_PLAN_TYPE                    FP_WAYPOINTS
+#define FLIGHT_PLAN_TYPE                    FP_LOGO
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
