@@ -483,7 +483,7 @@ TO (INT_HANDLER)
 END
 */
 
-
+/*
 // Example of using an interrupt handler to toggle between 2 flight plans.
 // When starting the flightplan, decide whether to circle left or right, based on which direction
 // initially turns towards home.  From then on, the circling direction can be changed by moving the
@@ -534,4 +534,80 @@ TO (INT_HANDLER_LEFT)
 	END
 END
 };
+*/
 
+
+// Example to turn your plane into a Boomerang
+// PLEASE NOTE: This script the requires use of Magnetometer as well as Sonar.
+
+#define HALF_CIRCLE_LEFT			1
+#define THREE_QUARTER_CIRCLE_LEFT	2
+#define QUARTER_CIRCLE_RIGHT		3
+#define TURN_AROUND					4
+#define LAND						5
+
+#define RUNWAY_LENGTH      	 150
+#define LANDING_ALT_DIFF	 RUNWAY_LENGTH / 5  // 11 degree slope. At 10 m/s horiz give decent at 0.25 m/s
+#define ALT_TRIM_ERROR       10
+
+const struct logoInstructionDef instructions[] = {
+    SET_ALT(50)
+    FLAG_ON(F_TAKEOFF)
+    REPEAT(5)	// Create 5 intermediate waypoints for better cross tracking on take off
+        FD(RUNWAY_LENGTH / 5 )
+	END
+    FLAG_OFF(F_TAKEOFF)
+    DO_ARG(QUARTER_CIRCLE_RIGHT,10)
+    DO_ARG(THREE_QUARTER_CIRCLE_LEFT,10)
+    FD(30)
+    // Prepare to Land
+    PEN_UP
+    HOME
+    USE_ANGLE_TO_GOAL
+    BK(10)
+    SET_ALT(-20)
+    SET_INTERRUPT(LAND)
+    PEN_DOWN  // Start the Landing
+    FD(40)    // Should have landed allow another 40 meters forward
+                
+    CLEAR_INTERRUPT // Did not land in time .... Go Around again
+    SET_ALT(50)
+    FLAG_ON(F_TAKEOFF)
+    FD(RUNWAY_LENGTH)
+    HOME
+    END
+
+TO (THREE_QUARTER_CIRCLE_LEFT)
+	REPEAT(27)
+		FD_PARAM
+		LT(10)
+	END
+END
+
+TO (QUARTER_CIRCLE_RIGHT)
+	REPEAT(9)
+		FD_PARAM
+		RT(10)
+	END
+END
+
+TO (LAND)					      // Interrupt routine Landing 
+	IF_LT( ALT_AGL, 400)	      // If ground is less than 400 centimeter (4 meters away)
+		PEN_UP					  // Make sure we do not fly to intermediate turle positions in the next few lines.
+		USE_CURRENT_POS			  // Reset X,Y horizontal turtle coordinates to this location.
+		LOAD_TO_PARAM(ALT)        // Get our current altitude and put it into parameter register.
+		PARAM_ADD(ALT_TRIM_ERROR) // Add to parameter a height which is required above our actual flight to fly level.
+		SET_ALT_PARAM             // Set the new altitude of the turtle.
+		FLAG_ON(F_LAND)			  // After that waypoint, Engine off, never above altitude goal line.
+		FD(30) 					  // Is really forward 20 because WAYPOINT_RADIUS is 20.
+		PEN_DOWN                  // Fly to Turtle
+			REPEAT(5)
+				FD(10)            // Forward 10
+			END
+		SET_ALT(50)
+		FLAG_OFF(F_LAND)
+		CLEAR_INTERRUPT
+	END							
+END 
+
+} ;
