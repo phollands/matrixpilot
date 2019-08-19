@@ -28,6 +28,7 @@
 
 int16_t range_to_target;               // distance to target in centimeters
 int16_t height_above_ground_level;     // calculated distance to ground in Earth's Z Plane allowing for tilt
+uint16_t saved_range_sample_count;
 static fractional cos_pitch_roll;      // tilt of the plane in UDB fractional units * 2.
 
 
@@ -63,9 +64,10 @@ void calculate_height_above_ground_level(void)
 	if (udb_flags._.range_updated == 1) 
 	{	
 		union longbbbb accum;
-
 		no_readings_count  = 0;
 		accum.WW = __builtin_mulss(get_range_value(), UDB_RANGER_PWM_UNITS_TO_CENTIMETERS) + 32768;
+        saved_range_sample_count = range_sample_count;
+        range_sample_count = 0;
 		range_to_target = accum._.W1;
 		// RMAT 8 is the cosine of the tilt of the plane in pitch and roll	;
 		cos_pitch_roll = rmat[8]; // rmat[8] can change in another thread of execution

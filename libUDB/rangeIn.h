@@ -18,6 +18,7 @@
 // You should have received a copy of the GNU General Public License
 // along with MatrixPilot.  If not, see <http://www.gnu.org/licenses/>.
 
+extern uint16_t range_sample_count;    // No. of samples since last height calculation
 
 int16_t get_range_value(void);   // Get the raw PWM values from the Sonar / Lidar device
 uint16_t get_range_count(void);

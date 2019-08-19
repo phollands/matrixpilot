@@ -19,7 +19,8 @@
 // along with MatrixPilot.  If not, see <http://www.gnu.org/licenses/>.
 
 
-extern int16_t range_to_target;         // distance to target in centimeters
-extern int16_t height_above_ground_level; // calculated distance to ground in Earth's Z Plane allowing for tilt
-
+extern int16_t range_to_target;            // distance to target in centimeters
+extern int16_t height_above_ground_level;  // calculated distance to ground in Earth's Z Plane allowing for tilt
+extern uint16_t range_sample_count; // No. of samples collected from Sonar / Lidar since last height calculation
+extern uint16_t saved_range_sample_count;
 void calculate_height_above_ground_level(void);

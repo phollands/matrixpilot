@@ -26,6 +26,7 @@
 #if (USE_RANGER_INPUT != 0)
 
 int16_t udb_pwm_range;          // pulse width of sonar signal
+uint16_t range_sample_count;    // No. of samples since last height calculation
 static int16_t udb_pwm_range_rise;
 static uint16_t range_pwm_count;
 
@@ -112,6 +113,7 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _IC##x##Interrupt(void) \
 	{ \
 		udb_pwm_range = time - udb_pwm_range_rise; \
 		udb_flags._.range_updated = 1; \
+        range_sample_count++; \
 	} \
 	interrupt_restore_corcon; \
 	unset_ipl_on_output_pin;  \
