@@ -264,7 +264,7 @@ static uint8_t un;
 //static union longbbbb xpg_, ypg_, zpg_;
 //static union longbbbb xvg_, yvg_, zvg_;
 //static uint8_t mode1_, mode2_;
-static uint8_t svs_, nav_valid_;
+static uint8_t svs_, nav_valid_, nav_flags_;
 //static union longbbbb lat_gps_, lon_gps_, alt_sl_gps_;
 static union longbbbb sog_gps_, cog_gps_, climb_gps_;
 //static union longbbbb tow_;
@@ -298,7 +298,7 @@ uint8_t* const msg_SOL_parse[] = {
 	&un, &un, &un, &un,                                 // fTOW
 	&week_no_._.B0, &week_no_._.B1,                     // week
 	&nav_valid_,                                        // gpsFix
-	&un,                                                // flags
+	&nav_flags_,                                        // navigation status
 	&un, &un, &un, &un,                                 // ecefX
 	&un, &un, &un, &un,                                 // ecefY
 	&un, &un, &un, &un,                                 // ecefZ
@@ -431,6 +431,13 @@ void gps_startup_sequence(int16_t gpscount)
 boolean gps_nav_valid(void)
 {
 	return (nav_valid_ == 3);
+}
+
+uint8_t gps_nav_diff_soln(void)
+{
+    // differential gps solutions (e.g. SBAS) flag at bit position 2
+    //return ((nav_flags_ & 2) == 2);
+    return(nav_flags_);
 }
 
 /*

@@ -578,6 +578,7 @@ void telemetry_output_8hz(void)
 //extern uint16_t udb_gap_range;
 
 extern uint16_t get_range_count(void);
+extern uint8_t gps_nav_diff_soln(void);
 
 void telemetry_output_8hz(void)
 {
@@ -764,12 +765,12 @@ void telemetry_output_8hz(void)
 					serial_output("stk%d:", (int16_t)(4096-maxstack));
 #endif // RECORD_FREE_STACK_SPACE
 					serial_output("\r\n");
-					serial_output("F23:G%i:V%i:RE%d,%d,%d:TE%d,%d,%d:DR%d,%d,%d:OM%d,%d,%d:DT%d:EL%d:Ct%i:\r\n",            \
+					serial_output("F23:G%i:V%i:RE%d,%d,%d:TE%d,%d,%d:DR%d,%d,%d:OM%d,%d,%d:DT%d:EL%d:Ct%i:Gf%X\r\n",   \
                             gps_parse_errors,vdop,                                                                     \
                             rotationRateError[0],rotationRateError[1],rotationRateError[2],                            \
                             tiltError[0],tiltError[1],tiltError[2],                                                    \
                             desiredRotationRateRadians[0],desiredRotationRateRadians[1],desiredRotationRateRadians[2], \
-                            omegaAccum[0],omegaAccum[1],omegaAccum[2],desiredTurnRateRadians,elevatorLoadingTrim,get_range_count());
+                            omegaAccum[0],omegaAccum[1],omegaAccum[2],desiredTurnRateRadians,elevatorLoadingTrim,get_range_count(),gps_nav_diff_soln());
 				}
 			}
 			if (state_flags._.f13_print_req == 1)
