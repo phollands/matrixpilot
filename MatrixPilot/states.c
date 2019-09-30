@@ -230,7 +230,8 @@ static void ent_stabilizedS(void)
 {
 	DPRINT("ent_stabilizedS\r\n");
 
-	if (settings._.AltitudeholdStabilized == AH_PITCH_ONLY)
+	if ((settings._.AltitudeholdStabilized == AH_PITCH_ONLY) ||
+            (settings._.AltitudeholdStabilized == AH_FULL_ELEV ))
 	{
 		// When using pitch_only in stabilized mode, maintain the altitude
 		// that the plane was at when entering stabilized mode.
@@ -239,8 +240,11 @@ static void ent_stabilizedS(void)
 
 	state_flags._.GPS_steering = 0;
 	state_flags._.pitch_feedback = 1;
-	state_flags._.altitude_hold_throttle = (settings._.AltitudeholdStabilized == AH_FULL);
-	state_flags._.altitude_hold_pitch = (settings._.AltitudeholdStabilized == AH_FULL || settings._.AltitudeholdStabilized == AH_PITCH_ONLY);
+	state_flags._.altitude_hold_throttle = (settings._.AltitudeholdStabilized == AH_FULL) ||
+            (settings._.AltitudeholdStabilized == AH_FULL_ELEV);
+	state_flags._.altitude_hold_pitch = (settings._.AltitudeholdStabilized == AH_FULL) ||
+            (settings._.AltitudeholdStabilized == AH_FULL_ELEV) ||
+            (settings._.AltitudeholdStabilized == AH_PITCH_ONLY);
 	waggle = 0;
 	led_on(LED_RED);
 	stateS = &stabilizedS;

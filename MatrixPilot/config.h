@@ -57,7 +57,7 @@ struct option_bits {
  */
 
 struct settings_bits {
-	uint16_t unused                     : 3;
+	uint16_t unused                     : 2;
 	uint16_t IsDirty                    : 1;
 	uint16_t RollStabilizaionAilerons   : 1;
 	uint16_t RollStabilizationRudder    : 1;
@@ -66,7 +66,7 @@ struct settings_bits {
 	uint16_t YawStabilizationAileron    : 1;
 	uint16_t AileronNavigation          : 1;
 	uint16_t RudderNavigation           : 1;
-	uint16_t AltitudeholdStabilized     : 2;
+	uint16_t AltitudeholdStabilized     : 3;
 	uint16_t AltitudeholdWaypoint       : 2;
 	uint16_t RacingMode	                : 1;
 };
