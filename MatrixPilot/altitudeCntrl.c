@@ -98,7 +98,6 @@ void save_altitudeCntrl(void)
 	altit.AltHoldPitchMin = alt_hold_pitch_min;
 	altit.AltHoldPitchMax = alt_hold_pitch_max;
 	altit.AltHoldPitchHigh = alt_hold_pitch_high;
-//	desiredSpeed / 10;
 }
 
 #if (SPEED_CONTROL == 1)  // speed control loop
@@ -210,7 +209,6 @@ static void set_throttle_control(int16_t throttle)
 void setTargetAltitude(int16_t targetAlt)
 {
 	desiredHeight = targetAlt;
-//	printf("setTargetAltitude(%u)\r\n", desiredHeight);
 }
 
 static void normalAltitudeCntrl(void)
@@ -244,33 +242,22 @@ static void normalAltitudeCntrl(void)
 		if (state_flags._.GPS_steering)
 		{
 			desiredHeight = navigate_desired_height();
-//			if (desired_behavior._.takeoff || desired_behavior._.altitude)
-//			{
-//				desiredHeight = goal.height;
-//			}
-//			else
-//			{
-//				desiredHeight = goal.fromHeight + (((goal.height - goal.fromHeight) * (int32_t)progress_to_goal) >> 12);
-//			}
 		}
 		else
 		{
-//#if (ALTITUDEHOLD_STABILIZED == AH_PITCH_ONLY)
 			if (settings._.AltitudeholdStabilized == AH_PITCH_ONLY)
 			{
 				// In stabilized mode using pitch-only altitude hold, use desiredHeight as
 				// set from the state machine upon entering stabilized mode in ent_stabilizedS().
-//#elif (ALTITUDEHOLD_STABILIZED == AH_FULL)
 			}
 			else if (settings._.AltitudeholdStabilized == AH_FULL)
 			{
 				// In stabilized mode using full altitude hold, use the throttle stick value to determine desiredHeight,
 				desiredHeight = ((__builtin_mulss((int16_t)(HEIGHTTHROTTLEGAIN), throttleInOffset - ((int16_t)(DEADBAND)))) >> 11)
 				                + (int16_t)(altit.HeightTargetMin);
-}
-//#endif
-			if (desiredHeight < (int16_t)(altit.HeightTargetMin)) desiredHeight = (int16_t)(altit.HeightTargetMin);
-			if (desiredHeight > (int16_t)(altit.HeightTargetMax)) desiredHeight = (int16_t)(altit.HeightTargetMax);
+            }
+		if (desiredHeight < (int16_t)(altit.HeightTargetMin)) desiredHeight = (int16_t)(altit.HeightTargetMin);
+		if (desiredHeight > (int16_t)(altit.HeightTargetMax)) desiredHeight = (int16_t)(altit.HeightTargetMax);
 		}
 		if (throttleInOffset < (int16_t)(DEADBAND) && udb_flags._.radio_on)
 		{
@@ -309,7 +296,6 @@ static void normalAltitudeCntrl(void)
 				pitchAccum.WW = __builtin_mulss((int16_t)(PITCHHEIGHTGAIN), - heightError._.W0 - (int16_t)(altit.HeightMargin*8.0)) >> 3;
 				pitchAltitudeAdjust = (int16_t)(PITCHATMAX) + pitchAccum._.W0;
 			}
-//#if (RACING_MODE == 1)
 			if (settings._.RacingMode == 1)
 			{
 				if (state_flags._.GPS_steering)
@@ -317,7 +303,6 @@ static void normalAltitudeCntrl(void)
 					throttleAccum.WW = (int32_t)(FIXED_WP_THROTTLE);
 				}
 			}
-//#endif
 		}
 		if (!state_flags._.altitude_hold_throttle)
 		{
@@ -357,8 +342,6 @@ static void normalAltitudeCntrl(void)
 
 static void manualThrottle(int16_t throttleIn)
 {
-//	printf("manualThrottle()\r\n");
-
 	int16_t throttle_control_pre;
 
 	throttleFiltered.WW += (((int32_t)(throttleIn - throttleFiltered._.W1)) << THROTTLEFILTSHIFT);
@@ -382,8 +365,6 @@ static void manualThrottle(int16_t throttleIn)
 // gives manual throttle control back to the pilot.
 static void hoverAltitudeCntrl(void)
 {
-//	printf("hoverAltitudeCntrl()\r\n");
-
 	int16_t throttle_control_pre;
 	int16_t throttleIn = (udb_flags._.radio_on == 1) ? udb_pwIn[THROTTLE_INPUT_CHANNEL] : udb_pwTrim[THROTTLE_INPUT_CHANNEL];
 
