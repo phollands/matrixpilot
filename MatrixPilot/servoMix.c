@@ -23,6 +23,7 @@
 #include "servoMix.h"
 #include "options_servo_mix.h"
 #include "servoPrepare.h"
+#include "altitudeCntrl.h"
 #include "config.h"
 #include "states.h"
 #include "cameraCntrl.h"
@@ -164,27 +165,35 @@ void servoMix(void)
 		pwManual[ELEVATOR_INPUT_CHANNEL] += ((pwManual[ELEVATOR_INPUT_CHANNEL] - udb_pwTrim[ELEVATOR_INPUT_CHANNEL]) * elevatorbgain) >> 3;
 		pwManual[RUDDER_INPUT_CHANNEL] += ((pwManual[RUDDER_INPUT_CHANNEL] - udb_pwTrim[RUDDER_INPUT_CHANNEL]) * rudderbgain) >> 3;
 	}
-		temp = pwManual[AILERON_INPUT_CHANNEL] + REVERSE_IF_NEEDED(AILERON_CHANNEL_REVERSED, roll_control + waggle);
-		udb_pwOut[AILERON_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
+    temp = pwManual[AILERON_INPUT_CHANNEL] + REVERSE_IF_NEEDED(AILERON_CHANNEL_REVERSED, roll_control + waggle);
+    udb_pwOut[AILERON_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
 		
 	udb_pwOut[AILERON_SECONDARY_OUTPUT_CHANNEL] = udb_pwTrim[AILERON_INPUT_CHANNEL] +
 	    REVERSE_IF_NEEDED(AILERON_SECONDARY_CHANNEL_REVERSED, udb_pwOut[AILERON_OUTPUT_CHANNEL] - udb_pwTrim[AILERON_INPUT_CHANNEL]);
 
-		temp = pwManual[ELEVATOR_INPUT_CHANNEL] + REVERSE_IF_NEEDED(ELEVATOR_CHANNEL_REVERSED, pitch_control);
-		udb_pwOut[ELEVATOR_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
+    if ((state_flags._.altitude_hold_pitch == 1) && (state_flags._.GPS_steering != 1) &&
+            (settings._.AltitudeholdStabilized == AH_FULL_ELEV ))
+    {
+        temp = udb_pwTrim[ELEVATOR_INPUT_CHANNEL] + REVERSE_IF_NEEDED(ELEVATOR_CHANNEL_REVERSED, (pitch_control + emergency_elevator));
+    }
+    else
+    {
+    temp = pwManual[ELEVATOR_INPUT_CHANNEL] + REVERSE_IF_NEEDED(ELEVATOR_CHANNEL_REVERSED, pitch_control);
+    }
+    udb_pwOut[ELEVATOR_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
 
-		temp = pwManual[RUDDER_INPUT_CHANNEL] + REVERSE_IF_NEEDED(RUDDER_CHANNEL_REVERSED, yaw_control - waggle);
-		udb_pwOut[RUDDER_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
+    temp = pwManual[RUDDER_INPUT_CHANNEL] + REVERSE_IF_NEEDED(RUDDER_CHANNEL_REVERSED, yaw_control - waggle);
+    udb_pwOut[RUDDER_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
 
-		if (pwManual[THROTTLE_INPUT_CHANNEL] == 0)
-		{
-			udb_pwOut[THROTTLE_OUTPUT_CHANNEL] = 0;
-		}
-		else
-		{
-			temp = pwManual[THROTTLE_INPUT_CHANNEL] + REVERSE_IF_NEEDED(THROTTLE_CHANNEL_REVERSED, throttle_control);
-			udb_pwOut[THROTTLE_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
-		}
+    if (pwManual[THROTTLE_INPUT_CHANNEL] == 0)
+    {
+        udb_pwOut[THROTTLE_OUTPUT_CHANNEL] = 0;
+    }
+    else
+    {
+        temp = pwManual[THROTTLE_INPUT_CHANNEL] + REVERSE_IF_NEEDED(THROTTLE_CHANNEL_REVERSED, throttle_control);
+        udb_pwOut[THROTTLE_OUTPUT_CHANNEL] = udb_servo_pulsesat(temp);
+    }
 #endif // AIRFRAME_STANDARD
 
 #if (AIRFRAME_TYPE == AIRFRAME_GLIDER)

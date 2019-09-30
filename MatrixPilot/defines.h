@@ -57,6 +57,7 @@ void save_altitudeCntrlVariable(void);
 #define AH_NONE             0
 #define AH_PITCH_ONLY       1
 #define AH_FULL             3
+#define AH_FULL_ELEV        4
 
 
 // Choose the type of air frame by setting AIRFRAME_TYPE in options.h
