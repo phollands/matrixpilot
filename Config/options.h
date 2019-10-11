@@ -696,8 +696,8 @@
 // Use ALT_HOLD_THROTTLE_MAX when below HEIGHT_MARGIN of the target height.
 // Interpolate between ALT_HOLD_THROTTLE_MAX and ALT_HOLD_THROTTLE_MIN
 // when within HEIGHT_MARGIN of the target height.
-// Use ALT_HOLD_THROTTLE_MIN when above HEIGHT_MARGIN of the target height.
-// Throttle values are from 0.0 - 1.0.
+// Throttle is set to zero when above HEIGHT_MARGIN of the target height.
+// ALT_HOLD_THROTTLE values are from 0.0 to 1.0.
 #define ALT_HOLD_THROTTLE_MIN               0.35
 #define ALT_HOLD_THROTTLE_MAX               1.0
 
