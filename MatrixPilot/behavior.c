@@ -80,14 +80,14 @@ boolean canStabilizeHover(void)
 
 void updateBehavior(void)
 {
-#if (MODE_INVERTED_CHANNEL != CHANNEL_UNUSED)
+#if (MODE_FLY_INVERTED_CHANNEL != CHANNEL_UNUSED)
 #warning  "options.h has a channel for flipping the plane to Inverted flight"
 #warning "Hover options disabled"
-	if (udb_pwIn[MODE_INVERTED_CHANNEL] > 3500)
+	if (udb_pwIn[MODE_FLY_INVERTED_CHANNEL] > 3500)
 	{
 		current_orientation = F_INVERTED;
 	}
-	else if (udb_pwIn[MODE_INVERTED_CHANNEL] < 2500)
+	else if (udb_pwIn[MODE_FLY_INVERTED_CHANNEL] < 2500)
 	{
 		current_orientation = F_NORMAL;
 	}
