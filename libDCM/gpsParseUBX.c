@@ -268,7 +268,9 @@ static uint8_t svs_, nav_valid_;
 //static union longbbbb lat_gps_, lon_gps_, alt_sl_gps_;
 static union longbbbb sog_gps_, cog_gps_, climb_gps_;
 //static union longbbbb tow_;
+#if (HILSIM == 1)
 static union longbbbb as_sim_;
+#endif
 //static union intbb hdop_;
 static union intbb week_no_;
 
@@ -284,6 +286,7 @@ static union intbb g_a_x_sim_, g_a_y_sim_, g_a_z_sim_;
 static union intbb g_a_x_sim,  g_a_y_sim,  g_a_z_sim;
 static union intbb p_sim_,     q_sim_,     r_sim_;
 static union intbb p_sim,      q_sim,      r_sim;
+union intbb alt_agl_sim;
 static uint8_t x_ckey_, x_vkey_;
 static void commit_bodyrate_data(void);
 static void commit_keystroke_data(void);
@@ -354,13 +357,21 @@ uint8_t* const msg_VELNED_parse[] = {
 	&un, &un, &un, &un,                                 // velE
 	&climb_gps_.__.B0, &climb_gps_.__.B1,
 	&climb_gps_.__.B2, &climb_gps_.__.B3,               // velD
+#if (HILSIM == 1)
 	&as_sim_.__.B0, &as_sim_.__.B1,
 	&as_sim_.__.B2, &as_sim_.__.B3,                     // air speed
+#else
+    &un, &un, &un, &un,
+#endif
 	&sog_gps_.__.B0, &sog_gps_.__.B1,
 	&sog_gps_.__.B2, &sog_gps_.__.B3,                   // gSpeed
 	&cog_gps_.__.B0, &cog_gps_.__.B1,
 	&cog_gps_.__.B2, &cog_gps_.__.B3,                   // heading
+#if (HILSIM == 1)
+    &alt_agl_sim._.B0, &alt_agl_sim._.B1, &un, &un,     // Altitude Above Ground
+#else
 	&un, &un, &un, &un,                                 // sAcc
+#endif
 	&un, &un, &un, &un,                                 // cAcc
 };
 
