@@ -179,6 +179,7 @@ XPLMDataRef drP, drQ, drR,
             drLat, drLon, drElev,
             drLocal_ax, drLocal_ay, drLocal_az,
             drLocal_vx, drLocal_vy, drLocal_vz,
+            drAltAGL,
             drLocal_x,  drLocal_y,  drLocal_z,
             drAirSpeedTrue,
             drLocalDays, drLocalSecs,
@@ -232,6 +233,9 @@ PLUGIN_API int XPluginStart(char* outName,
 	drLocal_vx = XPLMFindDataRef("sim/flightmodel/position/local_vx");
 	drLocal_vy = XPLMFindDataRef("sim/flightmodel/position/local_vy"); 
 	drLocal_vz = XPLMFindDataRef("sim/flightmodel/position/local_vz");
+    
+    // Altitude Above Ground Level
+    drAltAGL   = XPLMFindDataRef("sim/flightmodel/position/y_agl");
 
 	drLocalDays = XPLMFindDataRef("sim/time/local_date_days");
 	drLocalSecs = XPLMFindDataRef("sim/time/local_time_sec");
@@ -631,6 +635,7 @@ void GetGPSData(void)
 	double local_vx  = XPLMGetDataf(drLocal_vx);
 	double local_vy  = XPLMGetDataf(drLocal_vy);
 	double local_vz  = XPLMGetDataf(drLocal_vz);
+    float alt_agl    = XPLMGetDataf(drAltAGL);
 
 	Temp4.WW = (int)(local_vx * 100);
 	Store4LE(&NAV_VELNED[14], Temp4);
@@ -640,7 +645,7 @@ void GetGPSData(void)
 	Store4LE(&NAV_VELNED[10], Temp4);
 	Temp4.WW = (int)(XPLMGetDataf(drAirSpeedTrue) * 100);
 	Store4LE(&NAV_VELNED[22], Temp4);
-
+    
 	// note: xplane ground speed is not GPS speed over ground,
 	// it is 3D ground speed. we need horizontal ground speed for GPS,
 	// which is computed from the horizontal local velocity components:
@@ -658,6 +663,10 @@ void GetGPSData(void)
 
 	Temp4.WW = (int)(100000.0 * course_over_ground);
 	Store4LE(&NAV_VELNED[30], Temp4);
+    
+    Temp2.BB = (int)(alt_agl * 100);
+    Store2LE(&NAV_VELNED[34], Temp2);
+    
 	Temp4.WW = (int)(latitude * 10000000);
 	Store4LE(&NAV_POSLLH[14], Temp4);
 	Temp4.WW = (int)(longitude * 10000000);
@@ -731,7 +740,7 @@ void GetGPSData(void)
 	Store2LE(&NAV_SOL[32], Temp2);
 	Temp2.BB = (int)mag_field_body_udb_z;
 	Store2LE(&NAV_SOL[46], Temp2);
-
+    
 	CalculateChecksum(NAV_SOL);
 	SendToComPort(sizeof(NAV_SOL), NAV_SOL);
 	CalculateChecksum(NAV_DOP);
