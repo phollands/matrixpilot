@@ -449,7 +449,7 @@
 
 // Set USE_RANGER_INPUT to the input capture channel which the sensor
 // is connected to. Must be greater than the last used servo channel.
-#define USE_RANGER_INPUT                     0
+#define USE_RANGER_INPUT                     8
 // set to RANGER_NONE, RANGER_LIDAR or RANGER_SONAR
 #define RANGER_TYPE                          RANGER_LIDAR
 #define RANGER_TERRAIN_FOLLOW                0
