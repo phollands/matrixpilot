@@ -119,15 +119,15 @@
 
 // Altitude Hold
 // Use altitude hold in stabilized mode?  In waypoint mode?
-// Each of these settings can be AH_NONE, AH_FULL, or AH_PITCH_ONLY
+// Each of these settings can be AH_NONE, AH_FULL, AH_FULL_ELEV or AH_PITCH_ONLY
 //  - In waypoint mode, the target altitude is defined by the waypoints or logo program.
-//  - In stabilized mode, when ALTITUDEHOLD_STABILIZED is set to AH_PITCH_ONLY, the target
-// altitude is whatever altitude the plane was at when switched into stabilized mode.
-//  - In stabilized mode, when ALTITUDEHOLD_STABILIZED is set to AH_FULL, the target
-// altitude is determined by the position of the throttle stick on the transmitter.
-// NOTE: even when set to AH_NONE, MatrixPilot will still try to stabilize pitch as long
-// as PITCH_STABILIZATION is set to 1 above, but will not aim for any specific altitude.
-#define ALTITUDEHOLD_STABILIZED             AH_FULL
+//  - In stabilized mode when ALTITUDEHOLD_STABILIZED is set to:-
+//      AH_PITCH_ONLY, the target altitude is whatever altitude the plane was at when switched into stabilized mode.
+//      AH_FULL, the target altitude is determined by the position of the throttle stick on the transmitter.
+//      AH_FULL_ELEV, the target altitude is controlled by the elevator stick. e.g. Pulling back on the stick increases target Altitude.
+//      AH_NONE, MatrixPilot will still try to stabilize pitch as long as PITCH_STABILIZATION is set to 1 above,
+//                but will not aim for any specific altitude.
+#define ALTITUDEHOLD_STABILIZED             AH_FULL_ELEV
 #define ALTITUDEHOLD_WAYPOINT               AH_FULL
 
 // Speed Control
