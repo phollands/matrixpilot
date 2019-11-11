@@ -98,6 +98,7 @@ void save_altitudeCntrlVariable(void);
 #define SERIAL_CAM_TRACK      8     // Output Location in a format usable by a 2nd UDB to target its camera at this plane
 #define SERIAL_MAVLINK        9     // The Micro Air Vehicle Link protocol from the PixHawk Project
 #define SERIAL_MAG_CALIBRATE 10     // Used to calibrate and report static magnetometer offsets
+#define SERIAL_TEST_ALTITUDE 11     // Used for testing altitudeCntrl.c 
 
 // RANGING DEVICES
 #define RANGER_NONE           0     // No Lidar or Sonar device

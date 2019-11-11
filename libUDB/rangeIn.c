@@ -27,6 +27,11 @@
 
 #if (USE_RANGER_INPUT != 0)
 
+#if (HILSIM == 1)
+extern union intbb alt_agl_sim;
+extern fractional rmat[];
+#endif
+    
 uint16_t udb_pwm_range;          
 uint16_t udb_gap_range;
 static union longww range_pwm_total ;
@@ -41,14 +46,26 @@ static union longww _range_pwm_total ;
 
 void update_range_value(void)
 {
+#if (HILSIM == 1)
+    static int16_t cos_pitch_roll;   // tilt of the plane in UDB fractional units * 2
+    union longww accum;
+    cos_pitch_roll = rmat[8]; 
+    range_pwm_count = 1;
+    accum._.W0 = 32768;
+    accum._.W1 = alt_agl_sim.BB;
+    if (accum._.W1 > 32768) accum._.W1 = 32768;
+    range_pwm_total.WW = (uint16_t)(__builtin_divsd(accum.WW, cos_pitch_roll)) >> 1;
+#endif
 	if ( ( range_pwm_count == 0) || (range_pwm_total._.W1 > range_pwm_count ))
 	{	// either no pulses to work with,
 		// or it has been too long since last update and there was integer overflow
+        udb_flags._.range_valid = false;
 		udb_pwm_range = 32768 ;
 	}
 	else
 	{	// normal condition, take the average of pulses since last time this routine was executed
-		udb_pwm_range = __builtin_divud(range_pwm_total.WW , range_pwm_count) ;
+        udb_flags._.range_valid = true;
+        udb_pwm_range = __builtin_divud(range_pwm_total.WW , range_pwm_count) ;
 	}
 	// reset the totals
 	udb_flags._.range_update_request = 1 ;
@@ -110,7 +127,7 @@ void udb_init_ranger(void)
     // If we pre-scale that by 64 then we will have max timer ticks of 10,000 .
     // 1 centimeter will be 10,000 / (40*100) ticks which is 2.5 timer ticks / centimeter.
 
-
+    udb_flags._.range_valid = false;
 	TMR3 = 0;               // initialize timer
     // Note: prescaler predicated on 16 Mhz cpu clock rate
 	T3CONbits.TCKPS = 2;    // prescaler = 64,  see page 175 at http://ww1.microchip.com/downloads/en/DeviceDoc/70593C.pdf

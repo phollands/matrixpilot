@@ -606,7 +606,7 @@ static int16_t logo_value_for_identifier(uint8_t ident)
 			return IMUlocationz._.W1;
 #if (USE_RANGER_INPUT != 0)           
         case ALT_AGL: // altitude Above Ground Level (AGL) in centimeters (Sonar / Lidar)
-            return height_above_ground_level;
+            return height_above_ground_cm;
 #endif
 		case CURRENT_ANGLE: // in degrees. 0-359 (clockwise, 0=North)
 			return get_current_angle();

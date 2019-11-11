@@ -58,15 +58,22 @@ union longww throttleFiltered = { 0 };
 
 #define HEIGHTTHROTTLEGAIN  ((1.5*(altit.HeightTargetMax-altit.HeightTargetMin) * \
                                 1024.0) / SERVORANGE)
+#define HEIGHT_AGL_TO_START_TERRAIN_FOLLOWING 1000 
+#define HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING  1500
+#define MINIMUM_TERRAIN_FOLLOWING_HEIGHT      ((int32_t) 3 * 65536) // Fractional Meters
 
 static void normalAltitudeCntrl(void);
 static void manualThrottle(int16_t throttleIn);
 static void hoverAltitudeCntrl(void);
 
 int16_t pitchAltitudeAdjust = 0;
-int16_t emergency_elevator = 0;
+int16_t elevator_override = 0;
 boolean filterManual = false;
-union longww desiredHeight32 ;
+union longww desiredHeight32;
+union longww desiredHeightAGL32;
+static int32_t terrain_height_change;
+static int32_t terrain_height;
+static int32_t previous_terrain_height;
 
 // Variables required for mavlink.  Used in AltitudeCntrlVariable and airspeedCntrl
 int16_t height_target_min;
@@ -214,15 +221,12 @@ static void set_throttle_control(int16_t throttle)
 
 void setTargetAltitude(int16_t targetAlt)
 {
-	desiredHeight = targetAlt;
+	desiredHeight32._.W1 = targetAlt;
 }
 
-static int32_t incremental_height_from_elevator_control(void)
+static int16_t get_elevInOffset(void)
 {
     int16_t elevInOffset;
-    union longww height_increment32;
-    
-    emergency_elevator = 0;
     if (udb_flags._.radio_on == 1)
 	{
 		elevInOffset = udb_pwIn[ELEVATOR_INPUT_CHANNEL] - udb_pwTrim[ELEVATOR_INPUT_CHANNEL];
@@ -235,7 +239,8 @@ static int32_t incremental_height_from_elevator_control(void)
 	{
 		elevInOffset = -elevInOffset;
 	}
-    if ((elevInOffset > -ELEVATOR_DEADBAND) && (elevInOffset < ELEVATOR_DEADBAND))
+
+    if ((elevInOffset > (int16_t) -ELEVATOR_DEADBAND) && (elevInOffset < (int16_t) ELEVATOR_DEADBAND))
     {
         elevInOffset = 0;
     }
@@ -243,41 +248,194 @@ static int32_t incremental_height_from_elevator_control(void)
     {
         if (elevInOffset < 0)
         {
-            elevInOffset = elevInOffset + ELEVATOR_DEADBAND;
+            elevInOffset = elevInOffset + (int16_t) ELEVATOR_DEADBAND;
         }
         else if (elevInOffset > 0)
         {
-            elevInOffset = elevInOffset - ELEVATOR_DEADBAND;
+            elevInOffset = elevInOffset - (int16_t) ELEVATOR_DEADBAND;
         }
         else
         {
             elevInOffset = 0;
         }
     }
-    
+    return(elevInOffset);
+}
+
+static int32_t incremental_height_from_elevator_control(int16_t elevInOffset)
+{
+    int32_t height_increment32;
     if (elevInOffset == 0)
     {
-        height_increment32.WW = 0;
+        height_increment32 = 0;
     }
     else
     {
-        if ( elevInOffset > MAX_ELEV_OFFSET_FBW )
+        if ( elevInOffset > (int16_t) MAX_ELEV_OFFSET_FBW )
         {
-            emergency_elevator = elevInOffset - MAX_ELEV_OFFSET_FBW;
-            elevInOffset =  MAX_ELEV_OFFSET_FBW;
+            elevInOffset = (int16_t) MAX_ELEV_OFFSET_FBW;
         }
-        if ( elevInOffset < -MAX_ELEV_OFFSET_FBW ) 
+        if ( elevInOffset < (int16_t) -MAX_ELEV_OFFSET_FBW ) 
         {
-            emergency_elevator = elevInOffset + MAX_ELEV_OFFSET_FBW;
-            elevInOffset = -MAX_ELEV_OFFSET_FBW;
+            elevInOffset = (int16_t) -MAX_ELEV_OFFSET_FBW;
         }
         // 65536 represents 1.0
-        // 1024 represents a full offset
+        // 1024 represents a full offset (normally 1000))
         // Usually FBW is using 1/2 the offset i.e. 512
         // 65536/512 * 128  creates a fraction of 1.0
-        height_increment32.WW = __builtin_mulus((uint16_t)REFERENCE_SPEED, elevInOffset)*128;
+        height_increment32 = __builtin_mulus((uint16_t)((REFERENCE_SPEED) * 128), elevInOffset) ;
+    }  
+    return(height_increment32); //  elevator_override is external variable  
+}
+
+int16_t calculate_elevator_override(int16_t elevInOffset)
+{ 
+    if (elevInOffset == 0)
+    {
+        elevator_override = 0;
     }
-    return(height_increment32.WW); 
+    else
+    {
+        if ( elevInOffset > (int16_t) MAX_ELEV_OFFSET_FBW )
+        {
+            elevator_override = elevInOffset -  (int16_t) MAX_ELEV_OFFSET_FBW;
+        }
+        if ( elevInOffset < (int16_t) -MAX_ELEV_OFFSET_FBW ) 
+        {
+            elevator_override = elevInOffset + (int16_t) MAX_ELEV_OFFSET_FBW;
+        }
+    }
+    return(elevator_override);
+}
+
+
+union longww calculate_throttle(int16_t throttleInOffset,int32_t speed_height )
+{
+    union longww throttleAccum;
+    union longww heightError = { 0 };
+    if (throttleInOffset < (int16_t)(THROTTLE_DEADBAND) && udb_flags._.radio_on)
+    {
+        throttleAccum.WW  = 0;
+    }
+    else
+    { 
+        if ( state_flags._.terrain_follow == 1 )
+        {
+            heightError.WW = - desiredHeightAGL32.WW ;
+            heightError.WW = (heightError.WW + height_above_ground_meters.WW + speed_height) >> 13;
+        }
+        else
+        {
+            heightError.WW = - desiredHeight32.WW ;
+            heightError.WW = (heightError.WW + IMUlocationz.WW + speed_height) >> 13;
+        }
+
+        if (heightError._.W0 < (-(int16_t)(altit.HeightMargin*8.0)))
+        {
+            throttleAccum.WW = (int16_t)(MAXTHROTTLE);
+        }
+        else if (heightError._.W0 > (int16_t)(altit.HeightMargin*8.0))
+        {
+            throttleAccum.WW = 0; // Note this is not MINTHROTTLE 
+        }
+        else
+        {
+            throttleAccum.WW = (int16_t)(MAXTHROTTLE) + (__builtin_mulss((int16_t)(THROTTLEHEIGHTGAIN), (-heightError._.W0 - (int16_t)(altit.HeightMargin*8.0))) >> 3);
+            if (throttleAccum.WW > (int16_t)(MAXTHROTTLE))throttleAccum.WW = (int16_t)(MAXTHROTTLE);
+        }
+        if (settings._.RacingMode == 1)
+        {
+            if (state_flags._.GPS_steering)
+            {
+                throttleAccum.WW = (int32_t)(FIXED_WP_THROTTLE);
+            }
+        }
+    }
+    return(throttleAccum);
+}
+
+//	Implementation of state machine.
+static void ent_desired_height_control_S(void);
+static void desired_height_control_S(void);
+static void ent_terrain_follow_height_control_S(void);
+static void terrain_follow_height_control_S(void);
+
+static void (*manage_TerrainFollow_transition_S)(void) = &ent_desired_height_control_S;
+
+static void ent_desired_height_control_S(void)
+{
+    state_flags._.terrain_follow = 0;
+    desiredHeight32.WW = IMUlocationz.WW;
+    manage_TerrainFollow_transition_S = &desired_height_control_S;
+}
+
+static void desired_height_control_S(void)
+{
+    if (height_above_ground_cm <  HEIGHT_AGL_TO_START_TERRAIN_FOLLOWING)
+    {
+        ent_terrain_follow_height_control_S();
+    }
+    else
+    {
+        state_flags._.terrain_follow = 0;
+    }
+}
+
+static void ent_terrain_follow_height_control_S(void)
+{
+    state_flags._.terrain_follow = 1;
+    desiredHeightAGL32.WW = height_above_ground_meters.WW;
+    terrain_height = IMUlocationz.WW  - height_above_ground_meters.WW;
+    terrain_height_change = 0;
+    previous_terrain_height = terrain_height;
+    manage_TerrainFollow_transition_S = &terrain_follow_height_control_S;  
+}
+
+static void terrain_follow_height_control_S(void)
+{
+    if (height_above_ground_cm >  HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING)
+    {
+        ent_desired_height_control_S();
+    }
+    else
+    {
+        state_flags._.terrain_follow = 1;
+        terrain_height = IMUlocationz.WW  - height_above_ground_meters.WW;
+        terrain_height_change = terrain_height - previous_terrain_height;
+        previous_terrain_height = terrain_height;  
+    }
+}
+
+void calculate_desiredHeight(int32_t desiredHeight_increment,int16_t throttleInOffset)
+{
+        static boolean previous_height_increment_was_zero = true;
+        
+        if (desiredHeight_increment == 0)
+                {
+                    if (previous_height_increment_was_zero == false)
+                    // Pilot just put the elevator control to neutral
+                    {
+                        desiredHeight32.WW = IMUlocationz.WW;
+                        desiredHeightAGL32.WW = height_above_ground_meters.WW +
+                                terrain_height_change;
+                        previous_height_increment_was_zero = true;
+                    }   
+                }
+                else // Pilot requests change in height
+                {
+                    desiredHeight32.WW = IMUlocationz.WW + desiredHeight_increment;
+                    desiredHeightAGL32.WW = height_above_ground_meters.WW + \
+                            + terrain_height_change + desiredHeight_increment;
+                    previous_height_increment_was_zero = false;
+                }
+                
+                if (throttleInOffset < (int16_t)(THROTTLE_DEADBAND) && udb_flags._.radio_on)
+                {
+                    if (height_above_ground_meters.WW < MINIMUM_TERRAIN_FOLLOWING_HEIGHT)
+                    {
+                        desiredHeightAGL32.WW = MINIMUM_TERRAIN_FOLLOWING_HEIGHT;
+                    }
+                }      
 }
 
 
@@ -285,14 +443,16 @@ static void normalAltitudeCntrl(void)
 {
 	union longww throttleAccum;
 	union longww pitchAccum;
+    union longww heightError = { 0 };
 	int16_t throttleIn;
 	int16_t throttleInOffset;
-	union longww heightError = { 0 };
-    union longww desiredHeight_increment;
-    static boolean previous_height_increment_was_zero = true;
-	int32_t speed_height;
+    int32_t desiredHeight_increment;
 
-    emergency_elevator = 0;
+    static boolean previous_throttle_in_deadband = false;
+	int32_t speed_height;
+    int16_t elevInOffset;
+    
+    elevator_override = 0;
 	speed_height = excess_energy_height(); // equivalent height of the airspeed
 	if (udb_flags._.radio_on == 1)
 	{
@@ -306,12 +466,13 @@ static void normalAltitudeCntrl(void)
 		throttleIn = udb_pwTrim[THROTTLE_INPUT_CHANNEL];
 		throttleInOffset = 0;
 	}
+    if (THROTTLE_CHANNEL_REVERSED)
+	{
+		throttleInOffset = -throttleInOffset;
+	}
+    
 	if (state_flags._.altitude_hold_throttle || state_flags._.altitude_hold_pitch)
 	{
-		if (THROTTLE_CHANNEL_REVERSED)
-		{
-			throttleInOffset = -throttleInOffset;
-		}
 		if (state_flags._.GPS_steering)
 		{
 			desiredHeight32 = navigate_desired_height();
@@ -326,83 +487,87 @@ static void normalAltitudeCntrl(void)
 			else if (settings._.AltitudeholdStabilized == AH_FULL)
 			{
 				// In stabilized mode using full altitude hold, use the throttle stick value to determine desiredHeight,
-				desiredHeight = ((__builtin_mulss((int16_t)(HEIGHTTHROTTLEGAIN), throttleInOffset - ((int16_t)(THROTTLE_DEADBAND)))) >> 11)
+				desiredHeight32._.W1 = ((__builtin_mulss((int16_t)(HEIGHTTHROTTLEGAIN), throttleInOffset - ((int16_t)(THROTTLE_DEADBAND)))) >> 11)
 				                + (int16_t)(altit.HeightTargetMin);
             }
             else if (settings._.AltitudeholdStabilized == AH_FULL_ELEV)
 			{
-                // In stabilized mode use elevator stick to control desired height.
-                desiredHeight_increment.WW = incremental_height_from_elevator_control();
-                if (desiredHeight_increment.WW == 0)
+                if ((settings._.AllowTerrainFollow == 1) && ((USE_RANGER_INPUT > 0) || (HILSIM == 1)))
                 {
-                    if (previous_height_increment_was_zero == true)
-                    {
-                        // Do nothing. No change to height.
-                    }
-                    else // Pilot just put elevator control to neutral.
-                    {
-                        desiredHeight32.WW = IMUlocationz.WW;
-                        previous_height_increment_was_zero = true;
-                    }   
+                    (*manage_TerrainFollow_transition_S)();
                 }
-                else // Change in height requested
+                
+                // Use elevator stick to control desired height.
+                elevInOffset = get_elevInOffset();
+                if (throttleInOffset < (int16_t)(THROTTLE_DEADBAND))
                 {
-                    desiredHeight32.WW = IMUlocationz.WW + desiredHeight_increment.WW;
-                    previous_height_increment_was_zero = false;
-                    // Note: To DO Incorporate logic for change of elevator direction at short notice without passing through zero.
+                    desiredHeight_increment = 0;
+                    elevator_override = elevInOffset;
                 }
-                // NB TODO: If in Lidar Mode, limit desiredHeight (above terrain) to 1 meter
+                else
+                {
+                    desiredHeight_increment = incremental_height_from_elevator_control(elevInOffset);
+                    elevator_override = calculate_elevator_override(elevInOffset);
+                }         
+                calculate_desiredHeight(desiredHeight_increment, throttleInOffset);
             }
-            if (desiredHeight < (int16_t)(altit.HeightTargetMin)) desiredHeight = (int16_t)(altit.HeightTargetMin);
-            if (desiredHeight > (int16_t)(altit.HeightTargetMax)) desiredHeight = (int16_t)(altit.HeightTargetMax);
+            if (desiredHeight32._.W1 < (int16_t)(altit.HeightTargetMin))
+                    desiredHeight32._.W1 = (int16_t)(altit.HeightTargetMin);
+            if (desiredHeight32._.W1 > (int16_t)(altit.HeightTargetMax)) 
+                    desiredHeight32._.W1 = (int16_t)(altit.HeightTargetMax);
+            if (desiredHeightAGL32.WW < MINIMUM_TERRAIN_FOLLOWING_HEIGHT)  
+                    desiredHeightAGL32.WW = MINIMUM_TERRAIN_FOLLOWING_HEIGHT ; // Fractional, ._.W1 is in meters.
 		}
-		if (throttleInOffset < (int16_t)(THROTTLE_DEADBAND) && udb_flags._.radio_on)
-		{
-			pitchAltitudeAdjust = 0;
-			throttleAccum.WW  = 0;
-		}
-		else
-		{
-			heightError.WW = - desiredHeight32.WW ;
-			heightError.WW = (heightError.WW + IMUlocationz.WW + speed_height) >> 13;
-			if (heightError._.W0 < (-(int16_t)(altit.HeightMargin*8.0)))
-			{
-				throttleAccum.WW = (int16_t)(MAXTHROTTLE);
-			}
-			else if (heightError._.W0 > (int16_t)(altit.HeightMargin*8.0))
-			{
-				throttleAccum.WW = 0;
-			}
-			else
-			{
-				throttleAccum.WW = (int16_t)(MAXTHROTTLE) + (__builtin_mulss((int16_t)(THROTTLEHEIGHTGAIN), (-heightError._.W0 - (int16_t)(altit.HeightMargin*8.0))) >> 3);
-				if (throttleAccum.WW > (int16_t)(MAXTHROTTLE))throttleAccum.WW = (int16_t)(MAXTHROTTLE);
-			}
-			heightError.WW = - desiredHeight32.WW ;
-//			heightError.WW = (heightError.WW + IMUlocationz.WW - speed_height) >> 13; // pitch performance is better without this
-			heightError.WW = (heightError.WW + IMUlocationz.WW) >> 13;
-			if (heightError._.W0 < (- (int16_t)(altit.HeightMargin*8.0)))
-			{
-				pitchAltitudeAdjust = (int16_t)(PITCHATMAX);
-			}
-			else if (heightError._.W0 > (int16_t)(altit.HeightMargin*8.0))
-			{
-				pitchAltitudeAdjust = (int16_t)(PITCHATZERO);
-			}
-			else
-			{
-				pitchAccum.WW = __builtin_mulss((int16_t)(PITCHHEIGHTGAIN), - heightError._.W0 - (int16_t)(altit.HeightMargin*8.0)) >> 3;
-				pitchAltitudeAdjust = (int16_t)(PITCHATMAX) + pitchAccum._.W0;
-			}
-			if (settings._.RacingMode == 1)
-			{
-				if (state_flags._.GPS_steering)
-				{
-					throttleAccum.WW = (int32_t)(FIXED_WP_THROTTLE);
-				}
-			}
-		}
-		if (!state_flags._.altitude_hold_throttle)
+                    
+        // Section that calculates Throttle Adjustment
+        throttleAccum = calculate_throttle(throttleInOffset, speed_height);
+        
+        // Section that Calculates pitchAltitudeAdjust
+        if ( state_flags._.terrain_follow == 1 )
+        {
+            heightError.WW = - desiredHeightAGL32.WW ;
+            heightError.WW = (heightError.WW + height_above_ground_meters.WW) >> 13;
+        }
+        else
+        {
+            heightError.WW = - desiredHeight32.WW ;
+            heightError.WW = (heightError.WW + IMUlocationz.WW) >> 13;
+        }
+        if (heightError._.W0 < (- (int16_t)(altit.HeightMargin*8.0)))
+        {
+            pitchAltitudeAdjust = (int16_t)(PITCHATMAX);
+        }
+        else if (heightError._.W0 > (int16_t)(altit.HeightMargin*8.0))
+        {
+            pitchAltitudeAdjust = (int16_t)(PITCHATZERO);
+        }
+        else
+        {
+            pitchAccum.WW = __builtin_mulss((int16_t)(PITCHHEIGHTGAIN), - heightError._.W0 - (int16_t)(altit.HeightMargin*8.0)) >> 3;
+            pitchAltitudeAdjust = (int16_t)(PITCHATMAX) + pitchAccum._.W0;
+        }     
+           
+        // Manage use of DeadBand Throttle, and Flare for Landing when Deadband active.
+        if (throttleInOffset < (int16_t)(THROTTLE_DEADBAND) && udb_flags._.radio_on)
+        {
+            if ((settings._.AltitudeholdStabilized == AH_FULL_ELEV) &&
+                (state_flags._.terrain_follow == true) &&
+                 (height_above_ground_meters.WW <= MINIMUM_TERRAIN_FOLLOWING_HEIGHT))
+            {
+                // Allow pitchAltitudeAdjust to work below MINIMUM_TERRAIN_FOLLOWING_HEIGHT
+                // for an assumed landing flare
+                // Note: Stall Speed must be set correctly ( in helicalTurnCntrl.c )
+            }
+            else // For all other condition when dead band active
+            {       
+                pitchAltitudeAdjust = 0;
+                // Prepare for DH for when DEADBAND is no longer active
+                desiredHeightAGL32.WW = height_above_ground_meters.WW;
+                desiredHeight32.WW = IMUlocationz.WW;
+            }
+            previous_throttle_in_deadband  = true; 
+        }
+        if (!state_flags._.altitude_hold_throttle)
 		{
 			manualThrottle(throttleIn);
 		}
@@ -426,7 +591,7 @@ static void normalAltitudeCntrl(void)
 			set_throttle_control(throttleFiltered._.W1 - throttleIn);
 			filterManual = true;
 		}
-		if (!state_flags._.altitude_hold_pitch)
+        if (!state_flags._.altitude_hold_pitch)
 		{
 			pitchAltitudeAdjust = 0;
 		}
@@ -490,4 +655,5 @@ void init_altitudeCntrl(void)
 }
 
 #endif //(ALTITUDE_GAINS_VARIABLE != 1)
+
 

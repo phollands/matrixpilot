@@ -20,7 +20,7 @@
 
 
 struct state_flags_bits {
-	uint16_t unused                     : 4;
+	uint16_t unused                     : 3;
 	uint16_t save_origin                : 1;
 	uint16_t GPS_steering               : 1;
 	uint16_t pitch_feedback             : 1;
@@ -33,6 +33,7 @@ struct state_flags_bits {
 	uint16_t f13_print_req              : 1;
 	uint16_t disable_throttle           : 1;
 	uint16_t update_autopilot_state_asap: 1;
+    uint16_t terrain_follow             : 1;
 };
 
 union state_flags_int { struct state_flags_bits _; int16_t WW; };

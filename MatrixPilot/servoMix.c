@@ -174,7 +174,7 @@ void servoMix(void)
     if ((state_flags._.altitude_hold_pitch == 1) && (state_flags._.GPS_steering != 1) &&
             (settings._.AltitudeholdStabilized == AH_FULL_ELEV ))
     {
-        temp = udb_pwTrim[ELEVATOR_INPUT_CHANNEL] + REVERSE_IF_NEEDED(ELEVATOR_CHANNEL_REVERSED, (pitch_control + emergency_elevator));
+        temp = udb_pwTrim[ELEVATOR_INPUT_CHANNEL] + REVERSE_IF_NEEDED(ELEVATOR_CHANNEL_REVERSED, (pitch_control + elevator_override));
     }
     else
     {
