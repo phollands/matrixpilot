@@ -220,6 +220,7 @@ static void ent_manualS(void)
 	state_flags._.altitude_hold_throttle = 0;
 	state_flags._.altitude_hold_pitch = 0;
 	state_flags._.disable_throttle = 0;
+    state_flags._.terrain_follow = 0;
 	waggle = 0;
 	led_off(LED_RED);
 	stateS = &manualS;
@@ -245,6 +246,7 @@ static void ent_stabilizedS(void)
 	state_flags._.altitude_hold_pitch = (settings._.AltitudeholdStabilized == AH_FULL) ||
             (settings._.AltitudeholdStabilized == AH_FULL_ELEV) ||
             (settings._.AltitudeholdStabilized == AH_PITCH_ONLY);
+     state_flags._.terrain_follow = 0;
 	waggle = 0;
 	led_on(LED_RED);
 	stateS = &stabilizedS;
@@ -292,6 +294,7 @@ static void ent_waypointS(void)
 	state_flags._.altitude_hold_throttle = (settings._.AltitudeholdWaypoint == AH_FULL);
 	state_flags._.altitude_hold_pitch = (settings._.AltitudeholdWaypoint == AH_FULL || settings._.AltitudeholdWaypoint == AH_PITCH_ONLY);
 	state_flags._.disable_throttle = 0;
+    state_flags._.terrain_follow = 0;
 
 	if (!(FAILSAFE_TYPE == FAILSAFE_MAIN_FLIGHTPLAN && stateS == &returnS))
 	{
@@ -318,10 +321,12 @@ static void ent_returnS(void)
 #endif
 #if (FAILSAFE_TYPE == FAILSAFE_RTL)
 	flightplan_begin(1); // init_flightplan(1);
+    state_flags._.terrain_follow = 0;
 #elif (FAILSAFE_TYPE == FAILSAFE_MAIN_FLIGHTPLAN)
 	if (stateS != &waypointS)
 	{
 		init_flightplan(0); // Only reset non-rtl waypoints if not already following waypoints
+        state_flags._.terrain_follow = 0;
 	}
 #endif
 

@@ -499,7 +499,7 @@ void telemetry_output_8hz(void)
 
 #elif (SERIAL_OUTPUT_FORMAT == SERIAL_ARDUSTATION)
 
-extern int16_t desiredHeight;
+extern union longwww desiredHeight32;
 
 void telemetry_output_8hz(void)
 {
@@ -559,7 +559,7 @@ void telemetry_output_8hz(void)
 		serial_output("!!!LAT:%li,LON:%li,SPD:%.2f,CRT:%.2f,ALT:%li,ALH:%i,CRS:%.2f,BER:%i,WPN:%i,DST:%i,BTV:%.2f***\r\n"
 		              "+++THH:%i,RLL:%li,PCH:%li,STT:%i,***\r\n",
 		    lat_gps.WW / 10, lon_gps.WW / 10, (float)(sog_gps.BB / 100.0), (float)(climb_gps.BB / 100.0),
-		    (alt_sl_gps.WW - alt_origin.WW) / 100, desiredHeight, (float)(cog_gps.BB / 100.0), desired_dir_deg,
+		    (alt_sl_gps.WW - alt_origin.WW) / 100, desiredHeight32._.W1, (float)(cog_gps.BB / 100.0), desired_dir_deg,
 		    waypointIndex, tofinish_line, (float)(voltage_milis.BB / 100.0), 
 		    (int16_t)((udb_pwOut[THROTTLE_OUTPUT_CHANNEL] - udb_pwTrim[THROTTLE_OUTPUT_CHANNEL])/20),
 		    earth_roll, earth_pitch, mode);
@@ -572,12 +572,25 @@ void telemetry_output_8hz(void)
 	}
 }
 
-#elif (SERIAL_OUTPUT_FORMAT == SERIAL_UDB_EXTRA)
-
-//extern uint16_t udb_pwm_range;
-//extern uint16_t udb_gap_range;
+#elif (SERIAL_OUTPUT_FORMAT == SERIAL_TEST_ALTITUDE)
 
 extern uint16_t get_range_count(void);
+
+void telemetry_output_8hz(void)
+{
+    serial_output("Ter %d,  DH %d, H %d,   DHAGL %d, AGLm %d, AGLc %d, PAA %d, EVO %d\r\n", 
+            state_flags._.terrain_follow,
+            desiredHeight32._.W1,IMUlocationz._.W1, 
+            desiredHeightAGL32._.W1,height_above_ground_meters._.W1,
+            height_above_ground_cm,
+            pitchAltitudeAdjust,
+            elevator_override);
+}
+
+#elif (SERIAL_OUTPUT_FORMAT == SERIAL_UDB_EXTRA)
+
+extern uint16_t udb_pwm_range;
+extern uint16_t udb_gap_range;
 
 void telemetry_output_8hz(void)
 {
@@ -739,7 +752,7 @@ void telemetry_output_8hz(void)
 					    IMUvelocityx._.W1, IMUvelocityy._.W1, IMUvelocityz._.W1, goal.x, goal.y, goal.z, aero_force[0], aero_force[1], aero_force[2]);
 #if ( USE_RANGER_INPUT !=  0)
 //					serial_output("H%i,%i,%i,%i,%i:", range_to_target, height_above_ground_level , get_range_count() , udb_gap_range ) ;
-					serial_output("H%i,%i:", range_to_target, height_above_ground_level) ; 
+					serial_output("H%i,%i:", range_to_target, height_above_ground_cm) ; 
 #endif
 #if (USE_BAROMETER_ALTITUDE == 1)
 					serial_output("tmp%i:prs%li:alt%li:",
@@ -758,7 +771,7 @@ void telemetry_output_8hz(void)
 #else
 					(int16_t)0, (int16_t)0);                    
 #endif
-					serial_output("DH%i:",desiredHeight);
+					serial_output("DH%i:",desiredHeight32._.W1);
 #if (RECORD_FREE_STACK_SPACE == 1)
 					extern uint16_t maxstack;
 					serial_output("stk%d:", (int16_t)(4096-maxstack));
@@ -807,6 +820,7 @@ void telemetry_output_8hz(void)
 	log_swapbuf();
 #endif
 }
+
 
 #elif (SERIAL_OUTPUT_FORMAT == SERIAL_OSD_REMZIBI)
 

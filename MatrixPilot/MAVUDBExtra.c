@@ -298,7 +298,7 @@ void MAVUDBExtraOutput(void)
 //#else
 //					(int16_t)0, (int16_t)0);                    
 //#endif
-//					serial_output("DH%i:",desiredHeight);
+//					serial_output("DH%i:",desiredHeight32._.W1);
 #if (RECORD_FREE_STACK_SPACE == 1)
 					extern uint16_t maxstack;
 					stack_free = (int16_t)(4096-maxstack); // This is actually wrong for the UDB4, but currently left the same as for telemetry.c
@@ -339,7 +339,7 @@ void MAVUDBExtraOutput(void)
 #else
 						(int16_t)0, (int16_t)0,                   
 #endif
-						desiredHeight,
+						desiredHeight32._.W1,
 						stack_free);
 						
 				}

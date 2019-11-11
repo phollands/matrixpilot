@@ -40,8 +40,7 @@ void init_behavior(void)
 {
 	current_orientation = F_NORMAL;
 	desired_behavior.W = current_orientation;
-
-	setBehavior(current_orientation);
+    setBehavior(current_orientation);
 
 	if (TRIGGER_TYPE != TRIGGER_TYPE_NONE)
 	{

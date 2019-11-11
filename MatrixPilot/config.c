@@ -138,6 +138,7 @@ static void load_settings(void)
 	settings._.AltitudeholdStabilized = ini_getl(strAltitude, "stabilised", ALTITUDEHOLD_STABILIZED, strConfigFile);
 	settings._.AltitudeholdWaypoint = ini_getl(strAltitude, "waypoint", ALTITUDEHOLD_WAYPOINT, strConfigFile);
 	settings._.RacingMode = ini_getbool(strMode, "racing", RACING_MODE, strConfigFile);
+    settings._.AllowTerrainFollow = ini_getbool(strMode, "allow_terrain_follow", RANGER_TERRAIN_FOLLOW, strConfigFile);
 }
 
 static void save_settings(void)
