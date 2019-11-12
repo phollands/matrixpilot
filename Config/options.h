@@ -71,7 +71,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Set this value to your GPS type.  (Set to GPS_STD, GPS_UBX_2HZ, GPS_UBX_4HZ, GPS_MTEK, GPS_NMEA, or GPS_NONE)
-#define GPS_TYPE                            GPS_STD
+#define GPS_TYPE                            GPS_UBX_4HZ
 //#define DEFAULT_GPS_BAUD                    57600   // added for GPS_NMEA support
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -452,7 +452,7 @@
 #define USE_RANGER_INPUT                     8
 // set to RANGER_NONE, RANGER_LIDAR or RANGER_SONAR
 #define RANGER_TYPE                          RANGER_LIDAR
-#define RANGER_TERRAIN_FOLLOW                0
+#define RANGER_TERRAIN_FOLLOW                1
 ////////////////////////////////////////////////////////////////////////////////
 // Trigger Action
 // Use the trigger to do things like drop an item at a certain waypoint, or take a photo every
