@@ -42,6 +42,7 @@
 #include "../libUDB/servoOut.h"
 #include "../libUDB/serialIO.h"
 #include "../libUDB/osd.h"
+#include "../libUDB/rangeIn.h"
 #include "options_magnetometer.h"
 #include "options_osd.h"
 //#if (SILSIM != 1) // this caused a build failure when SILSIM and SERIAL_UDB_EXTRA are both defined
@@ -61,6 +62,7 @@
 #include "../libUDB/magnetometer.h" // Needed for SERIAL_MAGNETOMETER 
 #include <string.h>
 
+extern uint8_t gps_nav_diff_soln(void);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Serial Output Format (Can be SERIAL_NONE, SERIAL_DEBUG, SERIAL_ARDUSTATION, SERIAL_UDB,
