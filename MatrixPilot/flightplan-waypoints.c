@@ -279,14 +279,15 @@ void set_waypoint(int16_t index)
 				current_waypoint  = wp_to_relative(currentWaypointSet[0]);
 				navigate_set_goal(previous_waypoint.loc, current_waypoint.loc);
 				set_camera_view(current_waypoint.viewpoint);
+                setBehavior(currentWaypointSet[0].flags);
 			}
 			else
 			{
 				current_waypoint = wp_to_relative(currentWaypointSet[0]);
 				navigate_set_goal(GPSlocation, current_waypoint.loc);
 				set_camera_view(current_waypoint.viewpoint);
+                setBehavior(currentWaypointSet[0].flags);
 			}
-			setBehavior(currentWaypointSet[0].flags);
 		}
 		else
 		{

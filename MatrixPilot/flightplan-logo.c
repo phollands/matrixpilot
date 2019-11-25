@@ -366,7 +366,7 @@ void flightplan_logo_begin(int16_t flightplanNum)
 	turtleAngles[PLANE] = turtleAngles[CAMERA] = angle;
 
 	setBehavior(0);
-
+    height_interpolation = true;
 	IMUloc.x = IMUlocationx._.W1;
 	IMUloc.y = IMUlocationy._.W1;
 	IMUloc.z = IMUlocationz._.W1;

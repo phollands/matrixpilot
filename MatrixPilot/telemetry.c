@@ -32,6 +32,7 @@
 #include "altitudeCntrl.h"
 #include "helicalTurnCntrl.h"
 #include "servoPrepare.h"
+#include "behaviour.h"
 #if (USE_RANGER_INPUT != 0)
 #include "alt_agl.h"
 #endif // USE_RANGER_INPUT
@@ -581,8 +582,9 @@ extern uint8_t gps_nav_diff_soln(void);
 
 void telemetry_output_8hz(void)
 {
-    serial_output("Ter %d,  DH %d, H %d,   DHAGL %d, AGLm %d, AGLc %d, PAA %d, EVO %d\r\n", 
+    serial_output("Ter %d, INT %d,  DH %d, H %d,   DHAGL %d, AGLm %d, AGLc %d, PAA %d, EVO %d\r\n", 
             state_flags._.terrain_follow,
+            height_interpolation,
             desiredHeight32._.W1,IMUlocationz._.W1, 
             desiredHeightAGL32._.W1,height_above_ground_meters._.W1,
             height_above_ground_cm,

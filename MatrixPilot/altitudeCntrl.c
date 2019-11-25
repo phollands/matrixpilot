@@ -58,9 +58,6 @@ union longww throttleFiltered = { 0 };
 
 #define HEIGHTTHROTTLEGAIN  ((1.5*(altit.HeightTargetMax-altit.HeightTargetMin) * \
                                 1024.0) / SERVORANGE)
-#define HEIGHT_AGL_TO_START_TERRAIN_FOLLOWING 1000 
-#define HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING  1500
-#define MINIMUM_TERRAIN_FOLLOWING_HEIGHT      ((int32_t) 3 * 65536) // Fractional Meters
 
 static void normalAltitudeCntrl(void);
 static void manualThrottle(int16_t throttleIn);
@@ -475,7 +472,7 @@ static void normalAltitudeCntrl(void)
 	{
 		if (state_flags._.GPS_steering)
 		{
-			desiredHeight32 = navigate_desired_height();
+			navigate_desired_height();
 		}
 		else
 		{

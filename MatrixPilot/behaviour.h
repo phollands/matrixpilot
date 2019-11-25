@@ -33,7 +33,7 @@ struct behavior_flag_bits {
 	uint16_t absolute       : 1;    // absolute waypoint
 	uint16_t altitude       : 1;    // climb/descend to goal altitude
 	uint16_t cross_track    : 1;    // use cross-tracking navigation
-    uint16_t terrain_follow : 1;    // terrain follow when at low height
+    uint16_t altitude_agl   : 1;    // altitude is height above ground level (AGL)
 	uint16_t unused         : 4;
 };
 
@@ -51,7 +51,7 @@ union bfbts_word { struct behavior_flag_bits _; int16_t W; };
 #define F_ABSOLUTE           256
 #define F_ALTITUDE_GOAL      512
 #define F_CROSS_TRACK       1024
-#define F_TERRAIN_FOLLOW    2048
+#define F_ALTITUDE_AGL      2048
 
 #define TRIGGER_TYPE_NONE      0
 #define TRIGGER_TYPE_SERVO     1
@@ -64,6 +64,7 @@ union bfbts_word { struct behavior_flag_bits _; int16_t W; };
 
 extern int16_t current_orientation;
 extern union bfbts_word desired_behavior;
+extern boolean height_interpolation;
 
 void init_behavior(void);
 void setBehavior(int16_t newBehavior);
