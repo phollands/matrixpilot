@@ -29,6 +29,8 @@
 int16_t current_orientation;
 union bfbts_word desired_behavior;
 
+boolean height_interpolation;
+
 static int16_t cyclesUntilStartTriggerAction = 0;
 static int16_t cyclesUntilStopTriggerAction = 0;
 static boolean currentTriggerActionValue = 0;
@@ -39,6 +41,7 @@ static void triggerActionSetValue(boolean newValue);
 void init_behavior(void)
 {
 	current_orientation = F_NORMAL;
+    height_interpolation = true;
 	desired_behavior.W = current_orientation;
     setBehavior(current_orientation);
 
@@ -50,6 +53,18 @@ void init_behavior(void)
 
 void setBehavior(int16_t newBehavior)
 {
+    union bfbts_word new_behavior;
+    new_behavior.W = newBehavior;
+    
+    if ((new_behavior._.altitude_agl) ^ (desired_behavior._.altitude_agl))
+    {
+        height_interpolation = false;
+    }
+    else
+    {
+        height_interpolation = true;
+    }
+    
 	desired_behavior.W = newBehavior;
 
 	if (desired_behavior.W & F_TRIGGER)

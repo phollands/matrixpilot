@@ -28,6 +28,8 @@
 #include "states.h"
 #include "flightplan.h"
 #include "flightplan_waypoints.h"
+#include "alt_agl.h"
+#include "altitudeCntrl.h"
 #include "../libUDB/libUDB.h"
 #include "../libDCM/gpsParseCommon.h"
 #include "../libDCM/deadReckoning.h"
@@ -256,24 +258,41 @@ static int16_t compute_progress_to_goal(int16_t totalDist, int16_t remainingDist
 	return progress;
 }
 
-union longww navigate_desired_height(void)
+void  navigate_desired_height(void)
 {
 	union longww height;
-
-	if (desired_behavior._.takeoff || desired_behavior._.altitude)
-	{
-		height._.W1 = navgoal.height;
-		height._.W0 = 0 ;
-	}
-	else
-	{
-		int16_t progress_to_goal; // Fraction of the way to the goal in the range 0-65535 (2^16-1)
-		progress_to_goal = compute_progress_to_goal(navgoal.legDist, tofinish_line);
+    int16_t progress_to_goal; // Fraction of the way to the goal in the range 0-65535 (2^16-1)
+    if ((height_interpolation == false) || (desired_behavior._.takeoff || desired_behavior._.altitude))
+    {
+        height._.W1 = navgoal.height;
+		height._.W0 = 0;
+    }
+    else
+    {
+        progress_to_goal = compute_progress_to_goal(navgoal.legDist, tofinish_line);
 		height._.W1 = navgoal.fromHeight ;
 		height._.W0 = 0 ;
 		height.WW += __builtin_mulsu((navgoal.height - navgoal.fromHeight), progress_to_goal );
-	}
-	return height ;
+    } 
+        
+    if ((settings._.AllowTerrainFollow == 1) && ( desired_behavior._.altitude_agl == 1))
+    {
+        if (height._.W1 > (HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING / 100))
+        {
+            height._.W0 = 0;
+            height._.W1 = HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING;
+        }
+        if (height.WW < 0) height.WW = 0; // Height AGL cannot be negative
+        desiredHeightAGL32.WW = height.WW;
+        desiredHeight32.WW = IMUlocationz.WW;
+        state_flags._.terrain_follow = 1;
+    }
+    else
+    {
+        desiredHeight32.WW = height.WW;
+        desiredHeightAGL32.WW = height_above_ground_meters.WW;
+        state_flags._.terrain_follow = 0;
+    }
 }
 
 static void cross_track(void)
