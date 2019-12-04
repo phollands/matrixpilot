@@ -376,6 +376,9 @@ static void acquiringS(void)
 	{
 #if (NORADIO == 1)
 		if (1)
+#elif (RANGER_TERRAIN_FOLLOW == 1)
+            // Check to make sure ranger working before takeoff in terrain mode in FBW.
+            if ((udb_flags._.radio_on) && (udb_flags._.range_valid))
 #else
 		if (udb_flags._.radio_on)
 #endif
