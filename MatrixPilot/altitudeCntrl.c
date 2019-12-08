@@ -424,15 +424,7 @@ void calculate_desiredHeight(int32_t desiredHeight_increment,int16_t throttleInO
                     desiredHeightAGL32.WW = height_above_ground_meters.WW + \
                             + terrain_height_change + desiredHeight_increment;
                     previous_height_increment_was_zero = false;
-                }
-                
-                if (throttleInOffset < (int16_t)(THROTTLE_DEADBAND) && udb_flags._.radio_on)
-                {
-                    if (height_above_ground_meters.WW < MINIMUM_TERRAIN_FOLLOWING_HEIGHT)
-                    {
-                        desiredHeightAGL32.WW = MINIMUM_TERRAIN_FOLLOWING_HEIGHT;
-                    }
-                }      
+                }   
 }
 
 
@@ -445,7 +437,6 @@ static void normalAltitudeCntrl(void)
 	int16_t throttleInOffset;
     int32_t desiredHeight_increment;
 
-    static boolean previous_throttle_in_deadband = false;
 	int32_t speed_height;
     int16_t elevInOffset;
     
@@ -493,19 +484,10 @@ static void normalAltitudeCntrl(void)
                 {
                     (*manage_TerrainFollow_transition_S)();
                 }
-                
                 // Use elevator stick to control desired height.
                 elevInOffset = get_elevInOffset();
-                if (throttleInOffset < (int16_t)(THROTTLE_DEADBAND))
-                {
-                    desiredHeight_increment = 0;
-                    elevator_override = elevInOffset;
-                }
-                else
-                {
-                    desiredHeight_increment = incremental_height_from_elevator_control(elevInOffset);
-                    elevator_override = calculate_elevator_override(elevInOffset);
-                }         
+                desiredHeight_increment = incremental_height_from_elevator_control(elevInOffset);
+                elevator_override = calculate_elevator_override(elevInOffset);        
                 calculate_desiredHeight(desiredHeight_increment, throttleInOffset);
             }
             if (desiredHeight32._.W1 < (int16_t)(altit.HeightTargetMin))
@@ -543,27 +525,7 @@ static void normalAltitudeCntrl(void)
             pitchAccum.WW = __builtin_mulss((int16_t)(PITCHHEIGHTGAIN), - heightError._.W0 - (int16_t)(altit.HeightMargin*8.0)) >> 3;
             pitchAltitudeAdjust = (int16_t)(PITCHATMAX) + pitchAccum._.W0;
         }     
-           
-        // Manage use of DeadBand Throttle, and Flare for Landing when Deadband active.
-        if (throttleInOffset < (int16_t)(THROTTLE_DEADBAND) && udb_flags._.radio_on)
-        {
-            if ((settings._.AltitudeholdStabilized == AH_FULL_ELEV) &&
-                (state_flags._.terrain_follow == true) &&
-                 (height_above_ground_meters.WW <= MINIMUM_TERRAIN_FOLLOWING_HEIGHT))
-            {
-                // Allow pitchAltitudeAdjust to work below MINIMUM_TERRAIN_FOLLOWING_HEIGHT
-                // for an assumed landing flare
-                // Note: Stall Speed must be set correctly ( in helicalTurnCntrl.c )
-            }
-            else // For all other condition when dead band active
-            {       
-                pitchAltitudeAdjust = 0;
-                // Prepare for DH for when DEADBAND is no longer active
-                desiredHeightAGL32.WW = height_above_ground_meters.WW;
-                desiredHeight32.WW = IMUlocationz.WW;
-            }
-            previous_throttle_in_deadband  = true; 
-        }
+
         if (!state_flags._.altitude_hold_throttle)
 		{
 			manualThrottle(throttleIn);
