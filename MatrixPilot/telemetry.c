@@ -575,6 +575,21 @@ void telemetry_output_8hz(void)
 	}
 }
 
+#elif (SERIAL_OUTPUT_FORMAT == SERIAL_TEST_XTRACK)
+
+
+void telemetry_output_8hz(void)
+{
+    union longww local_xtrack_error;
+    union longww local_xtrack_signal;
+    local_xtrack_error.WW = xtrack_error.WW  / 655; // Converts to cm from m
+    local_xtrack_signal.WW = xtrack_signal.WW / 655;
+    
+    serial_output("WP,%d, Progress,%u, xt error cm,%d, xtrack_signal,%d, estimatedWind[],%d,%d\r\n", 
+            waypointIndex, progress_to_goal, local_xtrack_error._.W0, local_xtrack_signal._.W0,
+                           estimatedWind[0], estimatedWind[1]);
+}
+
 #elif (SERIAL_OUTPUT_FORMAT == SERIAL_TEST_ALTITUDE)
 
 extern uint16_t get_range_count(void);
