@@ -25,9 +25,13 @@
 extern int16_t tofinish_line;
 extern int8_t extended_range;
 extern int8_t desired_dir;
+extern int16_t progress_to_goal; // Fraction of the way to the goal in the range 0-65535 (2^16-1)
 extern uint16_t turngainfbw; // fly by wire turn gain
 extern uint16_t turngainnav; // waypoints turn gain
-extern int16_t xtrack ;
+extern union longww xtrack_error;
+extern union longww xtrack_signal;
+
+
 void init_navigation(void);
 void save_navigation(void);
 #ifdef USE_EXTENDED_NAV
