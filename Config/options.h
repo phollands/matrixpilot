@@ -109,7 +109,7 @@
 // holds the cross track error to smaller values.
 // 64 meters is probably the largest value you might use on a fast model jet (more than 50 meters/sec)
 // Use 32 meters for 20 to 50 meters/sec, and 16 meters for less than that.
-#define CROSS_TRACK_MARGIN                  32
+#define CROSS_TRACK_MARGIN                  16
 
 // Wind Gain Adjustment
 // This is an option for modulating the navigation gains in flight
