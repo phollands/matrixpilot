@@ -124,7 +124,6 @@ void dead_reckon(void)
 			                  __builtin_mulus(ONE_OVER_TAU, 100*locationErrorEarth[1]);
 			IMUvelocityz.WW = IMUintegralAccelerationz.WW +
 			                  __builtin_mulus(ONE_OVER_TAU, 100*locationErrorEarth[2]);
-
 		}
 		else  // GPS has gotten disconnected
 		{

@@ -52,10 +52,12 @@ uint16_t yawkpail; // only exported for parameter_table
 uint16_t yawkprud; // only exported for parameter_table
 uint16_t turngainfbw; // fly by wire turn gain
 uint16_t turngainnav; // waypoints turn gain
-int16_t xtrack ;
+
+union longww xtrack_error;
+union longww xtrack_signal;
 
 int16_t tofinish_line = 0;
-int16_t progress_to_goal = 0;
+int16_t progress_to_goal; // Fraction of the way to the goal in the range 0-65535 (2^16-1)
 int8_t desired_dir = 0;
 int8_t extended_range = 0;
 
@@ -262,7 +264,6 @@ static int16_t compute_progress_to_goal(int16_t totalDist, int16_t remainingDist
 void  navigate_desired_height(void)
 {
 	union longww height;
-    int16_t progress_to_goal; // Fraction of the way to the goal in the range 0-65535 (2^16-1)
     if ((height_interpolation == false) || (desired_behavior._.takeoff || desired_behavior._.altitude))
     {
         height._.W1 = navgoal.height;
@@ -295,7 +296,6 @@ void  navigate_desired_height(void)
         state_flags._.terrain_follow = 0;
     }
 }
-int16_t xtrack ;
 
 static void cross_track(void)
 {
@@ -312,27 +312,50 @@ static void cross_track(void)
 #if (CROSS_TRACK_MARGIN >= 512)
 #error ("CTMARGIN is too large, it must be less than 512")
 #endif
+    static union longww IMUlocationx_previous = { 0 };
+    static union longww IMUlocationy_previous = { 0 };
+    static int8_t first_time_through = true;
 	union longww crossVector[2];
 	int16_t cross_rotate[2];
-	int16_t crosstrack;
 
 	// cross_rotate is a vector parallel to the desired course track
 	cross_rotate[0] =  navgoal.cosphi;
 	cross_rotate[1] = -navgoal.sinphi;
 
-	// cross_vector is a weighted sum of cross track distance error and cross velocity.
-	// IMU velocity is in centimeters per second, so right shifting by 4 produces
-	// about 6 times the IMU velocity in meters per second.
-	// This sets the time constant of the exponential decay to about 6 seconds
+	// Calculated the actual cross track error in meters.
+    // This expected to be used in Logo to abort a landing if xtrack_error is too high.
+	crossVector[0]._.W0 = 0;
+    crossVector[1]._.W0 = 0;
 	crossVector[0]._.W1 = navgoal.x;
-	crossVector[1]._.W1 = navgoal.y;
-	crossVector[0].WW -= IMUlocationx.WW + ((IMUvelocityx.WW) >> 4);
-	crossVector[1].WW -= IMUlocationy.WW + ((IMUvelocityy.WW) >> 4);
+    crossVector[1]._.W1 = navgoal.y;
+    crossVector[0].WW -=  IMUlocationx.WW;
+	crossVector[1].WW -=  IMUlocationy.WW;
+    rotate_2D_long_vector_by_vector(&crossVector[0].WW, cross_rotate);
+    xtrack_error.WW = crossVector[1].WW;
+    
+    // Calculate the Cross Track Signal to be used in moving back on Track.
+    crossVector[0]._.W0 = 0;
+    crossVector[1]._.W0 = 0;
+	crossVector[0]._.W1 = navgoal.x;
+    crossVector[1]._.W1 = navgoal.y;
+    if (first_time_through)
+    {
+        IMUlocationx_previous.WW = IMUlocationx.WW;
+        IMUlocationy_previous.WW = IMUlocationy.WW;
+        first_time_through = false;
+    }
+    // Synthesize an IMU Velocity, rather than use IMUvelocity as, in practice, that creates a smoother control.
+    // At 40Hz following code that shifts by 6 left, will look at position predicted for 1.5 seconds from now.
+    // That is appropriate for small model planes. A full size plane may need a longer prediction window e.g. 6 seconds. (Shift left 8))
+	crossVector[0].WW -=  IMUlocationx.WW + ((IMUlocationx.WW - IMUlocationx_previous.WW) <<6);
+	crossVector[1].WW -=  IMUlocationy.WW + ((IMUlocationy.WW - IMUlocationy_previous.WW) <<6);
+    IMUlocationx_previous.WW = IMUlocationx.WW;
+    IMUlocationy_previous.WW = IMUlocationy.WW;
+            
 	// The following rotation transforms the cross track error vector into the
 	// frame of the desired course track
 	rotate_2D_long_vector_by_vector(&crossVector[0].WW, cross_rotate);
-	crosstrack = crossVector[1]._.W1;
-	xtrack = crosstrack ;
+	xtrack_signal.WW = crossVector[1].WW;
 
 	// Compute the adjusted desired bearing over ground.
 	// Start with the straight line between waypoints.
@@ -341,7 +364,7 @@ static void cross_track(void)
 
 	// Determine if the crosstrack error is within saturation limit.
 	// If so, then multiply by 64 to pick up an extra 6 bits of resolution.
-	if (abs(crosstrack) < ((uint16_t)(CROSS_TRACK_MARGIN)))
+	if (abs(xtrack_signal._.W1) < ((uint16_t)(CROSS_TRACK_MARGIN)))
 	{
 		crossVector[1].WW <<= 6;
 		cross_rotate[1] = crossVector[1]._.W1;
@@ -354,7 +377,7 @@ static void cross_track(void)
 	}
 	else
 	{
-		if (crosstrack > 0)
+		if (xtrack_signal.WW > 0)
 		{
 			rotate_2D_vector_by_angle(desired_bearing_over_ground_vector, (int8_t) (32));
 		}
