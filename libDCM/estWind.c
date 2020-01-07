@@ -138,7 +138,7 @@ void estWind(int16_t angleOfAttack)
 
 #else
 
-void estWind(void)
+void estWind(int16_t angleOfAttack)
 {
 }
 
