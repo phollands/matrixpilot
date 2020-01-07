@@ -52,7 +52,7 @@
 // ORIENTATION_ROLLCW180: board rolled 90 degrees clockwise,
 //        from point of view of the pilot, then rotate the board 180 around the Z axis of the plane,
 //        so that the GPS connector points toward the tail of the plane
-#define BOARD_ORIENTATION                   ORIENTATION_FORWARDS
+#define BOARD_ORIENTATION                   ORIENTATION_BACKWARDS
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -98,7 +98,7 @@
 // Aileron and Rudder Navigation
 // Set either of these to 1 to enable helical turn control for navigation.
 #define AILERON_NAVIGATION                  1
-#define RUDDER_NAVIGATION                   1
+#define RUDDER_NAVIGATION                   0
 
 // Cross track margin, in meters
 // This is used when the cross track option is attached to a waypoint
@@ -135,7 +135,7 @@
 // in the altitude controls, and will trim the throttle and pitch to maintain air speed.
 // Define DESIRED_SPEED to be the air speed that you want, in meters/second.
 #define SPEED_CONTROL                       0
-#define DESIRED_SPEED                       10.0    // meters/second
+#define DESIRED_SPEED                       12.0   // meters/second
 
 // Inverted flight
 // Set these to 1 to enable stabilization of inverted flight in stabilized and/or waypoint modes.
@@ -226,9 +226,10 @@
 //     the aileron and rudder channels so that rudder is CHANNEL_1, and aileron is 5.
 #define THROTTLE_INPUT_CHANNEL              CHANNEL_3
 #define AILERON_INPUT_CHANNEL               CHANNEL_1
-#define ELEVATOR_INPUT_CHANNEL              CHANNEL_2
 #define RUDDER_INPUT_CHANNEL                CHANNEL_4
 #define MODE_SWITCH_INPUT_CHANNEL           CHANNEL_5
+#define ELEVATOR_INPUT_CHANNEL		        CHANNEL_2
+#define MODE_FLY_INVERTED_CHANNEL           CHANNEL_UNUSED // Was 6
 #define BRAKE_THR_SEL_INPUT_CHANNEL         CHANNEL_UNUSED
 #define BRAKE_INPUT_CHANNEL                 CHANNEL_UNUSED
 #define FLAPS_INPUT_CHANNEL                 CHANNEL_UNUSED
@@ -237,7 +238,6 @@
 #define CAMERA_MODE_INPUT_CHANNEL           CHANNEL_UNUSED
 #define OSD_MODE_SWITCH_INPUT_CHANNEL       CHANNEL_UNUSED
 #define RSSI_INPUT_CHANNEL                  CHANNEL_UNUSED
-#define MODE_FLY_INVERTED_CHANNEL           CHANNEL_UNUSED
 #define PASSTHROUGH_A_INPUT_CHANNEL         CHANNEL_UNUSED
 #define PASSTHROUGH_B_INPUT_CHANNEL         CHANNEL_UNUSED
 #define PASSTHROUGH_C_INPUT_CHANNEL         CHANNEL_UNUSED
@@ -290,6 +290,8 @@
 // Servo Reversing Configuration
 // For any of these that are set to 1, that servo will be sent reversed controls.
 // Note that your servo reversing settings here should match what you set on your transmitter.
+// For any of these that evaluate to 1 (either hardcoded or by flipping a switch on the board,
+// as you define below), that servo will be sent reversed controls.
 #define AILERON_CHANNEL_REVERSED            1
 #define ELEVATOR_CHANNEL_REVERSED           1
 #define RUDDER_CHANNEL_REVERSED             1
@@ -319,7 +321,7 @@
 // switch state back in stabilized. The important design concept is that Manual position is always Manual state immediately.
 // Stabilized position is Stabilized mode unless you try  hard to reach Autonomous mode.
 // Set MODE_SWITCH_TWO_POSITION to 0 for a normal three position mode switch.
-#define MODE_SWITCH_TWO_POSITION            1
+#define MODE_SWITCH_TWO_POSITION            0
 
 ////////////////////////////////////////////////////////////////////////////////
 // The Failsafe Channel is the RX channel that is monitored for loss of signal
@@ -335,7 +337,8 @@
 // FAILSAFE_INPUT_MIN and _MAX define the range within which we consider the radio on.
 // Normal signals should fall within about 2000 - 4000.
 #define FAILSAFE_INPUT_CHANNEL              THROTTLE_INPUT_CHANNEL
-#define FAILSAFE_INPUT_MIN                  1500
+#define FAILSAFE_INPUT_MIN                  2050 // For PDH Spektrum DX9
+//#define FAILSAFE_INPUT_MIN	            1500 // For HILSIM testing
 #define FAILSAFE_INPUT_MAX                  4500
 
 // FAILSAFE_TYPE controls the UDB's behavior when in failsafe mode due to loss of transmitter
@@ -376,12 +379,9 @@
 // SERIAL_MAGNETOMETER outputs the automatically calculated offsets and raw magnetometer data.
 // SERIAL_MAG_CALIBRATE is used to calculate  magnetometer offsets for a static non changing calibration. 
 // Note that SERIAL_MAVLINK defaults to using a baud rate of 57600 baud (other formats default to 19200)
-
 #ifndef SERIAL_OUTPUT_FORMAT
-//#define SERIAL_OUTPUT_FORMAT                SERIAL_TEST_XTRACK
 #define SERIAL_OUTPUT_FORMAT                SERIAL_UDB_EXTRA
 #endif
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Serial Output BAUD rate for either standard telemetry streams or MAVLink
@@ -450,7 +450,7 @@
 
 // Set USE_RANGER_INPUT to the input capture channel which the sensor
 // is connected to. Must be greater than the last used servo channel.
-#define USE_RANGER_INPUT                     0
+#define USE_RANGER_INPUT                     7
 // set to RANGER_NONE, RANGER_LIDAR or RANGER_SONAR
 #define RANGER_TYPE                          RANGER_LIDAR
 #define RANGER_TERRAIN_FOLLOW                1
@@ -509,34 +509,35 @@
 // the feed forward gain for that axis.
 // For each axis, a deflection term is added equal to the feed forward gain for that axis
 // times projection of the desired earth vertical rotation rate onto that axis
-#define FEED_FORWARD                        0.7
+//#define FEED_FORWARD						1.0
+#define FEED_FORWARD						0.8
 
 // TURN_RATE_NAV and TURN_RATE_FBW set the gains of the helical turn control for
 // waypoint navigation mode and fly by wire mode respectively.
 // They are specified in terms of the maximum desired turning rate in degrees per second in each mode.
 // The largest possible value is 240 degrees per second, anything larger will be clipped to 240.
 #define TURN_RATE_NAV                       30.0
-#define TURN_RATE_FBW                       60.0
+#define TURN_RATE_FBW                       50.0
 
 // Aileron/Roll Control Gains
 // ROLLKP is the proportional gain, approximately 0.25
 // ROLLKD is the derivative (gyro) gain, approximately 0.125
-// YAWKP_AILERON is the proportional feedback gain for ailerons in response to yaw error.
-// use it only if there is no rudder.
-// YAWKD_AILERON is the derivative feedback gain for ailerons in response to yaw rotation.
-// use it only if there is no rudder.
-#define ROLLKP                              0.20
-#define ROLLKD                              0.05
-#define YAWKP_AILERON                       0.00
-#define YAWKD_AILERON                       0.00
+// YAWKP_AILERON is the proportional feedback gain for ailerons in response to yaw error
+// YAWKD_AILERON is the derivative feedback gain for ailerons in response to yaw rotation
+
+#define ROLLKP                              0.25  // 0.2, 0.4
+#define ROLLKD                              0.00  // 0.01 
+#define YAWKP_AILERON                       0.0   //0.10
+#define YAWKD_AILERON                       0.0   //0.05
 
 // Elevator/Pitch Control Gains
 // PITCHGAIN is the pitch stabilization gain, typically around 0.125
 // PITCHKD feedback gain for pitch damping, around 0.0625
 // ELEVATOR_BOOST is the additional gain multiplier for the manually commanded elevator deflection
-#define PITCHGAIN                           0.30
-#define PITCHKD                             0.00
-#define ELEVATOR_BOOST                      0.50
+
+#define PITCHGAIN                             0.4  //0.3, 0.22
+#define PITCHKD                               0.00 //0.04
+#define ELEVATOR_BOOST                        0.5
 
 // Parameters below are used in the computation of angle of attack and pitch trim.
 // ( INVERTED_NEUTRAL_PITCH is no longer used and should not be used.) -- Note (RobD) yes it is?
@@ -549,11 +550,14 @@
 // ELEVATOR_TRIM_INVERTED               Elevator trim in fractional servo units (-1.0 to 1.0 ) for inverted straight and level flight at cruise speed.
 // Note: ELEVATOR_TRIM_INVERTED is usually negative, with typical values in the -0.5 to -1.0 range.
 
-#define REFERENCE_SPEED                 (  12.0 )
-#define ANGLE_OF_ATTACK_NORMAL          (  -0.8  )
-#define ANGLE_OF_ATTACK_INVERTED        (  -7.2  )
-#define ELEVATOR_TRIM_NORMAL            (  -0.03 )
-#define ELEVATOR_TRIM_INVERTED          (  -0.67)
+
+// The following is for an Alpha Axion (White Tipped Wings) flown for real
+// New interpretation made on 11 May April 2020 after noting bifurcation in test data
+#define REFERENCE_SPEED                 (  12.00  )
+#define ANGLE_OF_ATTACK_NORMAL          (    2.7  )    // (   3.13  )    // (   0.35 )
+#define ANGLE_OF_ATTACK_INVERTED        (   -4.03 )    // (  -2.83  )    // (  -4.55 )
+#define ELEVATOR_TRIM_NORMAL            (   -0.10 )    // (  -0.14  )    // (  -0.09 )
+#define ELEVATOR_TRIM_INVERTED          (   -0.60 )    // (  -0.37  )    // (  -0.38 )
 
 // CUSTOM OFFSETS are recommended when using Angle of Attack and Trim Parameters
 // They ensure that the measured orientation of the plane, particularly in pitch,
@@ -563,13 +567,14 @@
 // Be careful not to use the offsets below with the wrong board.
 // Uncomment the line below to activate the CUSTOM_OFFSETS feature in MatrixPilot.
 
-//#define CUSTOM_OFFSETS
-#define XACCEL_OFFSET ( 0 ) 
-#define YACCEL_OFFSET ( 0 )
-#define ZACCEL_OFFSET ( 0 )
-#define XRATE_OFFSET  ( 0 ) // not used by the UDB4
-#define YRATE_OFFSET  ( 0 ) // not used by the UDB4
-#define ZRATE_OFFSET  ( 0 ) // not used by the UDB4
+#define CUSTOM_OFFSETS
+// New measurements made 23 April 2020
+#define XACCEL_OFFSET (  236 ) //(  273 )
+#define YACCEL_OFFSET (  -78 ) //(  -62 )
+#define ZACCEL_OFFSET ( -732 ) //( -869 )
+#define XRATE_OFFSET  ( -141 ) //( -185 )
+#define YRATE_OFFSET  (   60 ) //(  -62 )
+#define ZRATE_OFFSET  (  -61 ) //(  -39 )   
 
 // Rudder/Yaw Control Gains
 // YAWKP_RUDDER is the proportional feedback gain for rudder control of yaw orientation.
@@ -582,10 +587,11 @@
 // in stabilized or waypoint mode.  This mainly helps aileron-initiated turning while in stabilized.
 // MANUAL_AILERON_RUDDER_MIX is no longer needed with the new controls, it should be set to zero.
 // RUDDER_BOOST is the additional gain multiplier for the manually commanded rudder deflection
-#define YAWKP_RUDDER                        0.30
-#define YAWKD_RUDDER                        0.00
-#define ROLLKP_RUDDER                       0.00
-#define ROLLKD_RUDDER                       0.00
+
+#define YAWKP_RUDDER                        0.2    // was 0.40
+#define YAWKD_RUDDER                        0.00   // 0.05
+#define ROLLKP_RUDDER                       0.00   // 0.20*0.0
+#define ROLLKD_RUDDER                       0.00   // 0.05*0.0
 #define MANUAL_AILERON_RUDDER_MIX           0.00
 #define RUDDER_BOOST                        0.50
 
@@ -692,14 +698,14 @@
 // The range of altitude within which to linearly vary the throttle
 // and pitch to maintain altitude.  A bigger value makes altitude hold
 // smoother, and is suggested for very fast planes.
-#define HEIGHT_MARGIN                       5
+#define HEIGHT_MARGIN                       5 // Same as HILSIM, Was 7
 
 // Use ALT_HOLD_THROTTLE_MAX when below HEIGHT_MARGIN of the target height.
 // Interpolate between ALT_HOLD_THROTTLE_MAX and ALT_HOLD_THROTTLE_MIN
 // when within HEIGHT_MARGIN of the target height.
 // Throttle is set to zero when above HEIGHT_MARGIN of the target height.
 // ALT_HOLD_THROTTLE values are from 0.0 to 1.0.
-#define ALT_HOLD_THROTTLE_MIN               0.35
+#define ALT_HOLD_THROTTLE_MIN               0.3 // was 0.1, Plane to fly faster
 #define ALT_HOLD_THROTTLE_MAX               1.0
 
 // Use ALT_HOLD_PITCH_MAX when below HEIGHT_MARGIN of the target height.
@@ -728,7 +734,7 @@
 // HILSIM_BAUD is the serial speed for communications with the X-Plane plugin.  Default is
 // now 38400.  Make sure the X-Plane plugin's Setup file has its speed set to match.
 #ifndef HILSIM
-#define HILSIM                              1
+#define HILSIM                              0
 #endif
 #define HILSIM_USB                          0           // AUAV3 only (under development)
 #define HILSIM_BAUD                         38400
@@ -749,7 +755,7 @@
 // Waypoint handling
 
 // Move on to the next waypoint when getting within this distance of the current goal (in meters)
-#define WAYPOINT_PROXIMITY_RADIUS	25
+#define WAYPOINT_PROXIMITY_RADIUS	1
 
 // Origin Location
 // When using relative waypoints, the default is to interpret those waypoints as relative to the
@@ -771,9 +777,10 @@
 // examine the telemetry after a flight, take a look in the .csv file, it will be easy to spot the
 // altitude, expressed in meters.
 
-#define USE_FIXED_ORIGIN	    0
-//#define FIXED_ORIGIN_LOCATION	    { -1219950467, 374124664, 30.0 }	// A point in Baylands Park in Sunnyvale, CA
-#define FIXED_ORIGIN_LOCATION	    { 113480854, 472580108, 578 }	// Innsbruck, useful for X-Plane flight simulator
+#define USE_FIXED_ORIGIN            1
+//#define FIXED_ORIGIN_LOCATION     { -1219950467, 374124664,  30.0 }  // A point in Baylands Park in Sunnyvale, CA
+//#define FIXED_ORIGIN_LOCATION     {   113480854, 472580108, 578.0 }  // Innsbruck, useful for X-Plane flight simulator
+#define FIXED_ORIGIN_LOCATION       {   -10948544, 514774198,  80 }    // PDH Model Airfield - Note bug if use Alt floating point.
 
 ///////////////////////////////////////////////////////////////////////////////////
 // Vehicle and Pilot Identification
@@ -792,10 +799,10 @@
 //#define ID_VEHICLE_REGISTRATION "TW2-PDH-UK"
 //#define ID_LEAD_PILOT "Pete Hollands"
 //#define ID_DIY_DRONES_URL "http://www.diydrones.com/profile/PeterHollands"
-#define ID_VEHICLE_MODEL_NAME               "HILSIM EasyStar"
-#define ID_VEHICLE_REGISTRATION             "Not Defined"
-#define ID_LEAD_PILOT                       "Not Defined"
-#define ID_DIY_DRONES_URL                   "http://www.diydrones.com"
+#define ID_VEHICLE_MODEL_NAME "Alpha Axion 139 3X MP White Tips"
+#define ID_VEHICLE_REGISTRATION "AA-PDH-UK-UDB5"
+#define ID_LEAD_PILOT "Pete Hollands"
+#define ID_DIY_DRONES_URL "http://www.diydrones.com/profile/PeterHollands"
 
 ///////////////////////////////////////////////////////////////////////////////////
 // Aid to Flight Analysis of Delta Wing Aircraft. This is an optional setting which
