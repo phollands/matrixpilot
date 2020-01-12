@@ -621,6 +621,8 @@ void telemetry_output_8hz(void)
 	//     version will output at 4Hz.
 	static int16_t pwIn_save[NUM_INPUTS + 1];
 	static int16_t pwOut_save[NUM_OUTPUTS + 1];
+    int16_t IMUlocation_meters[3];
+    int16_t IMUlocation_fraction[3];
 	
 	switch (telemetry_counter)
 	{
@@ -766,7 +768,16 @@ void telemetry_output_8hz(void)
 						serial_output("p%ii%i:",i,pwIn_save[i]);
 					for (i= 1; i <= NUM_OUTPUTS; i++)
 						serial_output("p%io%i:",i,pwOut_save[i]);
-					serial_output("imx%i:imy%i:imz%i:lex%i:ley%i:lez%i:fgs%X:ofc%i:tx%i:ty%i:tz%i:G%d,%d,%d:AF%i,%i,%i:",IMUlocationx._.W1,IMUlocationy._.W1,IMUlocationz._.W1,
+                    
+                    IMUlocation_meters[0]   = IMUlocationx._.W1;
+                    IMUlocation_fraction[0] = IMUlocationx._.W0;
+                    IMUlocation_meters[1]   = IMUlocationy._.W1;
+                    IMUlocation_fraction[1] = IMUlocationy._.W0;
+                    IMUlocation_meters[2]   = IMUlocationz._.W1;
+                    IMUlocation_fraction[2] = IMUlocationz._.W0;
+                    
+					serial_output("imx%i:imy%i:imz%i:lex%i:ley%i:lez%i:fgs%X:ofc%i:tx%i:ty%i:tz%i:G%d,%d,%d:AF%i,%i,%i:",
+                        IMUlocation_meters[0],IMUlocation_meters[1],IMUlocation_meters[2],
 					    locationErrorEarth[0], locationErrorEarth[1], locationErrorEarth[2],
 					    state_flags.WW, osc_fail_count,
 					    IMUvelocityx._.W1, IMUvelocityy._.W1, IMUvelocityz._.W1, goal.x, goal.y, goal.z, aero_force[0], aero_force[1], aero_force[2]);
@@ -797,12 +808,13 @@ void telemetry_output_8hz(void)
 					serial_output("stk%d:", (int16_t)(4096-maxstack));
 #endif // RECORD_FREE_STACK_SPACE
 					serial_output("\r\n");
-					serial_output("F23:G%i:V%i:RE%d,%d,%d:TE%d,%d,%d:DR%d,%d,%d:OM%d,%d,%d:DT%d:EL%d:Ct%i:Gf%X\r\n",   \
+					serial_output("F23:G%i:V%i:RE%d,%d,%d:TE%d,%d,%d:DR%d,%d,%d:OM%d,%d,%d:DT%d:EL%d:Ct%i:Gf%X:IX%i:IY%i:IZ%i:\r\n",   \
                             gps_parse_errors,vdop,                                                                     \
                             rotationRateError[0],rotationRateError[1],rotationRateError[2],                            \
                             tiltError[0],tiltError[1],tiltError[2],                                                    \
                             desiredRotationRateRadians[0],desiredRotationRateRadians[1],desiredRotationRateRadians[2], \
-                            omegaAccum[0],omegaAccum[1],omegaAccum[2],desiredTurnRateRadians,elevatorLoadingTrim,get_range_count(),gps_nav_diff_soln());
+                            omegaAccum[0],omegaAccum[1],omegaAccum[2],desiredTurnRateRadians,elevatorLoadingTrim,get_range_count(),gps_nav_diff_soln(), \
+                            IMUlocation_fraction[0],IMUlocation_fraction[1],IMUlocation_fraction[2]);
 				}
 			}
 			if (state_flags._.f13_print_req == 1)
