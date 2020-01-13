@@ -222,7 +222,7 @@ def convert_meters_north_to_lat(meters):
 
 def convert_meters_east_to_lon(meters,lat):
     """Converts relative meters East to Longitude times 10 to the power 7"""
-    return((90 * meters)/ (cos(((lat / 10000000.0) / 360)*2*pi)))
+    return((90 * meters)/ ((cos(((lat / 10000000.0) / 360)*2*pi))))*0.984 # PDH Pokle factor as MP cos function approx
 
 def get_fixed_origin_coords(text):
     """  s waypoints.h file to find absolute coordinatates of the origin"""
@@ -834,11 +834,19 @@ def calculate_headings_pitch_roll(log_book,flight_origin, options) :
         entry.lon[GPS]  = entry.longitude / 10000000.0 # degrees
         entry.lat[GPS]  = entry.latitude  / 10000000.0 # degrees
         entry.alt[GPS]  = ( entry.altitude  / 100.0) + options.altitude_correction       # meters absolute
-        abs_location = flight_origin.rel_to_absolute(entry.IMUlocationx_W1, entry.IMUlocationy_W1, \
-                                       (entry.IMUlocationz_W1 * 100), entry.latitude)
+        if (log_book.IMUlocation_cm == False):
+            abs_location = flight_origin.rel_to_absolute(entry.IMUlocationx_W1, entry.IMUlocationy_W1, \
+                                           (entry.IMUlocationz_W1 * 100), entry.latitude)
+        else:
+            abs_location = flight_origin.rel_to_absolute(entry.IMUlocationx_cm / 100.0, entry.IMUlocationy_cm / 100.0, \
+                                           (entry.IMUlocationz_cm), entry.latitude)
         entry.lat[IMU] = abs_location[0] / 10000000.0
         entry.lon[IMU] = abs_location[1] / 10000000.0
         entry.alt[IMU] = ( abs_location[2] / 100.0 ) + options.altitude_correction
+            
+
+        
+        
         # If using Ardustation, then roll and pitch already set from telemetry
         if log_book.ardustation_pos != "Recorded" : # only calc if using UAV DevBoard
 
@@ -1977,6 +1985,7 @@ class flight_log_book:
         self.F24 = "Empty"
         self.F25 = "Empty"
         self.ardustation_pos = "Empty"
+        self.IMUlocation_cm = False
         self.rebase_time_to_race_time = False
         self.waypoints_in_telemetry = False
         self.nominal_cruise_speed = 0
@@ -2287,7 +2296,7 @@ def create_log_book(options) :
             pass # flan not using sensor values measured at boot up time
         elif log.log_format == "F23" :
             log_book.gps_parse_errors = log.gps_parse_errors
-            # logbook.entries[-1] is the last F2 entry in the log book
+            # logbook.entries[-1] is the previous F2 entry in the log book
             # In the following lines, the F23 fields are added onto the F2 fields in the log book.
             if an_F2_record_has_been_stored :
                 log_book.entries[-1].gps_parse_errors = log.gps_parse_errors
@@ -2299,6 +2308,14 @@ def create_log_book(options) :
                 log_book.entries[-1].desired_turn_rate = log.desired_turn_rate
                 log_book.entries[-1].elevator_loading_trim = log.elevator_loading_trim
                 log_book.entries[-1].number_of_range_samples = log.number_of_range_samples
+                if log.IMUlocationx_W0 != 0 or log.IMUlocationy_W0 != 0 or log.IMUlocationz_W0 != 0:
+                    log_book.IMUlocation_cm = True
+                log_book.entries[-1].IMUlocationx_W0 = log.IMUlocationx_W0
+                log_book.entries[-1].IMUlocationy_W0 = log.IMUlocationy_W0
+                log_book.entries[-1].IMUlocationz_W0 = log.IMUlocationz_W0
+                log_book.entries[-1].IMUlocationx_cm = int(((((log_book.entries[-1].IMUlocationx_W1) << 16 ) + log.IMUlocationx_W0) / 655.36) + 0.5)
+                log_book.entries[-1].IMUlocationy_cm = int(((((log_book.entries[-1].IMUlocationy_W1) << 16 ) + log.IMUlocationy_W0) / 655.36) + 0.5)
+                log_book.entries[-1].IMUlocationz_cm = int(((((log_book.entries[-1].IMUlocationz_W1) << 16 ) + log.IMUlocationz_W0) / 655.36) + 0.5)
         elif log.log_format == "F24" :
             log_book.aileron_channel_neutral = log.aileron_channel_neutral
             log_book.elevator_channel_neutral = log.elevator_channel_neutral
@@ -2425,7 +2442,7 @@ def write_csv(options,log_book):
     print >> f_csv, "RotErrY_PWM,TiltErrY_PWM,DesRotY_PWM,Y_PWM_TOT,",
     print >> f_csv, "RotErrZ_PWM,TiltErrZ_PWM,DesRotZ_PWM,Z_PWM_TOT,",
     print >> f_csv, "ElevLoadTrim,",
-    print >> f_csv, "LEX,LEY,LEZ,IMU X,IMU Y,IMU Z,Desired_Height,Bar_Tmp,Bar_Prs,Bar_Alt_ASL,Bar_Alt_AO,MAG_W,MAG_N,MAG_Z,",
+    print >> f_csv, "LEX,LEY,LEZ,IMUX,IMUY,IMUZ,IMUX_cm,IMUY_cm,IMUZ_cm,Desired_Height,Bar_Tmp,Bar_Prs,Bar_Alt_ASL,Bar_Alt_AO,MAG_W,MAG_N,MAG_Z,",
     print >> f_csv, "Waypoint X,WaypointY,WaypointZ,IMUvelocityX,IMUvelocityY,IMUvelocityZ,",
     print >> f_csv, "Flags Dec,Flags Hex,Range,ALT_AGL,RangeCnt,AeroX,AeroY,AeroZ,OmegaX,OmegaY,OmegaZ,AoI,WingLoad,AoA_Pitch,",
     print >> f_csv, "Volts,Amps,mAh"
@@ -2564,7 +2581,9 @@ def write_csv(options,log_book):
               pwm_z_tot, ",",              \
               entry.elevator_loading_trim, ",",                                                                                                             \
               entry.lex, "," , entry.ley , "," , entry.lez, ",", \
-              entry.IMUlocationx_W1, ",", entry.IMUlocationy_W1, ",", entry.IMUlocationz_W1, "," , entry.desired_height, ",",\
+              entry.IMUlocationx_W1, ",", entry.IMUlocationy_W1, ",", entry.IMUlocationz_W1, ",",  \
+              entry.IMUlocationx_cm, ",", entry.IMUlocationy_cm, ",", entry.IMUlocationz_cm, ",", \
+              entry.desired_height, ",",\
               entry.barometer_temperature / 10.0, ",",entry.barometer_pressure / 100.0, ",", \
               "{0:.2f}".format(entry.barometer_altitude / 1000.0), ",", \
               "{0:.2f}".format(((entry.barometer_altitude / 10.0) - (log_book.origin_altitude))/100.0), ",", \
@@ -2829,7 +2848,11 @@ def process_telemetry():
         return
     print "Zipping up KML into a KMZ File"
     wrap_kml_into_kmz(options)
-
+    if (log_book.IMUlocation_cm == True):
+        print "Telemetry supports IMUlocation in cm."
+    else:
+        print "Telemetry using IMUlocation in m."
+    
     if (options.telemetry_filename.endswith('raw') or options.telemetry_filename.endswith('RAW') \
         or options.telemetry_filename.endswith('log') or options.telemetry_filename.endswith('LOG')):
         serial_udb_extra_filename = re.sub("[rRlL][aAoO][wWgG]$","txt",options.telemetry_filename)

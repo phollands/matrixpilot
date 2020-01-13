@@ -211,6 +211,12 @@ class base_telemetry :
         self.IMUlocationx_W1 = 0
         self.IMUlocationy_W1 = 0
         self.IMUlocationz_W1 = 0
+        self.IMUlocationx_W0 = 0
+        self.IMUlocationy_W0 = 0
+        self.IMUlocationz_W0 = 0
+        self.IMUlocationx_cm = 0
+        self.IMUlocationy_cm = 0
+        self.IMUlocationz_cm = 0
         self.lon = [0,0] # We came two versions. A GPS version and an IMU version.
         self.lat = [0,0]
         self.alt = [0,0]
@@ -1268,7 +1274,7 @@ class ascii_telemetry(base_telemetry):
                 try:
                     self.IMUvelocityx = int(match.group(1))
                 except:
-                    print "Corrupt IMUlocationx value in line", line_no
+                    print "Corrupt IMUvelocity x value in line", line_no
                     return "Error"
             else :
                 pass
@@ -1278,7 +1284,7 @@ class ascii_telemetry(base_telemetry):
                 try:
                     self.IMUvelocityy = int(match.group(1))
                 except:
-                    print "Corrupt IMUlocationy value in line", line_no
+                    print "Corrupt IMUvelocity y value in line", line_no
                     return "Error"
             else :
                 pass
@@ -1288,7 +1294,7 @@ class ascii_telemetry(base_telemetry):
                 try:
                     self.IMUvelocityz = int(match.group(1))
                 except:
-                    print "Corrupt IMUlocationz value in line", line_no
+                    print "Corrupt IMU velocity z value in line", line_no
                     return "Error"
             else :
                 pass
@@ -2046,6 +2052,33 @@ class ascii_telemetry(base_telemetry):
                     self.number_of_range_samples = int(match.group(1))
                 except:
                     pass
+            match = re.match(".*:IX([-0-9]*?):",line) # IMUlocation x fraction. 
+            if match :
+                try:
+                    self.IMUlocationx_W0 = int(match.group(1))
+                except:
+                    print "Corrupt IMULocationX fraction value in line", line_no
+                    return "Error"
+            else :
+                pass  
+            match = re.match(".*:IY([-0-9]*?):",line) # IMUlocation y fraction
+            if match :
+                try:
+                    self.IMUlocationy_W0 = int(match.group(1))
+                except:
+                    print "Corrupt IMULocaitonY fraction value in line", line_no
+                    return "Error"
+            else :
+                pass
+            match = re.match(".*:IZ([-0-9]*?):",line) # IMUlocation z. Meters from origin
+            if match :
+                try:
+                    self.IMUlocationz_W0 = int(match.group(1))
+                except:
+                    print "Corrupt IMUlocationZ fraction value in line", line_no
+                    return "Error"
+            else :
+                pass
                 
             return "F23"
 
