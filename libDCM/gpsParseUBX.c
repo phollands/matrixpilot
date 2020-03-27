@@ -447,8 +447,8 @@ boolean gps_nav_valid(void)
 uint8_t gps_nav_diff_soln(void)
 {
     // differential gps solutions (e.g. SBAS) flag at bit position 2
-    //return ((nav_flags_ & 2) == 2);
-    return(nav_flags_);
+    return ((nav_flags_ & 2) == 2);
+    //return(nav_flags_);
 }
 
 /*
