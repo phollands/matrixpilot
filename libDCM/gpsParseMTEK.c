@@ -77,6 +77,13 @@ boolean gps_nav_valid(void)
 	return (fix_type_ == 0x03); // Fix type is 3D fix
 }
 
+uint8_t gps_nav_diff_soln(void)
+{
+    // differential gps solutions (e.g. SBAS) flag 
+    // There is no support for SBAS with this GPS currently
+    return(0);
+}
+
 void gps_startup_sequence(int16_t gpscount)
 {
 	if (gpscount == 100)
