@@ -88,6 +88,11 @@ void gps_startup_sequence(int16_t gpscount) { }
 void gps_commit_data(void) { }
 void gps_parse_none(uint8_t gpschar) { }
 void (*msg_parse)(uint8_t) = &gps_parse_none;
+
+uint8_t gps_nav_diff_soln(void)
+{
+    return(0);
+}
 #endif // GPS_TYPE
 
 

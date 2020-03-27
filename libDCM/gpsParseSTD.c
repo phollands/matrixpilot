@@ -126,6 +126,13 @@ boolean gps_nav_valid(void)
 	return (nav_valid_.BB == 0);
 }
 
+uint8_t gps_nav_diff_soln(void)
+{
+    // differential GPS solution (e.g. SBAS) flag 
+    // There is no support for SBAS with this GPS currently
+    return(0);
+}
+
 void gps_startup_sequence(int16_t gpscount)
 {
 	if (gpscount == 40)
