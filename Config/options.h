@@ -127,7 +127,7 @@
 //      AH_FULL_ELEV, the target altitude is controlled by the elevator stick. e.g. Pulling back on the stick increases target Altitude.
 //      AH_NONE, MatrixPilot will still try to stabilize pitch as long as PITCH_STABILIZATION is set to 1 above,
 //                but will not aim for any specific altitude.
-#define ALTITUDEHOLD_STABILIZED             AH_FULL_ELEV
+#define ALTITUDEHOLD_STABILIZED             AH_FULL
 #define ALTITUDEHOLD_WAYPOINT               AH_FULL
 
 // Speed Control
@@ -218,7 +218,7 @@
 // If using PWM inputs (parallel Rx connections), set to the number of cables connected, 1-8
 // If using PPM inputs (serial Rx connection), set to the number of Rx channels, up to PPM_NUMBER_OF_CHANNELS
 // If using LRS library (integrated SPI tranceiver), set to the number of Rx channels, up to 16
-#define NUM_INPUTS                          6
+#define NUM_INPUTS                          5
 
 // Channel numbers for each input.
 // Use as is, or edit to match your setup.
@@ -229,7 +229,7 @@
 #define RUDDER_INPUT_CHANNEL                CHANNEL_4
 #define MODE_SWITCH_INPUT_CHANNEL           CHANNEL_5
 #define ELEVATOR_INPUT_CHANNEL		        CHANNEL_2
-#define MODE_FLY_INVERTED_CHANNEL               CHANNEL_6
+#define MODE_FLY_INVERTED_CHANNEL           CHANNEL_UNUSED // Was 6
 #define BRAKE_THR_SEL_INPUT_CHANNEL         CHANNEL_UNUSED
 #define BRAKE_INPUT_CHANNEL                 CHANNEL_UNUSED
 #define FLAPS_INPUT_CHANNEL                 CHANNEL_UNUSED
@@ -453,7 +453,7 @@
 #define USE_RANGER_INPUT                     8
 // set to RANGER_NONE, RANGER_LIDAR or RANGER_SONAR
 #define RANGER_TYPE                          RANGER_LIDAR
-#define RANGER_TERRAIN_FOLLOW                1
+#define RANGER_TERRAIN_FOLLOW                0
 ////////////////////////////////////////////////////////////////////////////////
 // Trigger Action
 // Use the trigger to do things like drop an item at a certain waypoint, or take a photo every
