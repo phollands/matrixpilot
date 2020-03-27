@@ -98,7 +98,8 @@ void estLocation(void)
 	// re-orientate from compass (clockwise) to maths (anti-clockwise) with 0 degrees in East
 	cog_circular = -accum.__.B2 + 64;
 	cog_circular_16 = gps_cog_to_16bit_circular(cog_gps.BB);
-
+	// TODO : eventually cog_circular and actual_dir need to be retired.
+	// For now, keep them because they are used in the wind estimation, in which 8 bits is sufficient
 	// compensate for GPS reporting latency.
 	// The dynamic model of the EM406 and uBlox is not well known.
 	// However, it seems likely much of it is simply reporting latency.
@@ -110,6 +111,7 @@ void estLocation(void)
 	if (dcm_flags._.gps_history_valid)
 	{
 		cog_delta = cog_circular - cog_previous;
+        cog_delta_16 = cog_circular_16 - cog_previous_16 ;
 		sog_delta = sog_gps.BB - sog_previous;
 		climb_rate_delta = climb_gps.BB - climb_rate_previous;
 
@@ -120,6 +122,7 @@ void estLocation(void)
 	else
 	{
 		cog_delta = 0;
+        cog_delta_16 = 0 ;
 		sog_delta = 0;
 		climb_rate_delta = 0;
 		location_deltaXY.x = location_deltaXY.y = location_deltaZ = 0;
