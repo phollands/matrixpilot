@@ -2313,9 +2313,9 @@ def create_log_book(options) :
                 log_book.entries[-1].IMUlocationx_W0 = log.IMUlocationx_W0
                 log_book.entries[-1].IMUlocationy_W0 = log.IMUlocationy_W0
                 log_book.entries[-1].IMUlocationz_W0 = log.IMUlocationz_W0
-                log_book.entries[-1].IMUlocationx_cm = int(((((log_book.entries[-1].IMUlocationx_W1) << 16 ) + log.IMUlocationx_W0) / 655.36) + 0.5)
-                log_book.entries[-1].IMUlocationy_cm = int(((((log_book.entries[-1].IMUlocationy_W1) << 16 ) + log.IMUlocationy_W0) / 655.36) + 0.5)
-                log_book.entries[-1].IMUlocationz_cm = int(((((log_book.entries[-1].IMUlocationz_W1) << 16 ) + log.IMUlocationz_W0) / 655.36) + 0.5)
+                log_book.entries[-1].IMUlocationx_cm = int((((log_book.entries[-1].IMUlocationx_W1) << 16 ) + (log.IMUlocationx_W0)) / 655.36)
+                log_book.entries[-1].IMUlocationy_cm = int((((log_book.entries[-1].IMUlocationy_W1) << 16 ) + (log.IMUlocationy_W0)) / 655.36)
+                log_book.entries[-1].IMUlocationz_cm = int((((log_book.entries[-1].IMUlocationz_W1) << 16 ) + (log.IMUlocationz_W0)) / 655.36)
         elif log.log_format == "F24" :
             log_book.aileron_channel_neutral = log.aileron_channel_neutral
             log_book.elevator_channel_neutral = log.elevator_channel_neutral
