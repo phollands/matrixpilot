@@ -808,7 +808,7 @@ void telemetry_output_8hz(void)
 					serial_output("stk%d:", (int16_t)(4096-maxstack));
 #endif // RECORD_FREE_STACK_SPACE
 					serial_output("\r\n");
-					serial_output("F23:G%i:V%i:RE%d,%d,%d:TE%d,%d,%d:DR%d,%d,%d:OM%d,%d,%d:DT%d:EL%d:Ct%i:Gf%X:IX%i:IY%i:IZ%i:\r\n",   \
+					serial_output("F23:G%i:V%i:RE%d,%d,%d:TE%d,%d,%d:DR%d,%d,%d:OM%d,%d,%d:DT%d:EL%d:Ct%i:Gf%X:IX%u:IY%u:IZ%u:\r\n",   \
                             gps_parse_errors,vdop,                                                                     \
                             rotationRateError[0],rotationRateError[1],rotationRateError[2],                            \
                             tiltError[0],tiltError[1],tiltError[2],                                                    \
