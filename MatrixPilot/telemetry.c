@@ -814,7 +814,7 @@ void telemetry_output_8hz(void)
                             tiltError[0],tiltError[1],tiltError[2],                                                    \
                             desiredRotationRateRadians[0],desiredRotationRateRadians[1],desiredRotationRateRadians[2], \
                             omegaAccum[0],omegaAccum[1],omegaAccum[2],desiredTurnRateRadians,elevatorLoadingTrim,get_range_count(),gps_nav_diff_soln(), \
-                            IMUlocation_fraction[0],IMUlocation_fraction[1],IMUlocation_fraction[2]);
+                            (uint16_t)IMUlocation_fraction[0],(uint16_t)IMUlocation_fraction[1],(uint16_t)IMUlocation_fraction[2]);
 				}
 			}
 			if (state_flags._.f13_print_req == 1)
