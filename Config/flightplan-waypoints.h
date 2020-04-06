@@ -169,7 +169,26 @@ const struct waypointDef waypoints[] = {
 #else
 
 const struct waypointDef waypoints[] = {
-		{ {   0,   0, 75 } , F_NORMAL, CAM_VIEW_LAUNCH } ,  // return to, and loiter 75 meters above the startup position
+	{ { -10962110, 514762815, 30 } , F_NORMAL + F_ABSOLUTE + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 1 Start of Finals
+	{ { -10952286, 514771230, 30 } , F_NORMAL + F_ABSOLUTE + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 2 Will be Terrain 10m
+	{ { -10950257, 514772834, 30 } , F_NORMAL + F_ABSOLUTE + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 3 Will be Terrain 4m
+	{ { -10948544, 514774198, 30 } , F_NORMAL + F_ABSOLUTE + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 4 Hedge Terrain   4m
+	{ { -10946437, 514775941, 30 } , F_NORMAL + F_ABSOLUTE + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 5 Start of Flare Terrain 1m
+	{ { -10942186, 514779609, 30 } , F_NORMAL + F_ABSOLUTE + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 6 End of Landing Area
+	{ { -10939872, 514780016, 30 } , F_NORMAL + F_ABSOLUTE , CAM_VIEW_LAUNCH } , //Waypoint 7 Get out of here !
+	{ { -10937940, 514778880, 30 } , F_NORMAL + F_ABSOLUTE , CAM_VIEW_LAUNCH } , //Waypoint 8
+	{ { -10937511, 514776809, 30 } , F_NORMAL + F_ABSOLUTE + F_CROSS_TRACK , CAM_VIEW_LAUNCH } , //Waypoint 9 Long Leg to Quarry
+	{ { -10936438, 514757430, 30 } , F_NORMAL + F_ABSOLUTE , CAM_VIEW_LAUNCH } , //Waypoint 10
+	{ { -10938906, 514755559, 30 } , F_NORMAL + F_ABSOLUTE , CAM_VIEW_LAUNCH } , //Waypoint 11
+	{ { -10941696, 514755893, 30 } , F_NORMAL + F_ABSOLUTE , CAM_VIEW_LAUNCH } , //Waypoint 12
+	{ { -10945665, 514759168, 30 } , F_NORMAL + F_ABSOLUTE , CAM_VIEW_LAUNCH } , //Waypoint 13
+	{ { -10950171, 514760170, 30 } , F_NORMAL + F_ABSOLUTE , CAM_VIEW_LAUNCH } , //Waypoint 14
+	{ { -10954677, 514759903, 30 } , F_NORMAL + F_ABSOLUTE , CAM_VIEW_LAUNCH } , //Waypoint 15
+	{ { -10956609, 514758566, 30 } , F_NORMAL + F_ABSOLUTE , CAM_VIEW_LAUNCH } , //Waypoint 16
+	{ { -10958968, 514757163, 30 } , F_NORMAL + F_ABSOLUTE , CAM_VIEW_LAUNCH } , //Waypoint 17
+	{ { -10963689, 514756628, 30 } , F_NORMAL + F_ABSOLUTE , CAM_VIEW_LAUNCH } , //Waypoint 18
+	{ { -10965688, 514759066, 30 } , F_NORMAL + F_ABSOLUTE , CAM_VIEW_LAUNCH } , //Waypoint 19
+	{ { -10963435, 514761672, 30 } , F_NORMAL + F_ABSOLUTE , CAM_VIEW_LAUNCH } , //Waypoint 20 Ready for Finals (again))
 };
 
 #endif
@@ -187,7 +206,7 @@ const struct waypointDef waypoints[] = {
 // and after flights, since turning off the transmitter will cause the throttle to come on.
 
 const struct waypointDef rtlWaypoints[] = {
-		{ { 0, 0,  50 } , F_LOITER + F_LAND, CAM_VIEW_LAUNCH } ,
+		{ { -10946811, 514766754, 30 } , F_NORMAL + F_ABSOLUTE , CAM_VIEW_LAUNCH } , // RTL in safe landing in Field
 };
 
 
