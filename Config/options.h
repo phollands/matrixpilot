@@ -127,7 +127,7 @@
 //      AH_FULL_ELEV, the target altitude is controlled by the elevator stick. e.g. Pulling back on the stick increases target Altitude.
 //      AH_NONE, MatrixPilot will still try to stabilize pitch as long as PITCH_STABILIZATION is set to 1 above,
 //                but will not aim for any specific altitude.
-#define ALTITUDEHOLD_STABILIZED             AH_FULL
+#define ALTITUDEHOLD_STABILIZED             AH_FULL_ELEV
 #define ALTITUDEHOLD_WAYPOINT               AH_FULL
 
 // Speed Control
