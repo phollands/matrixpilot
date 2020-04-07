@@ -813,7 +813,7 @@
 // of up elevon (in UDB units) being used to keep a nose heavy aircraft flying level.
 // Trim the elevons to be in line with the trailing edge, run up MatrixPilot with SERIAL_UDB_EXTRA,
 // and note the values of the relevant channels (e.g. AILERON_OUTPUT_CHANNEL and ELEVATOR_OUTPUT_CHANNEL) in UDB PWM units.
-#define FLIGHT_ANALYZER_TO_USE_NEUTUAL_DEFLECTION_VALUES    1     //Set to 1 to enable and set to 0 to disable this option
+#define FLIGHT_ANALYZER_TO_USE_NEUTUAL_DEFLECTION_VALUES    0    //Set to 1 to enable and set to 0 to disable this option
 #define AILERON_OUTPUT_CHANNEL_NEUTRAL_DEFLECTION           3000  
 #define ELEVATOR_OUTPUT_CHANNEL_NEUTRAL_DEFLECTION          3000
 
