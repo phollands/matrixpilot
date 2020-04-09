@@ -777,9 +777,9 @@
 // altitude, expressed in meters.
 
 #define USE_FIXED_ORIGIN            1
-//#define FIXED_ORIGIN_LOCATION     { -1219950467, 374124664,  30.0 }   // A point in Baylands Park in Sunnyvale, CA
-//#define FIXED_ORIGIN_LOCATION     {   113480854, 472580108, 578.0 }   // Innsbruck, useful for X-Plane flight simulator
-#define FIXED_ORIGIN_LOCATION       {   -10948544, 514774198,  80.5 }   // PDH Model Airfield 
+//#define FIXED_ORIGIN_LOCATION     { -1219950467, 374124664,  30.0 }  // A point in Baylands Park in Sunnyvale, CA
+//#define FIXED_ORIGIN_LOCATION     {   113480854, 472580108, 578.0 }  // Innsbruck, useful for X-Plane flight simulator
+#define FIXED_ORIGIN_LOCATION       {   -10948544, 514774198,  80 }    // PDH Model Airfield - Note bug if use Alt floating point.
 
 ///////////////////////////////////////////////////////////////////////////////////
 // Vehicle and Pilot Identification
