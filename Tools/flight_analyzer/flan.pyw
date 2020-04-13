@@ -2537,9 +2537,9 @@ def write_csv(options,log_book):
         rotation_error_z_pwm = int((-entry.rotation_error[2] * log_book.yawkd_rudder * RMAX * gyro_scale) / INTEGER_SCALE)
         tilt_error_z_pwm = int((-entry.tilt_error[2] * log_book.yawkp_rudder * RMAX) / INTEGER_SCALE)
         desired_rotation_z_pwm = int((entry.desired_rotation[2] * log_book.yawkp_rudder * RMAX * log_book.feed_forward) / INTEGER_SCALE)
-        pwm_x_tot = rotation_error_x_pwm + tilt_error_x_pwm + desired_rotation_x_pwm
-        pwm_y_tot = rotation_error_y_pwm + tilt_error_y_pwm + desired_rotation_y_pwm
-        pwm_z_tot = rotation_error_z_pwm + tilt_error_z_pwm + desired_rotation_z_pwm
+        pwm_x_tot = -rotation_error_x_pwm - tilt_error_x_pwm + desired_rotation_x_pwm
+        pwm_y_tot = -rotation_error_y_pwm - tilt_error_y_pwm + desired_rotation_y_pwm
+        pwm_z_tot = -rotation_error_z_pwm - tilt_error_z_pwm + desired_rotation_z_pwm
         print >> f_csv, entry.tm / 1000.0, ",",\
               flight_clock.convert(entry.tm, log_book), ",", \
               entry.status, "," , \
