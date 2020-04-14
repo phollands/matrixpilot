@@ -524,20 +524,19 @@
 // ROLLKD is the derivative (gyro) gain, approximately 0.125
 // YAWKP_AILERON is the proportional feedback gain for ailerons in response to yaw error
 // YAWKD_AILERON is the derivative feedback gain for ailerons in response to yaw rotation
-#define KD_ON_OFF						  ( 0.0  )
-#define KP_ON_OFF						  ( 1.0  )
-#define ROLLKP                              0.20*KP_ON_OFF // was 0.4
-#define ROLLKD                              0.01*KD_ON_OFF
-#define YAWKP_AILERON                       0.10*0.0
-#define YAWKD_AILERON                       0.05*0.0
+
+#define ROLLKP                              0.25  // 0.2, 0.4
+#define ROLLKD                              0.00  // 0.01 
+#define YAWKP_AILERON                       0.0   //0.10
+#define YAWKD_AILERON                       0.0   //0.05
 
 // Elevator/Pitch Control Gains
 // PITCHGAIN is the pitch stabilization gain, typically around 0.125
 // PITCHKD feedback gain for pitch damping, around 0.0625
 // ELEVATOR_BOOST is the additional gain multiplier for the manually commanded elevator deflection
 
-#define PITCHGAIN                             0.3 *KP_ON_OFF //0.22
-#define PITCHKD                               0.04*KD_ON_OFF  //0.04
+#define PITCHGAIN                             0.4  //0.3, 0.22
+#define PITCHKD                               0.00 //0.04
 #define ELEVATOR_BOOST                        0.5
 
 // Parameters below are used in the computation of angle of attack and pitch trim.
@@ -587,10 +586,10 @@
 // MANUAL_AILERON_RUDDER_MIX is no longer needed with the new controls, it should be set to zero.
 // RUDDER_BOOST is the additional gain multiplier for the manually commanded rudder deflection
 
-#define YAWKP_RUDDER                        0.2*KP_ON_OFF // was 0.40
-#define YAWKD_RUDDER                        0.05*KD_ON_OFF
-#define ROLLKP_RUDDER                       0.20*0.0
-#define ROLLKD_RUDDER                       0.05*0.0
+#define YAWKP_RUDDER                        0.2    // was 0.40
+#define YAWKD_RUDDER                        0.00   // 0.05
+#define ROLLKP_RUDDER                       0.00   // 0.20*0.0
+#define ROLLKD_RUDDER                       0.00   // 0.05*0.0
 #define MANUAL_AILERON_RUDDER_MIX           0.00
 #define RUDDER_BOOST                        0.50
 
