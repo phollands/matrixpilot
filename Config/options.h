@@ -453,7 +453,7 @@
 #define USE_RANGER_INPUT                     7
 // set to RANGER_NONE, RANGER_LIDAR or RANGER_SONAR
 #define RANGER_TYPE                          RANGER_LIDAR
-#define RANGER_TERRAIN_FOLLOW                0
+#define RANGER_TERRAIN_FOLLOW                1
 ////////////////////////////////////////////////////////////////////////////////
 // Trigger Action
 // Use the trigger to do things like drop an item at a certain waypoint, or take a photo every
