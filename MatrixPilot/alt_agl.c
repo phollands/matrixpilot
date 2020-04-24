@@ -34,7 +34,7 @@ static fractional cos_pitch_roll;        // tilt of the plane in UDB fractional 
 
 
 #if ( RANGER_TYPE == RANGER_LIDAR )
-#define USEABLE_RANGER_DISTANCE               2000 // Reliable Lidar measurement distance (centimeters) for your specific landing area.
+#define USEABLE_RANGER_DISTANCE               1100 // Reliable Lidar measurement distance (centimeters) for your specific landing area.
 #define OUT_OF_RANGE_DISTANCE                 3000 // Distance in centimeters that denotes "out of range" for your Lidar device.
 
 
