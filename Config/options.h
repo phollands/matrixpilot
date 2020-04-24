@@ -552,11 +552,12 @@
 
 
 // The following is for an Alpha Axion (White Tipped Wings) flown for real
-#define REFERENCE_SPEED                 (  12.0  )
-#define ANGLE_OF_ATTACK_NORMAL		    (   0.35 )
-#define ANGLE_OF_ATTACK_INVERTED	    (  -4.55 )
-#define ELEVATOR_TRIM_NORMAL		    (  -0.09 )
-#define ELEVATOR_TRIM_INVERTED		    (  -0.38 )
+// New measurements made 24 April 2020
+#define REFERENCE_SPEED                 (  12.00  )
+#define ANGLE_OF_ATTACK_NORMAL          (   3.13  )    // (   0.35 )
+#define ANGLE_OF_ATTACK_INVERTED        (  -2.83  )    // (  -4.55 )
+#define ELEVATOR_TRIM_NORMAL            (  -0.14  )    // (  -0.09 )
+#define ELEVATOR_TRIM_INVERTED          (  -0.37  )    // (  -0.38 )
 
 // CUSTOM OFFSETS are recommended when using Angle of Attack and Trim Parameters
 // They ensure that the measured orientation of the plane, particularly in pitch,
@@ -567,7 +568,7 @@
 // Uncomment the line below to activate the CUSTOM_OFFSETS feature in MatrixPilot.
 
 #define CUSTOM_OFFSETS
-// New Measurements made 23 april 2020
+// New measurements made 23 April 2020
 #define XACCEL_OFFSET (  236 ) //(  273 )
 #define YACCEL_OFFSET (  -78 ) //(  -62 )
 #define ZACCEL_OFFSET ( -732 ) //( -869 )
