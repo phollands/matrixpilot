@@ -783,7 +783,7 @@ void telemetry_output_8hz(void)
 					    IMUvelocityx._.W1, IMUvelocityy._.W1, IMUvelocityz._.W1, goal.x, goal.y, goal.z, aero_force[0], aero_force[1], aero_force[2]);
 #if ( USE_RANGER_INPUT !=  0)
 //					serial_output("H%i,%i,%i,%i,%i:", range_to_target, height_above_ground_level , get_range_count() , udb_gap_range ) ;
-					serial_output("H%i,%i:", range_to_target, height_above_ground_cm) ; 
+					serial_output("AG%i:H%i,%i:", desiredHeightAGL32._.W1, range_to_target, height_above_ground_cm) ; 
 #endif
 #if (USE_BAROMETER_ALTITUDE == 1)
 					serial_output("tmp%i:prs%li:alt%li:",
