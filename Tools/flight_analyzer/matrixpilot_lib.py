@@ -288,6 +288,7 @@ class base_telemetry :
         self.desired_turn_rate = 0
         self.elevator_loading_trim = 0
         self.number_of_range_samples = 0
+        self.desired_height_agl = 0
         
 class mavlink_telemetry(base_telemetry):
     """Parse a single binary mavlink message record"""
@@ -1317,14 +1318,20 @@ class ascii_telemetry(base_telemetry):
                 except:
                     print "Corrupt F2: waypoint value in line", line_no
                     pass
-
-            match = re.match(".*:H([-0-9]*?),([-0-9]*?):",line) # Sonar information, if available
+            match = re.match(".*:AG([-0-9]*?):",line) # Desired Height Above Ground Level (Terrain Following), if available
+            if match :
+                try:
+                    self.desired_height_agl = int(match.group(1))
+                except:
+                    print "Corrupt F2: Desired Height Above AGL (AGxxx: in line", line_no
+                    pass
+            match = re.match(".*:H([-0-9]*?),([-0-9]*?):",line) # Ranger information, if available
             if match :
                 try:
                     self.sonar_direct = int(match.group(1))
                     self.alt_sonar    = int(match.group(2))
                 except:
-                    print "Corrupt F2: sonar value in line", line_no
+                    print "Corrupt F2: Ranger value (H:) in line", line_no
                     pass
             match = re.match(".*:AF([-0-9]*?),([-0-9]*?),([-0-9]*?):",line) # Next waypoint X,Y,Z in meters from origin
             if match :

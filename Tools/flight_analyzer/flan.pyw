@@ -2444,7 +2444,7 @@ def write_csv(options,log_book):
     print >> f_csv, "ElevLoadTrim,",
     print >> f_csv, "LEX,LEY,LEZ,IMUX,IMUY,IMUZ,IMUX_cm,IMUY_cm,IMUZ_cm,Desired_Height,Bar_Tmp,Bar_Prs,Bar_Alt_ASL,Bar_Alt_AO,MAG_W,MAG_N,MAG_Z,",
     print >> f_csv, "Waypoint X,WaypointY,WaypointZ,IMUvelocityX,IMUvelocityY,IMUvelocityZ,",
-    print >> f_csv, "Flags Dec,Flags Hex,Range,ALT_AGL,RangeCnt,AeroX,AeroY,AeroZ,OmegaX,OmegaY,OmegaZ,AoI,WingLoad,AoA_Pitch,",
+    print >> f_csv, "Flags Dec,Flags Hex,Range,DH_AGL,ALT_AGL,RangeCnt,AeroX,AeroY,AeroZ,OmegaX,OmegaY,OmegaZ,AoI,WingLoad,AoA_Pitch,",
     print >> f_csv, "Volts,Amps,mAh"
     
     counter = 0
@@ -2591,7 +2591,8 @@ def write_csv(options,log_book):
               entry.inline_waypoint_x, ",", entry.inline_waypoint_y, ",", entry.inline_waypoint_z, ",", \
               "{0:.2f}".format(entry.IMUvelocityx / 100.0), ",", "{0:.2f}".format(entry.IMUvelocityy / 100.0), ",", \
               "{0:.2f}".format(entry.IMUvelocityz / 100.0), ",", \
-              entry.flags, ",",hex(entry.flags),",", "{0:.2f}".format(entry.sonar_direct / 100.0), ",", "{0:.2f}".format(entry.alt_sonar / 100.0), ",", \
+              entry.flags, ",",hex(entry.flags),",", "{0:.2f}".format(entry.sonar_direct / 100.0), ",","{0:.2f}".format(entry.desired_height_agl), ",", \
+              "{0:.2f}".format(entry.alt_sonar / 100.0), ",", \
               entry.number_of_range_samples, ",", \
               entry.aero_force_x, ",", entry.aero_force_y, ",", entry.aero_force_z,",", \
               entry.omega_accum[0], ",", entry.omega_accum[1], ",", entry.omega_accum[2], ",", \
