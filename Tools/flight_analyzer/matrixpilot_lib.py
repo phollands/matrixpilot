@@ -288,7 +288,7 @@ class base_telemetry :
         self.desired_turn_rate = 0
         self.elevator_loading_trim = 0
         self.number_of_range_samples = 0
-        self.desired_hegight_agl = 0
+        self.desired_height_agl = 0
         
 class mavlink_telemetry(base_telemetry):
     """Parse a single binary mavlink message record"""
