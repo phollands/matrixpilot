@@ -705,7 +705,7 @@
 // when within HEIGHT_MARGIN of the target height.
 // Throttle is set to zero when above HEIGHT_MARGIN of the target height.
 // ALT_HOLD_THROTTLE values are from 0.0 to 1.0.
-#define ALT_HOLD_THROTTLE_MIN               0.1
+#define ALT_HOLD_THROTTLE_MIN               0.3 // was 0.1, Plane to fly faster
 #define ALT_HOLD_THROTTLE_MAX               1.0
 
 // Use ALT_HOLD_PITCH_MAX when below HEIGHT_MARGIN of the target height.
