@@ -552,12 +552,12 @@
 
 
 // The following is for an Alpha Axion (White Tipped Wings) flown for real
-// New measurements made 24 April 2020
+// New interpretation made on 11 May April 2020 after noting bifurcation in test data
 #define REFERENCE_SPEED                 (  12.00  )
-#define ANGLE_OF_ATTACK_NORMAL          (   3.13  )    // (   0.35 )
-#define ANGLE_OF_ATTACK_INVERTED        (  -2.83  )    // (  -4.55 )
-#define ELEVATOR_TRIM_NORMAL            (  -0.14  )    // (  -0.09 )
-#define ELEVATOR_TRIM_INVERTED          (  -0.37  )    // (  -0.38 )
+#define ANGLE_OF_ATTACK_NORMAL          (    2.7  )    // (   3.13  )    // (   0.35 )
+#define ANGLE_OF_ATTACK_INVERTED        (   -4.03 )    // (  -2.83  )    // (  -4.55 )
+#define ELEVATOR_TRIM_NORMAL            (   -0.10 )    // (  -0.14  )    // (  -0.09 )
+#define ELEVATOR_TRIM_INVERTED          (   -0.60 )    // (  -0.37  )    // (  -0.38 )
 
 // CUSTOM OFFSETS are recommended when using Angle of Attack and Trim Parameters
 // They ensure that the measured orientation of the plane, particularly in pitch,
