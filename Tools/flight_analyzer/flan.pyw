@@ -2502,7 +2502,8 @@ def write_csv(options,log_book):
             aoa_using_pitch = rmat[7] / 287.0     # creates degrees of pitch : plane is inverted
         else :
             aoa_using_pitch = - (rmat[7] / 287.0) # plane is right way up
-        relative_wing_loading = wing_loading(entry.aero_force_z, entry.est_airspeed, centimeter_cruise_speed)
+        #relative_wing_loading = wing_loading(entry.aero_force_z, entry.est_airspeed, centimeter_cruise_speed)
+        relative_wing_loading = wing_loading(entry.aero_force_z, entry.sog, centimeter_cruise_speed)
         if log_book.airframe == 1 or log_book.airframe == 6: # Normal type of plane or glider
             elevator_without_trim = elevator_reversal_multiplier * \
                    (entry.pwm_output[log_book.elevator_output_channel] - elevator_trim_pwm_value)
@@ -2639,13 +2640,14 @@ def graph_wing_loading(wing_loading_list, aoa_using_pitch_list, aoa_using_veloci
     #print len(wing_loading_list), len(elevator_with_trim_removed)
     fit = polyfit(wing_loading_list,elevator_with_trim_removed,1)
     fit_function2 = poly1d(fit)
+    print ("Elevator Fit Function is",fit_function2)
     
     subplot(3,1,3)
     xlabel('Relative Wing Loading (Nominal Cruise Speed '+str(nominal_cruise_speed)+ ' m/s)')
     ylabel('Elevator difference from Trim\n(UDB PWM Units / 1000)')
     title('Level flight: Elevator Deflection against Relative Wing Loading')
     plot(wing_loading_list, elevator_with_trim_removed, 'yo',wing_loading_list, fit_function2(wing_loading_list), '--k')
-    
+    print "Elevator function at 0 is",  "{0:.2f}".format(fit_function2(  0.0))
     print "Angle of attack parameters usinging pitch:"
     print "#define ANGLE_OF_ATTACK_NORMAL",  "{0:.2f}".format(fit_function(  1.0))
     print "#define ANGLE_OF_ATTACK_INVERTED","{0:.2f}".format(fit_function( -1.0))
