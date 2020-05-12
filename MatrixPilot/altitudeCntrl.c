@@ -424,15 +424,7 @@ void calculate_desiredHeight(int32_t desiredHeight_increment,int16_t throttleInO
                     desiredHeightAGL32.WW = height_above_ground_meters.WW + \
                             + terrain_height_change + desiredHeight_increment;
                     previous_height_increment_was_zero = false;
-                }
-                
-                if (throttleInOffset < (int16_t)(THROTTLE_DEADBAND) && udb_flags._.radio_on)
-                {
-                    if (height_above_ground_meters.WW < MINIMUM_TERRAIN_FOLLOWING_HEIGHT)
-                    {
-                        desiredHeightAGL32.WW = MINIMUM_TERRAIN_FOLLOWING_HEIGHT;
-                    }
-                }      
+                }   
 }
 
 
