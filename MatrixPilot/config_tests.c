@@ -267,6 +267,10 @@
 #if ((RANGER_TERRAIN_FOLLOW == 1) && (ALTITUDEHOLD_STABILIZED != AH_FULL_ELEV))
     #error("RANGER_TERRAIN_FOLLOW only works with ATLTITUDHOLD_STABILIZED set to AH_FULL_ELEV")
 #endif
+#if ((RANGER_TERRAIN_FOLLOW == 1) && (USE_RANGER_INPUT == 0))
+    #error("RANGER_TERRAIN_FOLLOW needs USE_RANGER_INPUT channel number set greater then 0")
+#endif
+
 #if (ALTITUDEHOLD_WAYPOINT == AH_FULL_ELEV)
     #error("AH_FULL_ELEV only applicable to ATLTITUDEHOLD_STABILIZED and not ATLTITUDEHOLD_WAYPOINT")
 #endif

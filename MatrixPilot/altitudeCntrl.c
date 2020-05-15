@@ -68,9 +68,11 @@ int16_t elevator_override = 0;
 boolean filterManual = false;
 union longww desiredHeight32;
 union longww desiredHeightAGL32;
+#if (USE_RANGER_INPUT != 0)
 static int32_t terrain_height_change;
 static int32_t terrain_height;
 static int32_t previous_terrain_height;
+#endif
 
 // Variables required for mavlink.  Used in AltitudeCntrlVariable and airspeedCntrl
 int16_t height_target_min;
@@ -316,17 +318,20 @@ union longww calculate_throttle(int16_t throttleInOffset,int32_t speed_height )
     }
     else
     { 
-        if ( state_flags._.terrain_follow == 1 )
-        {
-            heightError.WW = - desiredHeightAGL32.WW ;
-            heightError.WW = (heightError.WW + height_above_ground_meters.WW + speed_height) >> 13;
-        }
-        else
+#if (USE_RANGER_INPUT != 0)
+        if ( state_flags._.terrain_follow == 0 )
+#endif
         {
             heightError.WW = - desiredHeight32.WW ;
             heightError.WW = (heightError.WW + IMUlocationz.WW + speed_height) >> 13;
         }
-
+#if (USE_RANGER_INPUT != 0)
+        else
+        { 
+            heightError.WW = - desiredHeightAGL32.WW ;
+            heightError.WW = (heightError.WW + height_above_ground_meters.WW + speed_height) >> 13;
+        }
+#endif
         if (heightError._.W0 < (-(int16_t)(altit.HeightMargin*8.0)))
         {
             throttleAccum.WW = (int16_t)(MAXTHROTTLE);
@@ -351,7 +356,9 @@ union longww calculate_throttle(int16_t throttleInOffset,int32_t speed_height )
     return(throttleAccum);
 }
 
-//	Implementation of state machine.
+#if (USE_RANGER_INPUT != 0)
+
+//	Implementation of state machine to transition between normal flight and terrain follow
 static void ent_desired_height_control_S(void);
 static void desired_height_control_S(void);
 static void ent_terrain_follow_height_control_S(void);
@@ -403,6 +410,8 @@ static void terrain_follow_height_control_S(void)
     }
 }
 
+#endif //(USE_RANGER_INPUT != 0)
+
 void calculate_desiredHeight(int32_t desiredHeight_increment,int16_t throttleInOffset)
 {
         static boolean previous_height_increment_was_zero = true;
@@ -413,16 +422,20 @@ void calculate_desiredHeight(int32_t desiredHeight_increment,int16_t throttleInO
                     // Pilot just put the elevator control to neutral
                     {
                         desiredHeight32.WW = IMUlocationz.WW;
+#if (USE_RANGER_INPUT != 0)
                         desiredHeightAGL32.WW = height_above_ground_meters.WW +
                                 terrain_height_change;
+#endif
                         previous_height_increment_was_zero = true;
                     }   
                 }
                 else // Pilot requests change in height
                 {
                     desiredHeight32.WW = IMUlocationz.WW + desiredHeight_increment;
+#if (USE_RANGER_INPUT != 0)
                     desiredHeightAGL32.WW = height_above_ground_meters.WW + \
                             + terrain_height_change + desiredHeight_increment;
+#endif
                     previous_height_increment_was_zero = false;
                 }   
 }
@@ -480,10 +493,12 @@ static void normalAltitudeCntrl(void)
             }
             else if (settings._.AltitudeholdStabilized == AH_FULL_ELEV)
 			{
-                if ((settings._.AllowTerrainFollow == 1) && ((USE_RANGER_INPUT > 0) || (HILSIM == 1)))
+#if (USE_RANGER_INPUT > 0)
+                if (settings._.AllowTerrainFollow == 1)
                 {
                     (*manage_TerrainFollow_transition_S)();
                 }
+#endif
                 // Use elevator stick to control desired height.
                 elevInOffset = get_elevInOffset();
                 desiredHeight_increment = incremental_height_from_elevator_control(elevInOffset);
@@ -502,16 +517,20 @@ static void normalAltitudeCntrl(void)
         throttleAccum = calculate_throttle(throttleInOffset, speed_height);
         
         // Section that Calculates pitchAltitudeAdjust
-        if ( state_flags._.terrain_follow == 1 )
-        {
-            heightError.WW = - desiredHeightAGL32.WW ;
-            heightError.WW = (heightError.WW + height_above_ground_meters.WW) >> 13;
-        }
-        else
+#if (USE_RANGER_INPUT != 0)
+        if ( state_flags._.terrain_follow == 0 )
+#endif
         {
             heightError.WW = - desiredHeight32.WW ;
             heightError.WW = (heightError.WW + IMUlocationz.WW) >> 13;
         }
+#if (USE_RANGER_INPUT != 0)
+        else
+        {
+            heightError.WW = - desiredHeightAGL32.WW ;
+            heightError.WW = (heightError.WW + height_above_ground_meters.WW) >> 13;
+        }
+#endif
         if (heightError._.W0 < (- (int16_t)(altit.HeightMargin*8.0)))
         {
             pitchAltitudeAdjust = (int16_t)(PITCHATMAX);

@@ -276,7 +276,7 @@ void  navigate_desired_height(void)
 		height._.W0 = 0 ;
 		height.WW += __builtin_mulsu((navgoal.height - navgoal.fromHeight), progress_to_goal );
     } 
-        
+#if (USE_RANGER_INPUT != 0)      
     if ((settings._.AllowTerrainFollow == 1) && ( desired_behavior._.altitude_agl == 1))
     {
         if (height._.W1 > (HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING / 100))
@@ -295,6 +295,9 @@ void  navigate_desired_height(void)
         desiredHeightAGL32.WW = height_above_ground_meters.WW;
         state_flags._.terrain_follow = 0;
     }
+#else
+    desiredHeight32.WW = height.WW;
+#endif //(USE_RANGER_INPUT != 0) 
 }
 
 static void cross_track(void)
