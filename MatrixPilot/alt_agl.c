@@ -94,4 +94,4 @@ void calculate_height_above_ground_level(void)
 {
 }
 
-#endif // USE_RANGER_INPUT
+#endif // (USE_RANGER_INPUT != 0) 
