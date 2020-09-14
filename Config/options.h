@@ -556,8 +556,8 @@
 #define REFERENCE_SPEED                 (  12.00  )
 #define ANGLE_OF_ATTACK_NORMAL          (    2.7  )    // (   3.13  )    // (   0.35 )
 #define ANGLE_OF_ATTACK_INVERTED        (   -4.03 )    // (  -2.83  )    // (  -4.55 )
-#define ELEVATOR_TRIM_NORMAL            (   -0.10 )    // (  -0.14  )    // (  -0.09 )
-#define ELEVATOR_TRIM_INVERTED          (   -0.60 )    // (  -0.37  )    // (  -0.38 )
+#define ELEVATOR_TRIM_NORMAL            (    0.10 )    // (  -0.14  )    // (  -0.09 )
+#define ELEVATOR_TRIM_INVERTED          (   -0.90 )    // (  -0.37  )    // (  -0.38 )
 
 // CUSTOM OFFSETS are recommended when using Angle of Attack and Trim Parameters
 // They ensure that the measured orientation of the plane, particularly in pitch,
