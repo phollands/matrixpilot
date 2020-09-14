@@ -2438,10 +2438,9 @@ def write_csv(options,log_book):
     print >> f_csv, "IN5,IN6,IN7,IN8,OUT1,OUT2,OUT3,OUT4,",
     print >> f_csv, "OUT5,OUT6,OUT7,OUT8,OUT_AIL,OUT_ELEV,OUT_RUDD,OUT_THROT,DesTurnRate,",
     print >> f_csv, "RotErrX,TiltErrX,DesRotX,RotErrY,TiltErrY,DesRotY,RotErrZ,TiltErrZ,DesRotZ,",
-    print >> f_csv, "RotErrX_PWM,TiltErrX_PWM,DesRotX_PWM,X_PWM_TOT,",
+    print >> f_csv, "RotErrX_PWM,TiltErrX_PWM,DesRotX_PWM,ElevLoadTrim,X_PWM_TOT,",
     print >> f_csv, "RotErrY_PWM,TiltErrY_PWM,DesRotY_PWM,Y_PWM_TOT,",
     print >> f_csv, "RotErrZ_PWM,TiltErrZ_PWM,DesRotZ_PWM,Z_PWM_TOT,",
-    print >> f_csv, "ElevLoadTrim,",
     print >> f_csv, "LEX,LEY,LEZ,IMUX,IMUY,IMUZ,IMUX_cm,IMUY_cm,IMUZ_cm,Desired_Height,Bar_Tmp,Bar_Prs,Bar_Alt_ASL,Bar_Alt_AO,MAG_W,MAG_N,MAG_Z,",
     print >> f_csv, "Waypoint X,WaypointY,WaypointZ,IMUvelocityX,IMUvelocityY,IMUvelocityZ,",
     print >> f_csv, "Flags Dec,Flags Hex,Range,DH_AGL,ALT_AGL,RangeCnt,AeroX,AeroY,AeroZ,OmegaX,OmegaY,OmegaZ,AoI,WingLoad,AoA_Pitch,",
@@ -2537,7 +2536,7 @@ def write_csv(options,log_book):
         rotation_error_z_pwm = int((-entry.rotation_error[2] * log_book.yawkd_rudder * RMAX * gyro_scale) / INTEGER_SCALE)
         tilt_error_z_pwm = int((-entry.tilt_error[2] * log_book.yawkp_rudder * RMAX) / INTEGER_SCALE)
         desired_rotation_z_pwm = int((entry.desired_rotation[2] * log_book.yawkp_rudder * RMAX * log_book.feed_forward) / INTEGER_SCALE)
-        pwm_x_tot = rotation_error_x_pwm + tilt_error_x_pwm + desired_rotation_x_pwm
+        pwm_x_tot = rotation_error_x_pwm + tilt_error_x_pwm + desired_rotation_x_pwm + entry.elevator_loading_trim
         pwm_y_tot = rotation_error_y_pwm + tilt_error_y_pwm + desired_rotation_y_pwm
         pwm_z_tot = rotation_error_z_pwm + tilt_error_z_pwm + desired_rotation_z_pwm
         print >> f_csv, entry.tm / 1000.0, ",",\
@@ -2570,6 +2569,7 @@ def write_csv(options,log_book):
               rotation_error_x_pwm, ",",   \
               tilt_error_x_pwm, ",",       \
               desired_rotation_x_pwm, ",", \
+              entry.elevator_loading_trim, ",",  \
               pwm_x_tot, ",",              \
               rotation_error_y_pwm, ",",   \
               tilt_error_y_pwm, ",",       \
@@ -2579,7 +2579,6 @@ def write_csv(options,log_book):
               tilt_error_z_pwm, ",",       \
               desired_rotation_z_pwm, ",", \
               pwm_z_tot, ",",              \
-              entry.elevator_loading_trim, ",",                                                                                                             \
               entry.lex, "," , entry.ley , "," , entry.lez, ",", \
               entry.IMUlocationx_W1, ",", entry.IMUlocationy_W1, ",", entry.IMUlocationz_W1, ",",  \
               entry.IMUlocationx_cm, ",", entry.IMUlocationy_cm, ",", entry.IMUlocationz_cm, ",", \
