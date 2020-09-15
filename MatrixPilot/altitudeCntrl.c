@@ -41,7 +41,7 @@ union longww throttleFiltered = { 0 };
 #define THROTTLEFILTSHIFT   12
 
 #define THROTTLE_DEADBAND            150
-#define ELEVATOR_DEADBAND             10
+#define ELEVATOR_DEADBAND             15
 #define MAX_ELEV_OFFSET_FBW          512
 #define MAXTHROTTLE         (2.0*SERVORANGE*altit.AltHoldThrottleMax)
 #define FIXED_WP_THROTTLE   (2.0*SERVORANGE*RACING_MODE_WP_THROTTLE)
