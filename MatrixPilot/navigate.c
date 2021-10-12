@@ -264,6 +264,10 @@ static int16_t compute_progress_to_goal(int16_t totalDist, int16_t remainingDist
 void  navigate_desired_height(void)
 {
 	union longww height;
+    // note height_interpolation = false or true expected to be set in set_behaviour()
+    // Expected behaviour in terrain following is that interpolation does only happens
+    // either between waypoints referencing GPS height, or waypoints referencing the Terrain heights.
+    // Where plane is transitioning from GPS to Terrain height, no interpolation is to happen (check in behaviour.c
     if ((height_interpolation == false) || (desired_behavior._.takeoff || desired_behavior._.altitude))
     {
         height._.W1 = navgoal.height;
