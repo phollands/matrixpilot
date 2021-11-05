@@ -98,7 +98,7 @@
 // Aileron and Rudder Navigation
 // Set either of these to 1 to enable helical turn control for navigation.
 #define AILERON_NAVIGATION                  1
-#define RUDDER_NAVIGATION                   1
+#define RUDDER_NAVIGATION                   0
 
 // Cross track margin, in meters
 // This is used when the cross track option is attached to a waypoint
