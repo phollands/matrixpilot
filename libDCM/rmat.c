@@ -365,38 +365,57 @@ static void rupdate(void)
 	// This is the key routine. It performs a small rotation
 	// on the direction cosine matrix, based on the gyro vector and correction.
 	// It uses vector and matrix routines furnished by Microchip.
+	fractional delta_angle[9];
+	fractional delta_angle_square_over_2[9];
+	fractional delta_angle_cube_over_6[9];
 	fractional rup[9];
 	fractional theta[3];
 	fractional rbuff[9];
-	uint32_t thetaSquare;
-	unsigned nonlinearAdjust;
 
 	VectorAdd(3, omegaAccum, omegagyro, omegacorrI);
 	VectorAdd(3, omega, omegaAccum, omegacorrP);
 	//	scale by the integration factors:
 	VectorMultiply(3, theta, omega, ggain); // Scalegain of 2
 	// diagonal elements of the update matrix:
-	rup[0] = rup[4] = rup[8]= RMAX;
+	rup[0] = RMAX;
+	rup[4] = RMAX;
+	rup[8] = RMAX;
+	rup[1] = 0 ;
+	rup[2] = 0 ;
+	rup[3] = 0 ;
+	rup[5] = 0 ;
+	rup[6] = 0 ;
+	rup[7] = 0 ;
 
-	// compute the square of rotation
-	thetaSquare = __builtin_mulss (theta[0], theta[0]) +
-	              __builtin_mulss (theta[1], theta[1]) +
-	              __builtin_mulss (theta[2], theta[2]);
+	// construct the delta angle matrix:
+	delta_angle[0] = 0 ;
+	delta_angle[1] = -theta[2];
+	delta_angle[2] =  theta[1];
+	delta_angle[3] =  theta[2];
+	delta_angle[4] = 0 ;
+	delta_angle[5] = -theta[0];
+	delta_angle[6] = -theta[1];
+	delta_angle[7] =  theta[0];
+	delta_angle[8] = 0 ;
 
-	// adjust gain by rotation_squared divided by 3
-	nonlinearAdjust = RMAX + ((uint16_t) (thetaSquare >>14))/3;
+	// compute 1/2 of square of the delta angle matrix
+	// since a matrix multiply divides by 2, we get it for free	
+	MatrixMultiply( 3, 3, 3, delta_angle_square_over_2 , delta_angle , delta_angle );
 
-	theta[0] = __builtin_mulsu (theta[0], nonlinearAdjust)>>14;
-	theta[1] = __builtin_mulsu (theta[1], nonlinearAdjust)>>14;
-	theta[2] = __builtin_mulsu (theta[2], nonlinearAdjust)>>14;
+	// first step in computing delta angle cube over 6, compute it over 4 ;
+	MatrixMultiply( 3, 3, 3, delta_angle_cube_over_6 , delta_angle_square_over_2 , delta_angle );
 
-	// construct the off-diagonal elements of the update matrix:
-	rup[1] = -theta[2];
-	rup[2] =  theta[1];
-	rup[3] =  theta[2];
-	rup[5] = -theta[0];
-	rup[6] = -theta[1];
-	rup[7] =  theta[0];
+	// multiply by 2/3
+	int16_t loop_index ;
+	for ( loop_index = 0 ; loop_index <= 8 ; ++ loop_index ) 
+	{
+		delta_angle_cube_over_6[loop_index] = __builtin_divsd(__builtin_mulsu(delta_angle_cube_over_6[loop_index],2 ),3);
+	}
+
+	// form the update matrix
+	MatrixAdd(3, 3, rup, rup, delta_angle );
+	MatrixAdd(3, 3, rup, rup, delta_angle_square_over_2 );
+	MatrixAdd(3, 3, rup, rup, delta_angle_cube_over_6 );
 
 	// matrix multiply the rmatrix by the update matrix
 	MatrixMultiply(3, 3, 3, rbuff, rmat, rup);
