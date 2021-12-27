@@ -353,55 +353,6 @@ union longww calculate_throttle(int16_t throttleInOffset,int32_t speed_height )
     return(throttleAccum);
 }
 
-#if (USE_RANGER_INPUT != 0)
-
-//	Implementation of state machine to transition between normal flight and terrain follow
-static void ent_desired_height_control_S(void);
-static void desired_height_control_S(void);
-static void ent_terrain_follow_height_control_S(void);
-static void terrain_follow_height_control_S(void);
-
-static void (*manage_TerrainFollow_transition_S)(void) = &ent_desired_height_control_S;
-
-static void ent_desired_height_control_S(void)
-{
-    state_flags._.terrain_follow = 0;
-    desiredHeight32.origin.WW = IMUlocationz.WW;
-    manage_TerrainFollow_transition_S = &desired_height_control_S;
-}
-
-static void desired_height_control_S(void)
-{
-    if (height_above_ground_cm <  HEIGHT_AGL_TO_START_TERRAIN_FOLLOWING)
-    {
-        ent_terrain_follow_height_control_S();
-    }
-    else
-    {
-        state_flags._.terrain_follow = 0;
-    }
-}
-
-static void ent_terrain_follow_height_control_S(void)
-{
-    state_flags._.terrain_follow = 1;
-    desiredHeight32.terrain.WW = height_above_ground_meters.WW;
-    manage_TerrainFollow_transition_S = &terrain_follow_height_control_S;  
-}
-
-static void terrain_follow_height_control_S(void)
-{
-    if (height_above_ground_cm >=  HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING)
-    {
-        ent_desired_height_control_S();
-    }
-    else
-    {
-        state_flags._.terrain_follow = 1;
-    }
-}
-
-#endif //(USE_RANGER_INPUT != 0)
 
 void calculate_desiredHeight(int32_t desiredHeight_increment,int16_t throttleInOffset)
 {
@@ -521,9 +472,18 @@ static void normalAltitudeCntrl(void)
 #if (USE_RANGER_INPUT > 0)
                 if (settings._.AllowTerrainFollow == 1)
                 {
-                    // We may switch between using GPS height above origin
-                    // and height above terrain
-                    (*manage_TerrainFollow_transition_S)();
+                    if (height_above_ground_cm <  HEIGHT_AGL_TO_START_TERRAIN_FOLLOWING)
+                    {
+                        state_flags._.terrain_follow = 1;
+                    }
+                    else if (height_above_ground_cm >  HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING)
+                    {
+                        state_flags._.terrain_follow = 0;
+                    }
+                    else
+                    {
+                        // No Change required. Deliberate gap to create hysteresis 
+                    }
                 }
 #endif
                 // Use elevator stick to control desired height.
