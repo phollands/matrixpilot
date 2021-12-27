@@ -285,18 +285,18 @@ void  navigate_desired_height(void)
             height._.W1 = HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING;
         }
         if (height.WW < 0) height.WW = 0; // Height AGL cannot be negative
-        desiredHeightAGL32.WW = height.WW;
-        desiredHeight32.WW = IMUlocationz.WW;
+        desiredHeight32.terrain.WW = height.WW;
+        desiredHeight32.origin.WW = IMUlocationz.WW;
         state_flags._.terrain_follow = 1;
     }
     else
     {
-        desiredHeight32.WW = height.WW;
-        desiredHeightAGL32.WW = height_above_ground_meters.WW;
+        desiredHeight32.origin.WW = height.WW;
+        desiredHeight32.terrain.WW = height_above_ground_meters.WW;
         state_flags._.terrain_follow = 0;
     }
 #else
-    desiredHeight32.WW = height.WW;
+    desiredHeight32.origin.WW = height.WW;
 #endif //(USE_RANGER_INPUT != 0) 
 }
 
