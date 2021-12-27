@@ -69,8 +69,6 @@ boolean filterManual = false;
 struct heights desiredHeight32;
 #if (USE_RANGER_INPUT != 0)
 static int32_t terrain_height_change;
-static int32_t terrain_height;
-static int32_t previous_terrain_height;
 #endif
 
 // Variables required for mavlink.  Used in AltitudeCntrlVariable and airspeedCntrl
@@ -388,24 +386,18 @@ static void ent_terrain_follow_height_control_S(void)
 {
     state_flags._.terrain_follow = 1;
     desiredHeight32.terrain.WW = height_above_ground_meters.WW;
-    terrain_height = IMUlocationz.WW  - height_above_ground_meters.WW;
-    terrain_height_change = 0;
-    previous_terrain_height = terrain_height;
     manage_TerrainFollow_transition_S = &terrain_follow_height_control_S;  
 }
 
 static void terrain_follow_height_control_S(void)
 {
-    if (height_above_ground_cm >  HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING)
+    if (height_above_ground_cm >=  HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING)
     {
         ent_desired_height_control_S();
     }
     else
     {
         state_flags._.terrain_follow = 1;
-        terrain_height = IMUlocationz.WW  - height_above_ground_meters.WW;
-        terrain_height_change = terrain_height - previous_terrain_height;
-        previous_terrain_height = terrain_height;  
     }
 }
 
@@ -439,6 +431,36 @@ void calculate_desiredHeight(int32_t desiredHeight_increment,int16_t throttleInO
                 }   
 }
 
+int32_t calculate_terrain_height_change(void)
+{
+    int32_t terrain_height;                 // Centimeters
+    int32_t terrain_height_change;          // Centimeters
+    static int32_t previous_terrain_height; // Centimeters
+    static boolean previous_height_was_valid = false; 
+    
+    if (height_above_ground_meters.WW < HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING)
+    {
+        if (previous_height_was_valid == true)
+        {
+            terrain_height = IMUlocationz.WW  - height_above_ground_meters.WW;
+            terrain_height_change = terrain_height - previous_terrain_height;
+            previous_terrain_height = terrain_height;
+            previous_height_was_valid = true;
+        }
+        else 
+        {
+            previous_terrain_height = IMUlocationz.WW  - height_above_ground_meters.WW;
+            terrain_height_change = 0;
+            previous_height_was_valid = true;
+        }
+    }
+    else 
+    {
+        terrain_height_change = 0;
+        previous_height_was_valid = false;
+    }
+    return(terrain_height_change);
+}
 
 static void normalAltitudeCntrl(void)
 {
@@ -475,7 +497,10 @@ static void normalAltitudeCntrl(void)
 	{
 		if (state_flags._.GPS_steering)
 		{
-			navigate_desired_height();
+            // calculate terrain height change here if we using Lidar terrain following.
+            // It can then be used in both stabilized and Autonomous flight modes.
+            terrain_height_change = calculate_terrain_height_change();
+			navigate_desired_height(terrain_height_change);
 		}
 		else
 		{
@@ -496,7 +521,8 @@ static void normalAltitudeCntrl(void)
 #if (USE_RANGER_INPUT > 0)
                 if (settings._.AllowTerrainFollow == 1)
                 {
-                    // We may switch between using GPS height and Height above Terrain
+                    // We may switch between using GPS height above origin
+                    // and height above terrain
                     (*manage_TerrainFollow_transition_S)();
                 }
 #endif
