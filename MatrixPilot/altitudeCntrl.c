@@ -65,9 +65,8 @@ static void hoverAltitudeCntrl(void);
 
 int16_t pitchAltitudeAdjust = 0;
 int16_t elevator_override = 0;
-boolean filterManual = false;
-union longww desiredHeight32;
-union longww desiredHeightAGL32;
+boolean filterManual = false;   
+struct heights desiredHeight32;
 #if (USE_RANGER_INPUT != 0)
 static int32_t terrain_height_change;
 static int32_t terrain_height;
@@ -220,7 +219,7 @@ static void set_throttle_control(int16_t throttle)
 
 void setTargetAltitude(int16_t targetAlt)
 {
-	desiredHeight32._.W1 = targetAlt;
+	desiredHeight32.origin._.W1 = targetAlt;
 }
 
 static int16_t get_elevInOffset(void)
@@ -322,13 +321,13 @@ union longww calculate_throttle(int16_t throttleInOffset,int32_t speed_height )
         if ( state_flags._.terrain_follow == 0 )
 #endif
         {
-            heightError.WW = - desiredHeight32.WW ;
+            heightError.WW = - desiredHeight32.origin.WW ;
             heightError.WW = (heightError.WW + IMUlocationz.WW + speed_height) >> 13;
         }
 #if (USE_RANGER_INPUT != 0)
         else
         { 
-            heightError.WW = - desiredHeightAGL32.WW ;
+            heightError.WW = - desiredHeight32.terrain.WW ;
             heightError.WW = (heightError.WW + height_above_ground_meters.WW + speed_height) >> 13;
         }
 #endif
@@ -369,7 +368,7 @@ static void (*manage_TerrainFollow_transition_S)(void) = &ent_desired_height_con
 static void ent_desired_height_control_S(void)
 {
     state_flags._.terrain_follow = 0;
-    desiredHeight32.WW = IMUlocationz.WW;
+    desiredHeight32.origin.WW = IMUlocationz.WW;
     manage_TerrainFollow_transition_S = &desired_height_control_S;
 }
 
@@ -388,7 +387,7 @@ static void desired_height_control_S(void)
 static void ent_terrain_follow_height_control_S(void)
 {
     state_flags._.terrain_follow = 1;
-    desiredHeightAGL32.WW = height_above_ground_meters.WW;
+    desiredHeight32.terrain.WW = height_above_ground_meters.WW;
     terrain_height = IMUlocationz.WW  - height_above_ground_meters.WW;
     terrain_height_change = 0;
     previous_terrain_height = terrain_height;
@@ -421,9 +420,9 @@ void calculate_desiredHeight(int32_t desiredHeight_increment,int16_t throttleInO
                     if (previous_height_increment_was_zero == false)
                     // Pilot just put the elevator control to neutral
                     {
-                        desiredHeight32.WW = IMUlocationz.WW;
+                        desiredHeight32.origin.WW = IMUlocationz.WW;
 #if (USE_RANGER_INPUT != 0)
-                        desiredHeightAGL32.WW = height_above_ground_meters.WW +
+                        desiredHeight32.terrain.WW = height_above_ground_meters.WW +
                                 terrain_height_change;
 #endif
                         previous_height_increment_was_zero = true;
@@ -431,9 +430,9 @@ void calculate_desiredHeight(int32_t desiredHeight_increment,int16_t throttleInO
                 }
                 else // Pilot requests change in height
                 {
-                    desiredHeight32.WW = IMUlocationz.WW + desiredHeight_increment;
+                    desiredHeight32.origin.WW = IMUlocationz.WW + desiredHeight_increment;
 #if (USE_RANGER_INPUT != 0)
-                    desiredHeightAGL32.WW = height_above_ground_meters.WW + \
+                    desiredHeight32.terrain.WW = height_above_ground_meters.WW + \
                             + terrain_height_change + desiredHeight_increment;
 #endif
                     previous_height_increment_was_zero = false;
@@ -488,14 +487,16 @@ static void normalAltitudeCntrl(void)
 			else if (settings._.AltitudeholdStabilized == AH_FULL)
 			{
 				// In stabilized mode using full altitude hold, use the throttle stick value to determine desiredHeight,
-				desiredHeight32._.W1 = ((__builtin_mulss((int16_t)(HEIGHTTHROTTLEGAIN), throttleInOffset - ((int16_t)(THROTTLE_DEADBAND)))) >> 11)
+				desiredHeight32.origin._.W1 = ((__builtin_mulss((int16_t)(HEIGHTTHROTTLEGAIN), throttleInOffset - ((int16_t)(THROTTLE_DEADBAND)))) >> 11)
 				                + (int16_t)(altit.HeightTargetMin);
             }
             else if (settings._.AltitudeholdStabilized == AH_FULL_ELEV)
 			{
+                // Use Elevator stick to control change in desired height up or down
 #if (USE_RANGER_INPUT > 0)
                 if (settings._.AllowTerrainFollow == 1)
                 {
+                    // We may switch between using GPS height and Height above Terrain
                     (*manage_TerrainFollow_transition_S)();
                 }
 #endif
@@ -505,12 +506,12 @@ static void normalAltitudeCntrl(void)
                 elevator_override = calculate_elevator_override(elevInOffset);        
                 calculate_desiredHeight(desiredHeight_increment, throttleInOffset);
             }
-            if (desiredHeight32._.W1 < (int16_t)(altit.HeightTargetMin))
-                    desiredHeight32._.W1 = (int16_t)(altit.HeightTargetMin);
-            if (desiredHeight32._.W1 > (int16_t)(altit.HeightTargetMax)) 
-                    desiredHeight32._.W1 = (int16_t)(altit.HeightTargetMax);
-            if (desiredHeightAGL32.WW < MINIMUM_TERRAIN_FOLLOWING_HEIGHT)  
-                    desiredHeightAGL32.WW = MINIMUM_TERRAIN_FOLLOWING_HEIGHT ; // Fractional, ._.W1 is in meters.
+            if (desiredHeight32.origin._.W1 < (int16_t)(altit.HeightTargetMin))
+                    desiredHeight32.origin._.W1 = (int16_t)(altit.HeightTargetMin);
+            if (desiredHeight32.origin._.W1 > (int16_t)(altit.HeightTargetMax)) 
+                    desiredHeight32.origin._.W1 = (int16_t)(altit.HeightTargetMax);
+            if (desiredHeight32.terrain.WW < MINIMUM_TERRAIN_FOLLOWING_HEIGHT)  
+                    desiredHeight32.terrain.WW = MINIMUM_TERRAIN_FOLLOWING_HEIGHT ; // Fractional, ._.W1 is in meters.
 		}
                     
         // Section that calculates Throttle Adjustment
@@ -521,13 +522,13 @@ static void normalAltitudeCntrl(void)
         if ( state_flags._.terrain_follow == 0 )
 #endif
         {
-            heightError.WW = - desiredHeight32.WW ;
+            heightError.WW = - desiredHeight32.origin.WW ;
             heightError.WW = (heightError.WW + IMUlocationz.WW) >> 13;
         }
 #if (USE_RANGER_INPUT != 0)
         else
         {
-            heightError.WW = - desiredHeightAGL32.WW ;
+            heightError.WW = - desiredHeight32.terrain.WW ;
             heightError.WW = (heightError.WW + height_above_ground_meters.WW) >> 13;
         }
 #endif
