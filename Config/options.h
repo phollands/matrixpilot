@@ -687,7 +687,7 @@
 
 // Min and Max target heights in meters.  These only apply to stabilized mode.
 #define HEIGHT_TARGET_MIN                  -20.0
-#define HEIGHT_TARGET_MAX                  100.0
+#define HEIGHT_TARGET_MAX                  200.0 // For Hilsim tetsing at Innsbruck
 
 // The range of altitude within which to linearly vary the throttle
 // and pitch to maintain altitude.  A bigger value makes altitude hold
