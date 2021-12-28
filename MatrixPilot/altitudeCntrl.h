@@ -52,8 +52,8 @@ void setTargetAltitude(int16_t targetAlt);
 inline int16_t get_autopilotBrake(void);
 #endif
 
-#define HEIGHT_AGL_TO_START_TERRAIN_FOLLOWING 1000 
-#define HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING  1200
+#define HEIGHT_AGL_TO_START_TERRAIN_FOLLOWING_CM 1000
+#define HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING_CM  1200
 #define MINIMUM_TERRAIN_FOLLOWING_HEIGHT      ((int32_t) 3 * 65536) // Fractional Meters
 
 #endif // ALTITUDECNTRL_H
