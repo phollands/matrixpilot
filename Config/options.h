@@ -379,7 +379,7 @@
 
 #ifndef SERIAL_OUTPUT_FORMAT
 //#define SERIAL_OUTPUT_FORMAT                SERIAL_TEST_XTRACK
-#define SERIAL_OUTPUT_FORMAT                SERIAL_UDB_EXTRA
+#define SERIAL_OUTPUT_FORMAT                SERIAL_TEST_ALTITUDE
 #endif
 
 
