@@ -27,10 +27,10 @@
 
 #if (USE_RANGER_INPUT != 0)
 
-int16_t range_to_target;                 // distance to target in centimeters 
-int16_t height_above_ground_cm = 3000;   // calculated distance cm to ground in Earth's Z Plane allowing for tilt
-union longww height_above_ground_meters; // fractional height above ground. Upper Word is meters. Lower word is fraction of a meter.
-static fractional cos_pitch_roll;        // tilt of the plane in UDB fractional units * 2.
+int16_t range_to_target;                   // distance to target in centimeters 
+int16_t height_above_ground_cm = 3000;     // calculated distance cm to ground in Earth's Z Plane allowing for tilt
+union longww height_above_ground_meters32; // fractional height above ground. Upper Word is meters. Lower word is fraction of a meter.
+static fractional cos_pitch_roll;          // tilt of the plane in UDB fractional units * 2.
 
 
 #if ( RANGER_TYPE == RANGER_LIDAR )
@@ -85,7 +85,7 @@ void calculate_height_above_ground_level(void)
         if (height_above_ground_cm < 0 ) height_above_ground_cm = 0;
         udb_flags._.range_valid = true;
 	}
-    height_above_ground_meters.WW = ((int32_t) height_above_ground_cm * 655) + 32768;
+    height_above_ground_meters32.WW = ((int32_t) height_above_ground_cm * 655) + 32768;
 }
 
 #else

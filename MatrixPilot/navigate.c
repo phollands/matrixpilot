@@ -279,10 +279,10 @@ void  navigate_desired_height(int32_t terrain_height_change)
 #if (USE_RANGER_INPUT != 0)      
     if ((settings._.AllowTerrainFollow == 1) && ( desired_behavior._.altitude_agl == 1))
     {
-        if (height._.W1 > (HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING / 100))
+        if (height._.W1 > (HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING_CM / 100))
         {
             height._.W0 = 0;
-            height._.W1 = HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING / 100;
+            height._.W1 = HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING_CM / 100;
         }
         if (height.WW < 0) height.WW = 0; // Height AGL cannot be negative
         desiredHeight32.terrain.WW = height.WW + terrain_height_change;
@@ -292,7 +292,7 @@ void  navigate_desired_height(int32_t terrain_height_change)
     else
     {
         desiredHeight32.origin.WW = height.WW;
-        desiredHeight32.terrain.WW = height_above_ground_meters.WW;
+        desiredHeight32.terrain.WW = height_above_ground_meters32.WW;
         state_flags._.terrain_follow = 0;
     }
 #else

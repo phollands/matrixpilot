@@ -600,7 +600,7 @@ void telemetry_output_8hz(void)
             state_flags._.terrain_follow,
             height_interpolation,
             desiredHeight32.origin._.W1,IMUlocationz._.W1, 
-            desiredHeight32.terrain._.W1,height_above_ground_meters._.W1,
+            desiredHeight32.terrain._.W1,height_above_ground_meters32._.W1,
             height_above_ground_cm,
             pitchAltitudeAdjust,
             elevator_override);

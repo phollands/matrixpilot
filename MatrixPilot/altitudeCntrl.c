@@ -308,7 +308,7 @@ int16_t calculate_elevator_override(int16_t elevInOffset)
 union longww calculate_throttle(int16_t throttleInOffset,int32_t speed_height )
 {
     union longww throttleAccum;
-    union longww heightError = { 0 };
+    union longww heightError32 = { 0 };
     if (throttleInOffset < (int16_t)(THROTTLE_DEADBAND) && udb_flags._.radio_on)
     {
         throttleAccum.WW  = 0;
@@ -319,27 +319,27 @@ union longww calculate_throttle(int16_t throttleInOffset,int32_t speed_height )
         if ( state_flags._.terrain_follow == 0 )
 #endif
         {
-            heightError.WW = - desiredHeight32.origin.WW ;
-            heightError.WW = (heightError.WW + IMUlocationz.WW + speed_height) >> 13;
+            heightError32.WW = - desiredHeight32.origin.WW ;
+            heightError32.WW = (heightError32.WW + IMUlocationz.WW + speed_height) >> 13;
         }
 #if (USE_RANGER_INPUT != 0)
         else
         { 
-            heightError.WW = - desiredHeight32.terrain.WW ;
-            heightError.WW = (heightError.WW + height_above_ground_meters.WW + speed_height) >> 13;
+            heightError32.WW = - desiredHeight32.terrain.WW ;
+            heightError32.WW = (heightError32.WW + height_above_ground_meters32.WW + speed_height) >> 13;
         }
 #endif
-        if (heightError._.W0 < (-(int16_t)(altit.HeightMargin*8.0)))
+        if (heightError32._.W0 < (-(int16_t)(altit.HeightMargin*8.0)))
         {
             throttleAccum.WW = (int16_t)(MAXTHROTTLE);
         }
-        else if (heightError._.W0 > (int16_t)(altit.HeightMargin*8.0))
+        else if (heightError32._.W0 > (int16_t)(altit.HeightMargin*8.0))
         {
             throttleAccum.WW = 0; // Note this is not MINTHROTTLE 
         }
         else
         {
-            throttleAccum.WW = (int16_t)(MAXTHROTTLE) + (__builtin_mulss((int16_t)(THROTTLEHEIGHTGAIN), (-heightError._.W0 - (int16_t)(altit.HeightMargin*8.0))) >> 3);
+            throttleAccum.WW = (int16_t)(MAXTHROTTLE) + (__builtin_mulss((int16_t)(THROTTLEHEIGHTGAIN), (-heightError32._.W0 - (int16_t)(altit.HeightMargin*8.0))) >> 3);
             if (throttleAccum.WW > (int16_t)(MAXTHROTTLE))throttleAccum.WW = (int16_t)(MAXTHROTTLE);
         }
         if (settings._.RacingMode == 1)
@@ -365,7 +365,7 @@ void calculate_desiredHeight(int32_t desiredHeight_increment,int16_t throttleInO
                     {
                         desiredHeight32.origin.WW = IMUlocationz.WW;
 #if (USE_RANGER_INPUT != 0)
-                        desiredHeight32.terrain.WW = height_above_ground_meters.WW +
+                        desiredHeight32.terrain.WW = height_above_ground_meters32.WW +
                                 terrain_height_change;
 #endif
                         previous_height_increment_was_zero = true;
@@ -375,7 +375,7 @@ void calculate_desiredHeight(int32_t desiredHeight_increment,int16_t throttleInO
                 {
                     desiredHeight32.origin.WW = IMUlocationz.WW + desiredHeight_increment;
 #if (USE_RANGER_INPUT != 0)
-                    desiredHeight32.terrain.WW = height_above_ground_meters.WW + \
+                    desiredHeight32.terrain.WW = height_above_ground_meters32.WW + \
                             + terrain_height_change + desiredHeight_increment;
 #endif
                     previous_height_increment_was_zero = false;
@@ -389,18 +389,18 @@ int32_t calculate_terrain_height_change(void)
     static int32_t previous_terrain_height; // Centimeters
     static boolean previous_height_was_valid = false; 
     
-    if (height_above_ground_meters.WW < HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING)
+    if (height_above_ground_cm < HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING_CM)
     {
         if (previous_height_was_valid == true)
         {
-            terrain_height = IMUlocationz.WW  - height_above_ground_meters.WW;
+            terrain_height = IMUlocationz.WW  - height_above_ground_meters32.WW;
             terrain_height_change = terrain_height - previous_terrain_height;
             previous_terrain_height = terrain_height;
             previous_height_was_valid = true;
         }
         else 
         {
-            previous_terrain_height = IMUlocationz.WW  - height_above_ground_meters.WW;
+            previous_terrain_height = IMUlocationz.WW  - height_above_ground_meters32.WW;
             terrain_height_change = 0;
             previous_height_was_valid = true;
         }
@@ -446,11 +446,11 @@ static void normalAltitudeCntrl(void)
     
 	if (state_flags._.altitude_hold_throttle || state_flags._.altitude_hold_pitch)
 	{
+        // calculate terrain height change here if we using Lidar terrain following.
+        // It can then be used in both stabilized and Autonomous flight modes.
+        terrain_height_change = calculate_terrain_height_change();
 		if (state_flags._.GPS_steering)
 		{
-            // calculate terrain height change here if we using Lidar terrain following.
-            // It can then be used in both stabilized and Autonomous flight modes.
-            terrain_height_change = calculate_terrain_height_change();
 			navigate_desired_height(terrain_height_change);
 		}
 		else
@@ -472,11 +472,11 @@ static void normalAltitudeCntrl(void)
 #if (USE_RANGER_INPUT > 0)
                 if (settings._.AllowTerrainFollow == 1)
                 {
-                    if (height_above_ground_cm <  HEIGHT_AGL_TO_START_TERRAIN_FOLLOWING)
+                    if (height_above_ground_cm <  HEIGHT_AGL_TO_START_TERRAIN_FOLLOWING_CM)
                     {
                         state_flags._.terrain_follow = 1;
                     }
-                    else if (height_above_ground_cm >  HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING)
+                    else if (height_above_ground_cm >  HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING_CM)
                     {
                         state_flags._.terrain_follow = 0;
                     }
@@ -515,7 +515,7 @@ static void normalAltitudeCntrl(void)
         else
         {
             heightError.WW = - desiredHeight32.terrain.WW ;
-            heightError.WW = (heightError.WW + height_above_ground_meters.WW) >> 13;
+            heightError.WW = (heightError.WW + height_above_ground_meters32.WW) >> 13;
         }
 #endif
         if (heightError._.W0 < (- (int16_t)(altit.HeightMargin*8.0)))
