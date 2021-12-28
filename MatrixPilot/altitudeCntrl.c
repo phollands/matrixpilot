@@ -356,30 +356,57 @@ union longww calculate_throttle(int16_t throttleInOffset,int32_t speed_height )
 
 void calculate_desiredHeight(int32_t desiredHeight_increment,int16_t throttleInOffset)
 {
-        static boolean previous_height_increment_was_zero = true;
-        
-        if (desiredHeight_increment == 0)
-                {
-                    if (previous_height_increment_was_zero == false)
-                    // Pilot just put the elevator control to neutral
-                    {
-                        desiredHeight32.origin.WW = IMUlocationz.WW;
+    static boolean previous_height_increment_was_zero = true;
+    static boolean first_time_terrain_height_follow = true;
+    static boolean first_time_origin_height_follow = true;
+
+    if (desiredHeight_increment == 0)
+    {
+        if (previous_height_increment_was_zero == false)
+        // Pilot has just put the elevator control to neutral
+        {
+            desiredHeight32.origin.WW = IMUlocationz.WW;
 #if (USE_RANGER_INPUT != 0)
-                        desiredHeight32.terrain.WW = height_above_ground_meters32.WW +
-                                terrain_height_change;
+            if (udb_flags._.range_valid == true) desiredHeight32.terrain.WW = height_above_ground_meters32.WW +
+                    terrain_height_change;
 #endif
-                        previous_height_increment_was_zero = true;
-                    }   
+            previous_height_increment_was_zero = true;
+        } 
+        else
+        {
+            // A bunch of logic required here for when terrain / origin mode changes
+            // when running into a hill or off of a hill and no operator changes requested
+            if (state_flags._.terrain_follow == true)
+            {
+                if (first_time_terrain_height_follow == true)
+                {
+                    desiredHeight32.terrain.WW = height_above_ground_meters32.WW + terrain_height_change;
+                    first_time_terrain_height_follow = false;
                 }
-                else // Pilot requests change in height
+                desiredHeight32.origin.WW = IMUlocationz.WW;
+                first_time_origin_height_follow = true;
+            }
+            else 
+            {
+                if (first_time_origin_height_follow == true)
                 {
-                    desiredHeight32.origin.WW = IMUlocationz.WW + desiredHeight_increment;
+                    desiredHeight32.origin.WW = IMUlocationz.WW;
+                    first_time_origin_height_follow = false;
+                }
+                desiredHeight32.terrain.WW = height_above_ground_meters32.WW + terrain_height_change;
+                first_time_terrain_height_follow = true;
+            }
+        }
+    }
+    else // Pilot requests change in height using elevator stick
+    {
+        desiredHeight32.origin.WW = IMUlocationz.WW + desiredHeight_increment;
 #if (USE_RANGER_INPUT != 0)
-                    desiredHeight32.terrain.WW = height_above_ground_meters32.WW + \
-                            + terrain_height_change + desiredHeight_increment;
+        desiredHeight32.terrain.WW = height_above_ground_meters32.WW + \
+                + terrain_height_change + desiredHeight_increment;
 #endif
-                    previous_height_increment_was_zero = false;
-                }   
+        previous_height_increment_was_zero = false;
+    }   
 }
 
 int32_t calculate_terrain_height_change(void)
@@ -424,6 +451,8 @@ static void normalAltitudeCntrl(void)
 
 	int32_t speed_height;
     int16_t elevInOffset;
+    
+
     
     elevator_override = 0;
 	speed_height = excess_energy_height(); // equivalent height of the airspeed
@@ -472,24 +501,28 @@ static void normalAltitudeCntrl(void)
 #if (USE_RANGER_INPUT > 0)
                 if (settings._.AllowTerrainFollow == 1)
                 {
-                    if (height_above_ground_cm <  HEIGHT_AGL_TO_START_TERRAIN_FOLLOWING_CM)
+                    if (height_above_ground_cm <  HEIGHT_AGL_TO_START_TERRAIN_FOLLOWING_CM &&
+                            udb_flags._.range_valid == true)
                     {
-                        state_flags._.terrain_follow = 1;
+                        state_flags._.terrain_follow = true;
                     }
-                    else if (height_above_ground_cm >  HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING_CM)
+                    else if ((height_above_ground_cm >  HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING_CM) ||
+                            (udb_flags._.range_valid == false))
                     {
-                        state_flags._.terrain_follow = 0;
+                        state_flags._.terrain_follow = false;
                     }
                     else
                     {
-                        // No Change required. Deliberate gap to create hysteresis 
+                        // // No Change required. Deliberate gap between start and stop heights to create hysteresis
                     }
                 }
 #endif
                 // Use elevator stick to control desired height.
                 elevInOffset = get_elevInOffset();
                 desiredHeight_increment = incremental_height_from_elevator_control(elevInOffset);
-                elevator_override = calculate_elevator_override(elevInOffset);        
+                // about half the elevator stick reserved for emergency direct elevator override of FBW height.
+                elevator_override = calculate_elevator_override(elevInOffset);
+                // Key routine to calculate desiredHeight32.origin and .terrain
                 calculate_desiredHeight(desiredHeight_increment, throttleInOffset);
             }
             if (desiredHeight32.origin._.W1 < (int16_t)(altit.HeightTargetMin))
