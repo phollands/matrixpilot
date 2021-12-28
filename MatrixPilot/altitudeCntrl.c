@@ -354,7 +354,7 @@ union longww calculate_throttle(int16_t throttleInOffset,int32_t speed_height )
 }
 
 
-void calculate_desiredHeight(int32_t desiredHeight_increment,int16_t throttleInOffset)
+void calculate_desiredHeight(int32_t desiredHeight_increment)
 {
     static boolean previous_height_increment_was_zero = true;
     static boolean first_time_terrain_height_follow = true;
@@ -523,7 +523,7 @@ static void normalAltitudeCntrl(void)
                 // about half the elevator stick reserved for emergency direct elevator override of FBW height.
                 elevator_override = calculate_elevator_override(elevInOffset);
                 // Key routine to calculate desiredHeight32.origin and .terrain
-                calculate_desiredHeight(desiredHeight_increment, throttleInOffset);
+                calculate_desiredHeight(desiredHeight_increment);
             }
             if (desiredHeight32.origin._.W1 < (int16_t)(altit.HeightTargetMin))
                     desiredHeight32.origin._.W1 = (int16_t)(altit.HeightTargetMin);
