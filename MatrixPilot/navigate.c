@@ -261,7 +261,7 @@ static int16_t compute_progress_to_goal(int16_t totalDist, int16_t remainingDist
 	return progress;
 }
 
-void  navigate_desired_height(int32_t terrain_height_change)
+void  navigate_desired_height(void)
 {
 	union longww height;
     if ((height_interpolation == false) || (desired_behavior._.takeoff || desired_behavior._.altitude))
@@ -285,7 +285,7 @@ void  navigate_desired_height(int32_t terrain_height_change)
             height._.W1 = HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING_CM / 100;
         }
         if (height.WW < 0) height.WW = 0; // Height AGL cannot be negative
-        desiredHeight32.terrain.WW = height.WW + terrain_height_change;
+        desiredHeight32.terrain.WW = height.WW;
         desiredHeight32.origin.WW = IMUlocationz.WW;
         state_flags._.terrain_follow = 1;
     }

@@ -367,8 +367,7 @@ void calculate_desiredHeight(int32_t desiredHeight_increment)
         {
             desiredHeight32.origin.WW = IMUlocationz.WW;
 #if (USE_RANGER_INPUT != 0)
-            if (udb_flags._.range_valid == true) desiredHeight32.terrain.WW = height_above_ground_meters32.WW +
-                    terrain_height_change;
+            if (udb_flags._.range_valid == true) desiredHeight32.terrain.WW = height_above_ground_meters32.WW;
 #endif
             previous_height_increment_was_zero = true;
         } 
@@ -380,7 +379,7 @@ void calculate_desiredHeight(int32_t desiredHeight_increment)
             {
                 if (first_time_terrain_height_follow == true)
                 {
-                    desiredHeight32.terrain.WW = height_above_ground_meters32.WW + terrain_height_change;
+                    desiredHeight32.terrain.WW = height_above_ground_meters32.WW;
                     first_time_terrain_height_follow = false;
                 }
                 desiredHeight32.origin.WW = IMUlocationz.WW;
@@ -393,7 +392,7 @@ void calculate_desiredHeight(int32_t desiredHeight_increment)
                     desiredHeight32.origin.WW = IMUlocationz.WW;
                     first_time_origin_height_follow = false;
                 }
-                desiredHeight32.terrain.WW = height_above_ground_meters32.WW + terrain_height_change;
+                desiredHeight32.terrain.WW = height_above_ground_meters32.WW;;
                 first_time_terrain_height_follow = true;
             }
         }
@@ -403,7 +402,7 @@ void calculate_desiredHeight(int32_t desiredHeight_increment)
         desiredHeight32.origin.WW = IMUlocationz.WW + desiredHeight_increment;
 #if (USE_RANGER_INPUT != 0)
         desiredHeight32.terrain.WW = height_above_ground_meters32.WW + \
-                + terrain_height_change + desiredHeight_increment;
+                 desiredHeight_increment;
 #endif
         previous_height_increment_was_zero = false;
     }   
@@ -480,7 +479,7 @@ static void normalAltitudeCntrl(void)
         terrain_height_change = calculate_terrain_height_change();
 		if (state_flags._.GPS_steering)
 		{
-			navigate_desired_height(terrain_height_change);
+			navigate_desired_height();
 		}
 		else
 		{
@@ -547,7 +546,7 @@ static void normalAltitudeCntrl(void)
 #if (USE_RANGER_INPUT != 0)
         else
         {
-            heightError.WW = - desiredHeight32.terrain.WW ;
+            heightError.WW = - desiredHeight32.terrain.WW - terrain_height_change;
             heightError.WW = (heightError.WW + height_above_ground_meters32.WW) >> 13;
         }
 #endif
