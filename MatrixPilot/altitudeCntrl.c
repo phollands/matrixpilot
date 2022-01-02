@@ -325,7 +325,7 @@ union longww calculate_throttle(int16_t throttleInOffset,int32_t speed_height )
 #if (USE_RANGER_INPUT != 0)
         else
         { 
-            heightError32.WW = - desiredHeight32.terrain.WW ;
+            heightError32.WW = - desiredHeight32.terrain.WW - terrain_height_change;
             heightError32.WW = (heightError32.WW + height_above_ground_meters32.WW + speed_height) >> 13;
         }
 #endif
@@ -410,9 +410,9 @@ void calculate_desiredHeight(int32_t desiredHeight_increment)
 
 int32_t calculate_terrain_height_change(void)
 {
-    int32_t terrain_height;                 // Centimeters
-    int32_t terrain_height_change;          // Centimeters
-    static int32_t previous_terrain_height; // Centimeters
+    int32_t terrain_height;                 // High 16 bits are meters. Low 32 bit Fractional.
+    int32_t terrain_height_change;          // High 16 bits are meters. Low 32 bit Fractional.
+    static int32_t previous_terrain_height; // High 16 bits are meters. Low 32 bit Fractional.
     static boolean previous_height_was_valid = false; 
     
     if (height_above_ground_cm < HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING_CM)
