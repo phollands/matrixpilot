@@ -283,21 +283,30 @@ void  navigate_desired_height(void)
 #if (USE_RANGER_INPUT != 0)      
     if ((settings._.AllowTerrainFollow == 1) && ( desired_behavior._.altitude_agl == 1))
     {
-        if (height._.W1 > (HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING_CM / 100))
+        if (height._.W1 > (HEIGHT_AGL_TO_START_TERRAIN_FOLLOWING_CM / 100))
         {
             height._.W0 = 0;
-            height._.W1 = HEIGHT_AGL_TO_STOP_TERRAIN_FOLLOWING_CM / 100;
+            height._.W1 = HEIGHT_AGL_TO_START_TERRAIN_FOLLOWING_CM / 100;
         }
-        if (height.WW < 0) height.WW = 0; // Height AGL cannot be negative
+        if (height.WW < 0) height.WW = 0; // Terran height cannot be negative (Unless we can go underwater)
+        
         desiredHeight32.terrain.WW = height.WW;
         desiredHeight32.origin.WW = IMUlocationz.WW;
-        state_flags._.terrain_follow = 1;
+        if (udb_flags._.range_invalid_bank_angle == false)
+        {
+
+            state_flags._.terrain_follow = true;
+        }
+        else // Angle of bank too steep for Lidar Ranging hold height using GPS
+        {
+            state_flags._.terrain_follow = false;
+        }
     }
     else
     {
         desiredHeight32.origin.WW = height.WW;
         desiredHeight32.terrain.WW = height_above_ground_meters32.WW;
-        state_flags._.terrain_follow = 0;
+        state_flags._.terrain_follow = false;
     }
 #else
     desiredHeight32.origin.WW = height.WW;

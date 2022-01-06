@@ -72,11 +72,13 @@ void calculate_height_above_ground_level(void)
 	{
 		height_above_ground_cm = OUT_OF_RANGE_DISTANCE;
         udb_flags._.range_valid = false;
+        udb_flags._.range_invalid_bank_angle = true;
 	}
 	else if (range_to_target > USEABLE_RANGER_DISTANCE) // Limit range slightly to prevent sporadic validity
 	{
 		height_above_ground_cm = OUT_OF_RANGE_DISTANCE;
         udb_flags._.range_valid = false;
+        udb_flags._.range_invalid_bank_angle = false;
 	}
 	else
 	{
@@ -84,6 +86,7 @@ void calculate_height_above_ground_level(void)
 		height_above_ground_cm = accum._.W1;
         if (height_above_ground_cm < 0 ) height_above_ground_cm = 0;
         udb_flags._.range_valid = true;
+        udb_flags._.range_invalid_bank_angle = false;
 	}
     height_above_ground_meters32.WW = ((int32_t) height_above_ground_cm * 655) + 32768;
 }
